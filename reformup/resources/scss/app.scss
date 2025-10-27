@@ -1,0 +1,77 @@
+// Paleta ReformUp 2025 - VERDES y básicos
+$primary:    #718355;    // verde oscuro, ideal para nav, footer, botones principales
+$secondary:  #B5C99A;    // verde intermedio, uso en detalles y secciones alternas
+$light:      #E9F5DB;    // verde claro, para fondo general y tarjetas limpias
+$white:      #FFFFFF;    // fondo base y textos en fondos oscuros
+$black:      #000000;    // texto principal y títulos sobre fondos claros
+
+// Tipografía base (Inter o similar en layout principal)
+$font-family-sans-serif: "Inter", "Segoe UI", Arial, "Helvetica Neue", sans-serif !default;
+
+// Sobrescribe variables de Bootstrap para adaptar botones, links y fondo de Bootstrap
+$body-bg:        $light;
+$body-color:     $black;
+$navbar-bg:      $primary;
+$navbar-color:   $white;
+$footer-bg:      $primary;
+$footer-color:   $white;
+$card-bg:        $white;
+$card-color:     $black;
+
+// Botones personalizados para ReformUp
+$btn-primary-bg:      $primary;
+$btn-primary-color:   $white;
+$btn-secondary-bg:    $secondary;
+$btn-secondary-color: $black;
+
+// Importar Bootstrap después de todas las sobrescrituras
+@import "bootstrap/scss/bootstrap";
+
+// Estilos globales 
+body {
+  background-color: $body-bg;
+  color: $body-color;
+  font-family: $font-family-sans-serif;
+}
+
+.navbar, .footer {
+  background-color: $navbar-bg;
+  color: $navbar-color;
+}
+
+.card {
+  background-color: $card-bg;
+  color: $card-color;
+  border-radius: 1rem;
+  box-shadow: 0 2px 12px rgba($primary, .05);
+}
+
+h1, h2, h3 {
+  color: $black;
+  font-weight: bold;
+}
+
+.btn-primary {
+  background-color: $btn-primary-bg;
+  color: $btn-primary-color;
+  border: none;
+  &:hover, &:focus {
+    background-color: darken($primary, 8%);
+  }
+}
+
+.btn-secondary {
+  background-color: $btn-secondary-bg;
+  color: $btn-secondary-color;
+  border: none;
+  &:hover, &:focus {
+    background-color: darken($secondary, 12%);
+  }
+}
+
+// Footer estilizado (puedes usar un componente blade o simple div)
+.footer {
+  padding: 2rem 0;
+  font-size: 0.9rem;
+  a { color: $white; text-decoration: underline; }
+}
