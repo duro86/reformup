@@ -73,29 +73,68 @@ h1.destacado {
   z-index: 2;
 }
 
+// Navbar Personalizado
+.navbar {
+  background-color: $white;
+  color: $primary;
 
-// Navbar custom
-.custom-navbar {
-  background: $white;
-  margin-bottom: 0 !important;
-  padding-bottom: 0 !important;
-  border-bottom: 2px solid $primary;
+  // El logo y texto marca en verde oscuro
+  .navbar-brand,
+  .navbar-brand img {
+    color: $primary;
+    font-weight: bold;
+  }
+
+  // Enlaces en verde oscuro
+  .nav-link {
+    color: $primary !important;
+    font-size: 1.15rem;
+
+    position: relative;
+    text-decoration: none; // sin subrayado
+
+    &:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px; // grosor línea
+      left: 0;
+      bottom: -4px; // espacio debajo del texto
+      background-color: darken($primary, 20%); // línea más oscura
+      transition: width 0.3s ease;
+    }
+
+    &:hover:after,
+    &.active:after,
+    &:focus:after {
+      width: 100%;
+    }
+
+    // Media query para pantallas móviles (por debajo de 768px)
+    @media (max-width: 767.98px) {
+      &:hover:after,
+      &.active:after,
+      &:focus:after {
+        width: 50%;
+      }
+    }
+
+    &:hover,
+    &.active,
+    &:focus {
+      color: darken($primary, 15%) !important; // texto algo más oscuro que normal
+      font-weight: bold;
+      background-color: transparent;
+      // sin text-decoration ni subrayado
+    }
+  }
 }
 
-.navbar-brand,
-.nav-link {
-  color: $primary !important;
-}
-
-.navbar-brand {
-  font-weight: bold;
-  letter-spacing: 0.5px;
-}
-
-.navbar-nav .nav-link.active,
-.navbar-nav .nav-link:focus,
-.navbar-nav .nav-link:hover {
-  color: $secondary !important;
+//Márgenes personalizados(btn entrar)
+@media (max-width: 575.98px) {
+  .mb-sm-3 {
+    margin-bottom: 1rem !important; /* fuerza margen solo para móviles */
+  }
 }
 
 .btn-primary,

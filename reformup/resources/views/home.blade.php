@@ -1,26 +1,10 @@
 @extends('layouts.main')
-@section('title', 'Encuentra profesionales de confianza')
+@section('title', 'ReformUp')
 
 @section('content')
 
   {{-- NAVBAR simple --}}
-  <nav class="navbar navbar-expand-lg navbar-light bg-light">
-  <div class="container">
-    <a class="navbar-brand" href="#">
-      <img src="{{ asset('img/logoPNGReformupNuevo.svg') }}" alt="ReformUp Logo" height="90" class="me-2">
-    </a>
-    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navMenu">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navMenu">
-      <ul class="navbar-nav ms-auto">
-        <li class="nav-item"><a class="nav-link" href="#">Enlace 1</a></li>
-        <li class="nav-item"><a class="nav-link" href="#">Enlace 2</a></li>
-      </ul>
-    </div>
-  </div>
-</nav>
-
+  <x-navbar />
 
   {{-- HERO con imagen de prueba --}}
   <section class="hero text-center">
@@ -53,7 +37,7 @@
     </div>
   </section>
 
-  {{-- texto adicional principal --}}
+  {{-- Paso a Paso / Como Funciona --}}
   <section class="container my-5 justify-center text-center">
     <h1 class="mb-3 destacado">Tu reforma, paso a paso</h1>
     <p >Regístrate, elige tu perfil (cliente o profesional) y cuéntanos qué necesitas. <p class="mb-5"><b>Acepta la mejor propuesta para crear el trabajo y, al finalizar, deja tu valoración.</b><br>Transparencia, rapidez y profesionales verificados.</p>
