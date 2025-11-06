@@ -9,6 +9,8 @@ class Solicitud extends Model
 {
     //Modelo para Solicitudes
     use SoftDeletes;
+
+    protected $table = 'solicitudes';
     /**
          * Atributos que se pueden asignar de forma masiva (mas asignable).
          * 

@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Medio extends Model
 {
+
+    protected $table = 'perfiles_profesionales';
     /**
      * Atributos que se pueden asignar de forma masiva (mass assignable).
      * 

@@ -9,6 +9,8 @@ class Presupuesto extends Model
 {
     use SoftDeletes;
 
+    protected $table = 'presupuestos';
+
     /**
          * Atributos que se pueden asignar de forma masiva (mas asignable).
          * 

@@ -10,6 +10,8 @@ class Perfil_Profesional extends Model
     //Modelo para Perfiles Profesionales
     use SoftDeletes;
 
+    protected $table = 'perfiles_profesionales';
+
     /**
          * Atributos que se pueden asignar de forma masiva (mas asignable).
          * 

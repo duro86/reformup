@@ -10,6 +10,8 @@ class Trabajo extends Model
     //
     use SoftDeletes;
 
+    protected $table = 'trabajos';
+
     /**
          * Atributos que se pueden asignar de forma masiva (mass assignable).
          * 

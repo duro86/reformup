@@ -6,6 +6,8 @@ use Illuminate\Database\Eloquent\Model;
 
 class Oficio extends Model
 {
+
+    protected $table = 'oficios';
     /**
      * Modelo Oficio
      * 

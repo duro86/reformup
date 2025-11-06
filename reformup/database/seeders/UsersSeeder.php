@@ -26,6 +26,16 @@ class UsersSeeder extends Seeder
             'telefono' => '987654321',
             'ciudad' => 'Sevilla',
         ]);
+
+        //Usuario a borrar profesional para pruebas
+        User::create([
+            'nombre' => 'Alvaro',
+            'apellidos' => 'Gomez',
+            'email' => 'alvaro@email.com',
+            'password' => bcrypt('123'),
+            'telefono' => '987654321',
+            'ciudad' => 'Sevilla',
+        ]);
     }
 }
 
