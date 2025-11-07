@@ -31,5 +31,7 @@
  {{-- @include('layouts.partials.navbar')    placeholder vacío por ahora --}}
   <main>@yield('content')</main>
  {{-- @include('layouts.partials.footer')   {{-- placeholder vacío por ahora --}}
+ {{-- Alerta de éxito con SweetAlert2 --}}
+<x-alertas_sweet />
 </body>
 </html>

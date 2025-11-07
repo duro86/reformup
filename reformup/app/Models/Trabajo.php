@@ -5,6 +5,8 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Models\Presupuesto;
+use App\Models\Comentario;
+use App\Models\Medio;
 
 class Trabajo extends Model
 {

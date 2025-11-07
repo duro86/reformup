@@ -8,6 +8,8 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Spatie\Permission\Traits\HasRoles;
 use App\Models\Perfil_Profesional;
+use App\Models\Solicitud;
+use App\Models\Comentario;
 
 class User extends Authenticatable
 {

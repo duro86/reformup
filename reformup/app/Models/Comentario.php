@@ -10,6 +10,8 @@ class Comentario extends Model
     //
     use SoftDeletes;
 
+    protected $table = 'comentarios';
+
     /**
      * Atributos que se pueden asignar de forma masiva (mass assignable).
      * 

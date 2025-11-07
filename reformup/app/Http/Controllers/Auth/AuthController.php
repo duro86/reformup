@@ -27,11 +27,13 @@ class AuthController extends Controller
             'ciudad' => ['nullable','string', 'max:100'],
             'provincia' => ['nullable','string', 'max:100'],
             'direccion' => ['nullable','string', 'max:255'],
-            'avatar' => ['nullable', 'string', 'max:255'],
+            'avatar' => ['nullable', 'image', 'max:2048'] // 2MB máximo
         ], [
             'nombre.required' => 'El nombre es obligatorio',
+            'nombre.string' => 'El nombre debe ser una cadena de texto',
             'nombre.max' => 'El nombre no puede tener más de 50 caracteres',
             'apellidos.required' => 'Los apellidos son obligatorios',
+            'apellidos.string' => 'Los apellidos deben ser una cadena de texto',
             'apellidos.max' => 'Los apellidos no pueden tener más de 100 caracteres',
             'email.required' => 'El correo electrónico es obligatorio',
             'email.email' => 'El formato del correo electrónico no es válido',
@@ -42,11 +44,14 @@ class AuthController extends Controller
             'telefono.required' => 'El teléfono es obligatorio',
             'telefono.regex' => 'El formato del teléfono no es válido (debe ser un número español)',
             'ciudad.max' => 'La ciudad no puede tener más de 100 caracteres',
+            'ciudad.string' => 'La ciudad debe ser una cadena de texto',
             'provincia.max' => 'La provincia no puede tener más de 100 caracteres',
+            'provincia.string' => 'La provincia debe ser una cadena de texto',
             'cp' => ['regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'], // Códigos postales españoles
             'cp.regex' => 'El código postal no es válido (debe ser un código postal español)',
             'direccion.max' => 'La dirección no puede tener más de 255 caracteres',
-            'avatar.max' => 'La ruta del avatar no puede tener más de 255 caracteres',
+            'avatar.max' => 'La imagen del avatar no puede superar los 2MB',
+            'avatar.image' => 'El avatar debe ser una imagen'
         ]);
 
 
@@ -70,11 +75,11 @@ class AuthController extends Controller
             'provincia' => $request->provincia,
             'cp' => $request->cp,
             'direccion' => $request->direccion,
-            'avatar' => $request->avatarPath
+            'avatar' => $avatarPath
         ]);
 
 
-        $user->assignRole('cliente'); // Usando Spatie asigando el rol de cliente
+        $user->assignRole('usuario'); // Usando Spatie asigando el rol de usuario
 
         // Volver a la página de inicio con un mensaje de éxito
         return redirect()->route('home')->with('success', 'Registro completado correctamente');

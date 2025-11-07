@@ -94,7 +94,7 @@
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Teléfono<span class="text-danger">*</label>
-                                <input type="text" name="telefono" value="{{ old('telefono') }}"
+                                <input type="text" placeholder="612345678" name="telefono" value="{{ old('telefono') }}"
                                     class="form-control @error('telefono') is-invalid @enderror">
                                 @error('telefono')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -123,7 +123,7 @@
 
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Código postal <span class="text-danger"></span></label>
-                                <input type="text" name="cp" value="{{ old('cp') }}"
+                                <input type="text" name="cp" placeholder="21004" value="{{ old('cp') }}"
                                     class="form-control @error('cp') is-invalid @enderror" maxlength="5">
                                 @error('cp')
                                     <div class="invalid-feedback">{{ $message }}</div>
@@ -133,7 +133,7 @@
 
                         <div class="mb-3">
                             <label class="form-label">Dirección</label>
-                            <input type="text" name="direccion" value="{{ old('direccion') }}"
+                            <input type="text" name="direccion" placeholder="Avd/Cabezo de la Joya 3, escalera 3, 4ºA" value="{{ old('direccion') }}"
                                 class="form-control @error('direccion') is-invalid @enderror">
                             @error('direccion')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -170,6 +170,4 @@
 
 @endsection
 
-{{-- Alerta de éxito con SweetAlert2 --}}
-<x-alertas_sweet />
 
