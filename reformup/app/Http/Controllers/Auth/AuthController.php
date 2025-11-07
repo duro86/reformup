@@ -16,15 +16,17 @@ class AuthController extends Controller
 
     public function registrarCliente(Request $request)
     {
+
+        // Validación de los datos del formulario de registro
         $request->validate([
             'nombre' => ['required', 'string', 'max:50'],
             'apellidos' => ['required', 'string', 'max:100'],
             'email' => ['required', 'email:rfc,dns', 'unique:users'],
             'password' => ['required', 'confirmed', 'min:6'],
-            'telefono' => ['required', 'regex:/^(?:(?:\+|00)34|34)?[6789]\d{8}$/'],
-            'ciudad' => ['required', 'string', 'max:100'],
-            'provincia' => ['required', 'string', 'max:100'],
-            'direccion' => ['required', 'string', 'max:255'],
+            'telefono' => ['required', 'regex:/^[6789]\d{8}$/'],
+            'ciudad' => ['nullable','string', 'max:100'],
+            'provincia' => ['nullable','string', 'max:100'],
+            'direccion' => ['nullable','string', 'max:255'],
             'avatar' => ['nullable', 'string', 'max:255'],
         ], [
             'nombre.required' => 'El nombre es obligatorio',
@@ -39,15 +41,25 @@ class AuthController extends Controller
             'password.min' => 'La contraseña debe tener al menos 6 caracteres',
             'telefono.required' => 'El teléfono es obligatorio',
             'telefono.regex' => 'El formato del teléfono no es válido (debe ser un número español)',
-            'ciudad.required' => 'La ciudad es obligatoria',
             'ciudad.max' => 'La ciudad no puede tener más de 100 caracteres',
-            'provincia.required' => 'La provincia es obligatoria',
             'provincia.max' => 'La provincia no puede tener más de 100 caracteres',
-            'direccion.required' => 'La dirección es obligatoria',
+            'cp' => ['regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'], // Códigos postales españoles
+            'cp.regex' => 'El código postal no es válido (debe ser un código postal español)',
             'direccion.max' => 'La dirección no puede tener más de 255 caracteres',
             'avatar.max' => 'La ruta del avatar no puede tener más de 255 caracteres',
         ]);
 
+
+        // Gestion Avatar imagen
+        if ($request->hasFile('avatar')) {
+            $avatarName = time() . '_' . $request->file('avatar')->getClientOriginalName();
+            $request->file('avatar')->move(public_path('img/avatarUser'), $avatarName);
+            $avatarPath = 'img/avatarUser/' . $avatarName;
+        } else {
+            $avatarPath = 'img/avatarUser/avatar_default.webp';
+        }
+
+        // Insertamos en la tabla users y asignamos el rol de cliente
         $user = User::create([
             'nombre' => $request->nombre,
             'apellidos' => $request->apellidos,
@@ -56,23 +68,15 @@ class AuthController extends Controller
             'telefono' => $request->telefono,
             'ciudad' => $request->ciudad,
             'provincia' => $request->provincia,
+            'cp' => $request->cp,
             'direccion' => $request->direccion,
-            'avatar' => $request->avatar ?? 'avatars/default.png', // Avatar por defecto si no se proporciona uno
+            'avatar' => $request->avatarPath
         ]);
 
-        $user = User::create([
-            'nombre' => $request->nombre,
-            'email' => $request->email,
-            'telefono' => $request->telefono,
-            'ciudad' => $request->ciudad,
-            'estado' => $request->estado,
-            'password' => bcrypt($request->password),
-        ]);
 
         $user->assignRole('cliente'); // Usando Spatie asigando el rol de cliente
 
         // Volver a la página de inicio con un mensaje de éxito
-
         return redirect()->route('home')->with('success', 'Registro completado correctamente');
     }
 }
