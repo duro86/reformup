@@ -25,7 +25,7 @@
 
                     {{-- Imagen centrada y responsive justo debajo de la lista --}}
                     <div class="text-center mt-3">
-                        <img src="{{ asset('img/panel/panel_registro_user.png') }}" alt="Reformas" class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
+                        <img src="{{ asset('img/User/panel_registro/panel_registro_user.png') }}" alt="Reformas" class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
                     </div>                    
                 </div>
             </div>

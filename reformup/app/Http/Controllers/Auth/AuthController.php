@@ -56,4 +56,6 @@ class AuthController extends Controller
         // Volver a la página de inicio con un mensaje de éxito
         return redirect()->route('home')->with('success', 'Registro completado correctamente');
     }
+
+    
 }
