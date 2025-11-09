@@ -161,13 +161,10 @@
         </div>
     </div>
 
-    {{-- Footer básico --}}
-    <footer class="bg-primary text-center py-3 border-top text-white">
-        <div class="container">
-            <small>© {{ date('Y') }} ReformUp. Todos los derechos reservados.</small>
-        </div>
-    </footer>
+    {{-- Footer  --}}
+    <x-footer />
 
 @endsection
+
 
 

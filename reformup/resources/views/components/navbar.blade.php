@@ -47,7 +47,7 @@
             {{-- DERECHA: entrar + registro --}}
             <ul class="navbar-nav ms-auto align-items-lg-center">
                 <li class="nav-item mb-sm-3 mb-lg-0">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link" href="{{ route('login') }}" >
                         Entrar
                     </a>
                 </li>

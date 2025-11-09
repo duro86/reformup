@@ -185,12 +185,10 @@
     @endif
 
 
-    <footer class="bg-primary text-center py-3 border-top text-white mt-5">
-        <div class="container">
-            <small>© {{ date('Y') }} ReformUp. Todos los derechos reservados.</small>
-        </div>
-    </footer>
+    {{-- Footer  --}}
+    <x-footer />
 
 @endsection
+
 {{-- Alerta de éxito con SweetAlert2 --}}
 <x-alertas_sweet />

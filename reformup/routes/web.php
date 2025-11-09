@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
+use App\Http\Controllers\Auth\LoginController;
 
 Route::get('/', function () {
     return view('home');
@@ -22,3 +23,13 @@ Route::post('/registro/profesional/empresa', [AuthProController::class, 'registr
 
 Route::get('/validarUsuario', [AuthProController::class, 'mostrarValidarUsuario'])->name('validar.usuario');
 Route::post('/validarUsuario', [AuthProController::class, 'validarUsuario'])->name('validar.usuario.post');
+
+//Login 
+// Mostrar formulario login
+Route::get('/login', [LoginController::class, 'mostrarLoginForm'])->name('login');
+
+// Procesar login
+Route::post('/login', [LoginController::class, 'login'])->name('login.post');
+
+// Salir / logout
+Route::post('/logout', [LoginController::class, 'logout'])->name('logout');

@@ -180,19 +180,29 @@ h1.destacado {
   &:hover, &:focus {
     background-color: darken($secondary, 12%);
   }
-}
+  }
 
   // Footer estilizado 
   /* Tu clase para el footer */
-  .footer-bg {
+.footer-bg {
       background-color: $primary;
-  }
-  .footer-link {
+}
+.footer-link {
       color: #bec2cf;
       text-decoration: none;
-  }
-  .footer-link:hover {
+}
+.footer-link:hover {
       color: #fff;
       text-decoration: underline;
-  }
+}
+
+.login-panel {
+    height: 100vh;      /* Ocupa toda la altura visible */
+    width: 100%;
+    object-fit: cover;  /* Escala y recorta para llenar el contenedor */
+    margin-left: 1rem;  /* Solo separación a izquierda */
+    margin-top: 0;
+    margin-bottom: 0;
+    padding: 0;
+}
 
