@@ -20,3 +20,14 @@
         });
     </script>
 @endif
+
+@if(session('info'))
+    <script>
+        Swal.fire({
+            title: 'Información',
+            text: @json(session('info')),
+            icon: 'info',
+            confirmButtonText: 'Aceptar'
+        });
+    </script>
+@endif

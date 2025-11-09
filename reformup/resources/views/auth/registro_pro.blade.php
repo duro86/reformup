@@ -39,9 +39,10 @@
 
                         {{-- Soy Usuario --}}
                         <div class="text-center">
-                            <button type="button" class="btn btn-outline-primary mb-3 mb-sm-3 mt-sm-3">
+                            <a href="{{ route('validar.usuario') }}" class="btn btn-outline-primary mb-3 mb-sm-3 mt-sm-3">
                                 <i class="bi bi-person-circle me-2"></i> Soy Usuario
-                            </button>
+                            </a>
+
                             <div>
                                 <img src="{{ asset('img/Profesional/user_pro/soy_user_pro.jpg') }}" alt="Soy Usuario"
                                     class="img-fluid rounded mb-sm-3" style="max-width: 300px;">
@@ -59,6 +60,7 @@
                                     class="img-fluid rounded mb-sm-3" style="max-width: 300px;">
                             </div>
                         </div>
+
 
                     </div>
 

@@ -19,3 +19,6 @@ Route::post('/registrar/profesional', [AuthProController::class, 'registrarClien
 
 Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarFromProEmpresa'])->name('registro.pro.empresa');
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
+
+Route::get('/validarUsuario', [AuthProController::class, 'mostrarValidarUsuario'])->name('validar.usuario');
+Route::post('/validarUsuario', [AuthProController::class, 'validarUsuario'])->name('validar.usuario.post');

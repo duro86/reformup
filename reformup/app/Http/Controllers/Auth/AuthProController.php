@@ -7,6 +7,10 @@ use App\Models\Perfil_Profesional;
 use App\Models\Oficio;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait
+
 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -26,7 +30,7 @@ class AuthProController extends Controller
     public function mostrarFromProEmpresa()
     {
         $userId = session('user_id'); // Aquí obtenemos el id desde la sesión
-        $oficios = Oficio::orderBy('nombre')->get(['id','nombre','slug']); // escalable
+        $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre', 'slug']); // escalable
         return view('auth.registro_pro_empresa', compact('userId', 'oficios'));
     }
 
@@ -196,7 +200,7 @@ class AuthProController extends Controller
 
 
         // Guardar empresa asociada a user_id
-        $perfil =Perfil_Profesional::create([
+        $perfil = Perfil_Profesional::create([
             'user_id' => $request->user_id,
             'empresa' => $request->empresa,
             'cif' => $request->cif,
@@ -211,8 +215,61 @@ class AuthProController extends Controller
         ]);
 
         // Sincronizar los oficios seleccionados
-        $perfil->oficios()->sync($request->oficios);    
+        $perfil->oficios()->sync($request->oficios);
 
         return redirect()->route('home')->with('success', 'Registro profesional completado correctamente. Ya puedes iniciar sesión.');
+    }
+
+    public function mostrarValidarUsuario()
+    {
+        return view('auth.validar_usuario');
+    }
+
+    public function validarUsuario(Request $request)
+    {
+        $creedenciales = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required', 'string', 'min:6'],
+        ], [
+            'email.required' => 'El correo electrónico es obligatorio.',
+            'email.email' => 'Debes ingresar un correo electrónico válido.',
+            'password.required' => 'La contraseña es obligatoria.',
+            'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
+        ]);
+
+        //Comprobar credenciales
+        if (Auth::attempt($creedenciales)) {
+            $request->session()->regenerate();
+
+            $user = Auth::user(); //Datos del usuario autenticado
+
+            if ($user->hasRole('profesional')) {
+                $perfil = $user->perfil_Profesional; // Obtenemos el perfil profesional
+
+                if ($perfil) {
+                    // Si ya tiene empresa registrada, redirigimos con mensaje que incluye el nombre de la empresa
+                    return redirect()->back()
+                        ->with('info', 'Ya tienes una empresa registrada,' . $user->nombre . ': ' . $perfil->empresa);
+                }else {
+                    // Sin perfil profesional, asignamos user_id en sesión y dejamos registrar. esto no deberia pasar, lo gestionamos por si acaso
+                    session(['user_id' => $user->id]);
+                    return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
+                }
+
+            } elseif ($user->hasRole('usuario')) {
+                // Sin perfil profesional, asignamos user_id en sesión y dejamos registrar
+                session(['user_id' => $user->id]);
+                return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
+            }
+        }
+
+        // Si el Usuario existe
+        $userExiste = User::where('email', $request->email)->exists();
+
+        if (!$userExiste) {
+            return redirect()->back()->with('error', 'El usuario no está registrado');
+        } else {
+            return redirect()->back()->with('error', 'La contraseña es incorrecta');
+        }
     }
 }
