@@ -182,10 +182,17 @@ h1.destacado {
   }
 }
 
-// Footer estilizado (puedes usar un componente blade o simple div)
-.footer {
-  color: white;
-  padding: 2rem 0;
-  font-size: 0.9rem;
-  a { color: $white; text-decoration: underline; }
-}
+  // Footer estilizado 
+  /* Tu clase para el footer */
+  .footer-bg {
+      background-color: $primary;
+  }
+  .footer-link {
+      color: #bec2cf;
+      text-decoration: none;
+  }
+  .footer-link:hover {
+      color: #fff;
+      text-decoration: underline;
+  }
+
