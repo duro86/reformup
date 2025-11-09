@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
 use App\Models\Perfil_Profesional;
+use App\Models\Oficio;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 
@@ -25,7 +26,8 @@ class AuthProController extends Controller
     public function mostrarFromProEmpresa()
     {
         $userId = session('user_id'); // Aquí obtenemos el id desde la sesión
-        return view('auth.registro_pro_empresa', compact('userId'));
+        $oficios = Oficio::orderBy('nombre')->get(['id','nombre','slug']); // escalable
+        return view('auth.registro_pro_empresa', compact('userId', 'oficios'));
     }
 
     public function registrarClientePro(Request $request)
@@ -146,6 +148,8 @@ class AuthProController extends Controller
             'provincia_empresa' => ['nullable', 'string', 'max:120'],
             'direccion_empresa' => ['nullable', 'string', 'max:255'],
             'avatar_empresa' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+            'oficios' => ['required', 'array', 'min:1'],
+            'oficios.*' => ['exists:oficios,id']
         ], [
             'user_id.required' => 'El usuario es obligatorio.',
             'user_id.exists' => 'El usuario no existe.',
@@ -172,6 +176,8 @@ class AuthProController extends Controller
             'avatar_empresa.image' => 'El archivo debe ser una imagen.',
             'avatar_empresa.mimes' => 'Extensiones permitidas: jpeg, png, jpg, gif, svg, webp.',
             'avatar_empresa.max' => 'La imagen no debe superar los 2MB.',
+
+            'oficios.required' => 'Debes seleccionar al menos un oficio.',
         ]);
 
         if ($request->hasFile('avatar_empresa') && $request->file('avatar_empresa')->isValid()) {
@@ -187,8 +193,10 @@ class AuthProController extends Controller
             $avatarPath = 'storage/img/avatarEmpresa/avatar_default.png';
         }
 
+
+
         // Guardar empresa asociada a user_id
-        Perfil_Profesional::create([
+        $perfil =Perfil_Profesional::create([
             'user_id' => $request->user_id,
             'empresa' => $request->empresa,
             'cif' => $request->cif,
@@ -201,6 +209,9 @@ class AuthProController extends Controller
             'dir_empresa' => $request->direccion_empresa,
             'avatar' => $avatarPath,
         ]);
+
+        // Sincronizar los oficios seleccionados
+        $perfil->oficios()->sync($request->oficios);    
 
         return redirect()->route('home')->with('success', 'Registro profesional completado correctamente. Ya puedes iniciar sesión.');
     }

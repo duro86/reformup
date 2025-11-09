@@ -5,28 +5,29 @@
 
 <x-navbar />
 
-<div class="container my-3">
-    <div class="row justify-content-center">
-        <div class="col-lg-6 bg-white shadow rounded p-5">
+<div class="container my-1">
+    <form method="POST" action="{{ route('registrar.empresa') }}" enctype="multipart/form-data" novalidate>
+        @csrf
+        <input type="hidden" name="user_id" value="{{ $userId ?? old('user_id') }}">
 
-            <div class="text-center mb-4">
-                <i class="bi bi-briefcase text-primary" style="font-size: 4rem;"></i>
-                <h1 class="h4 mt-3">Registro de Empresa</h1>
-                <p class="text-muted">Paso 2 de 2: Información de tu empresa</p>
-            </div>
+        <div class="row justify-content-center align-items-start">
 
-            {{-- Errores globales --}}
-            @if ($errors->any())
-                <div class="alert alert-danger">
-                    Revisa los campos marcados en rojo.
+            <!-- Columna izquierda: formulario campos normales -->
+            <div class="col-lg-7 bg-white shadow rounded p-4">
+                <div class="text-center mb-1">
+                    <i class="bi bi-briefcase text-primary" style="font-size: 3rem;"></i>
+                    <h1 class="h4 mt-2">Registro de Empresa</h1>
+                    <p class="text-muted">Paso 2 de 2: Información de tu empresa</p>
                 </div>
-            @endif
 
-            <form method="POST" action="{{ route('registrar.empresa') }}" enctype="multipart/form-data" novalidate>
-                @csrf
+                {{-- Errores globales --}}
+                @if ($errors->any())
+                    <div class="alert alert-danger">
+                        Revisa los campos marcados en rojo.
+                    </div>
+                @endif
 
-                <input type="hidden" name="user_id" value="{{ $userId ?? old('user_id') }}">
-
+                {{-- Campos normales --}}
                 <div class="mb-3">
                     <label class="form-label" for="empresa">Nombre de la empresa <span class="text-danger">*</span></label>
                     <input type="text" id="empresa" name="empresa" value="{{ old('empresa') }}" class="form-control @error('empresa') is-invalid @enderror" required>
@@ -112,14 +113,28 @@
                 <div class="d-grid gap-2 mt-4">
                     <button type="submit" class="btn btn-primary">Guardar Empresa</button>
                 </div>
+            </div>
 
-            </form>
+            <!-- Columna derecha: oficios -->
+            <div class="col-lg-4 rounded p-4 ms-4" style="max-height: 500px; overflow-y: auto;">
+                <div class="card shadow rounded p-3">
+                    <h5 class="card-title mb-3">Selecciona tus Oficios (mínimo 1) <span class="text-danger">*</span></h5>
+                    @foreach ($oficios as $oficio)
+                        <div class="form-check mb-2">
+                            <input class="form-check-input" type="checkbox" name="oficios[]" value="{{ $oficio->id }}" id="oficio{{ $oficio->id }}">
+                            <label class="form-check-label" for="oficio{{ $oficio->id }}">
+                                {{ ucfirst(str_replace('_', ' ', $oficio->nombre)) }}
+                            </label>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
 
         </div>
-    </div>
+    </form>
 </div>
 
-@if(isset($userId))
+@if (isset($userId))
     <div>
         <strong>User ID desde sesión:</strong> {{ $userId }}
     </div>
@@ -128,6 +143,7 @@
         No hay User ID disponible
     </div>
 @endif
+
 
 <footer class="bg-primary text-center py-3 border-top text-white mt-5">
     <div class="container">
