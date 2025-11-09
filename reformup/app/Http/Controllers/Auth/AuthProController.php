@@ -29,8 +29,21 @@ class AuthProController extends Controller
 
     public function mostrarFromProEmpresa()
     {
-        $userId = session('user_id'); // Aquí obtenemos el id desde la sesión
-        $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre', 'slug']); // escalable
+        $userId = session('user_id'); // Obtener user_id de la sesión
+
+        if (!$userId) {
+            // Si no hay user_id en sesión, redirige a home con mensaje de error
+            return redirect()->route('home')->with('error', 'Acceso no autorizado.');
+        }
+
+        $user = User::find($userId);
+        if (!$user || !$user->hasRole('profesional')) {
+            // Si el usuario no existe o no tiene rol profesional
+            return redirect()->route('home')->with('error', 'Acceso no autorizado.');
+        }
+
+        // Usuario válido, continuar mostrando formulario
+        $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre', 'slug']);
         return view('auth.registro_pro_empresa', compact('userId', 'oficios'));
     }
 
@@ -196,8 +209,6 @@ class AuthProController extends Controller
         } else {
             $avatarPath = 'storage/img/avatarEmpresa/avatar_default.png';
         }
-
-
 
         // Guardar empresa asociada a user_id
         $perfil = Perfil_Profesional::create([
