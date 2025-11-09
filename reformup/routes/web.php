@@ -13,4 +13,9 @@ Route::get('/registrar/cliente', [AuthController::class, 'mostrarFormCliente'])-
 Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->name('registrar.cliente');
 
 Route::get('/registrar/profesional', [AuthProController::class, 'mostrarOpcionesPro'])->name('registrar.profesional');
-Route::post('/registrar/profesional', [AuthProController::class, 'registrarProfesional'])->name('registrar.profesional');
+
+Route::get('/registro/profesional/nuevo', [AuthProController::class, 'mostrarFromProNuevo'])->name('registro.pro.form');
+Route::post('/registrar/profesional', [AuthProController::class, 'registrarClientePro'])->name('registrar.profesional');
+
+Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarFromProEmpresa'])->name('registro.pro.empresa');
+Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');

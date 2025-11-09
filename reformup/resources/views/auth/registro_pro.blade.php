@@ -21,8 +21,9 @@
                     </ul>
 
                     <div class="text-center mt-3">
-                        <img src="{{ asset('img/Profesional/panel_registro/profesional_panel.jpg') }}" alt="Profesionales" class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
-                    </div>                      
+                        <img src="{{ asset('img/Profesional/panel_registro/profesional_panel.jpg') }}" alt="Profesionales"
+                            class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
+                    </div>
                 </div>
             </div>
 
@@ -30,7 +31,8 @@
             <div class="col-lg-7 bg-white">
                 <div class="p-4 p-lg-5">
 
-                    <h1 class="h4 mb-4"><i class="bi-building me-2 mb-4"></i> Crear cuenta <span class="text-primary">(Profesional)</span></h1>
+                    <h1 class="h4 mb-4"><i class="bi-building me-2 mb-4"></i> Crear cuenta <span
+                            class="text-primary">(Profesional)</span></h1>
 
                     {{-- Registro de Profesionales Opciones --}}
                     <div class="d-flex justify-content-around mb-5 mt-5 flex-column flex-sm-row">
@@ -41,17 +43,20 @@
                                 <i class="bi bi-person-circle me-2"></i> Soy Usuario
                             </button>
                             <div>
-                                <img src="{{ asset('img/Profesional/user_pro/soy_user_pro.jpg') }}" alt="Soy Usuario" class="img-fluid rounded mb-sm-3" style="max-width: 300px;">
+                                <img src="{{ asset('img/Profesional/user_pro/soy_user_pro.jpg') }}" alt="Soy Usuario"
+                                    class="img-fluid rounded mb-sm-3" style="max-width: 300px;">
                             </div>
                         </div>
 
                         {{-- Soy Nuevo --}}
                         <div class="text-center">
-                            <button type="button" class="btn btn-outline-primary mb-3 mb-sm-3 mt-sm-3">
+                            <a href="{{ route('registro.pro.form') }}" class="btn btn-outline-primary mb-3 mb-sm-3 mt-sm-3">
                                 <i class="bi bi-person-plus me-2"></i> Soy Nuevo
-                            </button>
+                            </a>
+
                             <div>
-                                <img src="{{ asset('img/Profesional/user_nuevo/soy_nuevo_pro.jpg') }}" alt="Soy Nuevo" class="img-fluid rounded mb-sm-3" style="max-width: 300px;">
+                                <img src="{{ asset('img/Profesional/user_nuevo/soy_nuevo_pro.jpg') }}" alt="Soy Nuevo"
+                                    class="img-fluid rounded mb-sm-3" style="max-width: 300px;">
                             </div>
                         </div>
 

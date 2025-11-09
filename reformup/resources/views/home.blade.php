@@ -258,4 +258,5 @@
   </footer>
 
 @endsection
+<x-alertas_sweet />
 
