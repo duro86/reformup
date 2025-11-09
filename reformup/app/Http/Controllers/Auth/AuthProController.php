@@ -250,12 +250,11 @@ class AuthProController extends Controller
                     // Si ya tiene empresa registrada, redirigimos con mensaje que incluye el nombre de la empresa
                     return redirect()->back()
                         ->with('info', 'Ya tienes una empresa registrada,' . $user->nombre . ': ' . $perfil->empresa);
-                }else {
+                } else {
                     // Sin perfil profesional, asignamos user_id en sesión y dejamos registrar. esto no deberia pasar, lo gestionamos por si acaso
                     session(['user_id' => $user->id]);
                     return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
                 }
-
             } elseif ($user->hasRole('usuario')) {
                 // Sin perfil profesional, asignamos user_id en sesión y dejamos registrar
                 session(['user_id' => $user->id]);
