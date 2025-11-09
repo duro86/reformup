@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Models\User;
+use Spatie\Permission\Models\Role;
+use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait
 
 class LoginController extends Controller
 {

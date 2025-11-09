@@ -45,6 +45,13 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // --- ADMIN ---
+
+//Crear otro admin
+// Ruta para crear el admin (solo usar una vez y luego eliminar o proteger)
+/*Route::post('/crear-admin', [AuthController::class, 'registrarAdmin'])
+    ->name('crear.admin');*/
+
+// Dashboard admin
 Route::middleware(['auth', 'role:admin'])
     ->prefix('admin')->name('admin.')
     ->group(function () {
@@ -67,3 +74,6 @@ Route::middleware(['auth', 'role:usuario'])
         Route::get('/dashboard', [UsuarioDashboardController::class, 'index'])->name('dashboard');
         // mis solicitudes, mis reseñas, datos de cuenta, etc.
     });
+
+Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
+    ->name('admin.prueba');

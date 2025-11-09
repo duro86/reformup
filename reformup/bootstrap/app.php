@@ -4,6 +4,8 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 
+// IMPORTA TU MIDDLEWARE:
+use App\Http\Middleware\VerificarRolORedireccionar;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -12,7 +14,10 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware): void {
-        //
+        // ALIAS PERSONALIZADO
+        $middleware->alias([
+            'rol.redirigir' => VerificarRolORedireccionar::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         //
