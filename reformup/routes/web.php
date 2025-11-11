@@ -19,7 +19,11 @@ Route::get('/registrar/cliente', [AuthController::class, 'mostrarFormCliente'])-
 Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->name('registrar.cliente.enviar');
 
 // Registro de profesional: muestra opciones (por ejemplo, tipo de cuenta)
-Route::get('/registrar/profesional', [AuthProController::class, 'mostrarOpcionesPro'])->name('registrar.profesional.opciones');
+Route::get('/registrar/profesional/opciones', [AuthProController::class, 'mostrarOpcionesPro'])->name('registrar.profesional.opciones');
+
+// Validar usuario (ejemplo: email o usuario tras registro antes de login)
+Route::get('/validarUsuario', [AuthProController::class, 'mostrarValidarUsuario'])->name('validar.usuario');
+Route::post('/validarUsuario', [AuthProController::class, 'validarUsuario'])->name('validar.usuario.post');
 
 // Registro de profesional (nuevo profesional individual)
 Route::get('/registro/profesional/nuevo', [AuthProController::class, 'mostrarFromProNuevo'])->name('registro.pro.form');
@@ -28,11 +32,6 @@ Route::post('/registrar/profesional', [AuthProController::class, 'registrarClien
 // Registro de empresa profesional
 Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarFromProEmpresa'])->name('registro.pro.empresa');
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
-
-
-// Validar usuario (ejemplo: email o usuario tras registro antes de login)
-Route::get('/validarUsuario', [AuthProController::class, 'mostrarValidarUsuario'])->name('validar.usuario');
-Route::post('/validarUsuario', [AuthProController::class, 'validarUsuario'])->name('validar.usuario.post');
 
 //Login 
 // Mostrar formulario login

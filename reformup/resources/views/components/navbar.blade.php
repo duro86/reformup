@@ -66,7 +66,7 @@
                             </a>
                         </li>
                         <li>
-                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('registrar.profesional') }}">
+                            <a class="dropdown-item d-flex align-items-center gap-2" href="{{ route('registrar.profesional.opciones') }}">
                                 <i class="bi bi-tools"></i>
                                 Soy profesional
                             </a>

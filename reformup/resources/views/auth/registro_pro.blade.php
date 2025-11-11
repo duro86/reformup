@@ -6,7 +6,7 @@
     <x-navbar />
 
     {{-- Registro de Profesionales --}}
-    <div class="container my-5" id="app">
+    <div class="container my-5">
 
         {{-- Panel Izquierdo --}}
         <div class="row g-0 shadow rounded overflow-hidden">
@@ -74,4 +74,3 @@
     <x-footer />
 
 @endsection
-
