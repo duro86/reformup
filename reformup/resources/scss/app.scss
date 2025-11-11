@@ -86,7 +86,61 @@ h1.destacado {
   }
 
   // Enlaces en verde oscuro
-  .nav-link {
+.nav-link {
+    color: $primary !important;
+    font-size: 1.15rem;
+
+    position: relative;
+    text-decoration: none; // sin subrayado
+
+    &:after {
+      content: '';
+      position: absolute;
+      width: 0;
+      height: 2px; // grosor línea
+      left: 0;
+      bottom: -4px; // espacio debajo del texto
+      background-color: darken($primary, 20%); // línea más oscura
+      transition: width 0.3s ease;
+    }
+
+    &:hover:after,
+    &.active:after,
+    &:focus:after {
+      width: 100%;
+    }
+
+    // Media query para pantallas móviles (por debajo de 768px)
+    @media (max-width: 767.98px) {
+      &:hover:after,
+      &.active:after,
+      &:focus:after {
+        width: 50%;
+      }
+    }
+
+    &:hover,
+    &.active,
+    &:focus {
+      color: darken($primary, 15%) !important; // texto algo más oscuro que normal
+      font-weight: bold;
+      background-color: transparent;
+      // sin text-decoration ni subrayado
+    }
+  }
+}
+
+// Sidebar Admin Personalizado
+.admin-sidebar {
+  /* Hacer sidebar ancho completo en xs */
+    @media (max-width: 576px) {
+        #sidebar {
+            width: 100% !important;
+            height: auto !important;
+            position: relative !important;
+        }
+    }
+.nav-link {
     color: $primary !important;
     font-size: 1.15rem;
 

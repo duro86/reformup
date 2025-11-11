@@ -16,10 +16,10 @@ Route::get('/', function () {
 
 // Registro de clientes (usuario normal)
 Route::get('/registrar/cliente', [AuthController::class, 'mostrarFormCliente'])->name('registrar.cliente');
-Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->name('registrar.cliente');
+Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->name('registrar.cliente.enviar');
 
 // Registro de profesional: muestra opciones (por ejemplo, tipo de cuenta)
-Route::get('/registrar/profesional', [AuthProController::class, 'mostrarOpcionesPro'])->name('registrar.profesional');
+Route::get('/registrar/profesional', [AuthProController::class, 'mostrarOpcionesPro'])->name('registrar.profesional.opciones');
 
 // Registro de profesional (nuevo profesional individual)
 Route::get('/registro/profesional/nuevo', [AuthProController::class, 'mostrarFromProNuevo'])->name('registro.pro.form');
@@ -51,13 +51,20 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 /*Route::post('/crear-admin', [AuthController::class, 'registrarAdmin'])
     ->name('crear.admin');*/
 
-// Dashboard admin
-Route::middleware(['auth', 'role:admin'])
-    ->prefix('admin')->name('admin.')
-    ->group(function () {
-        Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
-        // aquí irán más rutas: usuarios, reportes, etc.
-    });
+// Dashboard admin con middleware personalizado
+Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/usuarios', [AdminDashboardController::class, 'listarUsuarios'])->name('usuarios');
+    Route::get('/usuarios/{id}', [AdminDashboardController::class, 'verUsuario'])->name('usuarios.ver');
+    Route::get('/usuarios/{id}/editar', [AdminDashboardController::class, 'editarUsuario'])->name('usuarios.editar');
+    Route::delete('/usuarios/{id}', [AdminDashboardController::class, 'eliminarUsuario'])->name('usuarios.eliminar');
+});
+
+// Rutas adicionales para la gestión de usuarios por parte del admin
+//Route::get('/usuarios/{id}', [AdminDashboardController::class, 'verUsuario'])->name('admin.usuarios.ver');
+//Route::get('/usuarios/{id}/editar', [AdminDashboardController::class, 'editarUsuario'])->name('admin.usuarios.editar');
+//Route::delete('/usuarios/{id}', [AdminDashboardController::class, 'eliminarUsuario'])->name('admin.usuarios.eliminar');
+
 
 // --- PROFESIONAL ---
 Route::middleware(['auth', 'role:profesional'])
@@ -75,5 +82,5 @@ Route::middleware(['auth', 'role:usuario'])
         // mis solicitudes, mis reseñas, datos de cuenta, etc.
     });
 
-Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
-    ->name('admin.prueba');
+/*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
+    ->name('admin.prueba');*/

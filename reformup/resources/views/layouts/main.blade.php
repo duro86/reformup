@@ -28,9 +28,9 @@
 
 <!-- Body -->
 <body class="bg-white">
- {{-- @include('layouts.partials.navbar')    placeholder vacío por ahora --}}
+  <!-- Contenido principal -->
   <main>@yield('content')</main>
- {{-- @include('layouts.partials.footer')   {{-- placeholder vacío por ahora --}}
+
  {{-- Alerta SweetAlert2 --}}
 <x-alertas_sweet />
 </body>
