@@ -17,7 +17,7 @@
             {{-- Botones header --}}
             <div class="d-flex justify-content-center gap-3">
                 <a href="#" class="btn btn-warning btn-lg fw-bold">Buscar Profesionales</a>
-                <a href="{{ route('registrar.profesional') }}" class="btn btn-outline-light btn-lg">Registrarte como
+                <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-outline-light btn-lg">Registrarte como
                     Profesional</a>
             </div>
 

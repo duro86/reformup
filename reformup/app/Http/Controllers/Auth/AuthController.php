@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 //Controlador para la autenticación usando Laravel Sanctum
 class AuthController extends Controller
@@ -69,20 +70,18 @@ class AuthController extends Controller
 
         // Manejo imagen avatar
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-            $image = $request->file('avatar');
-            $path = 'img/avatarUser/' . date('Ymd') . '/';
-            $filename = time() . '_' . $image->getClientOriginalName();
+            $dir = 'imagenes/avatarUser/' . now()->format('Ymd');
+            $ext = $request->file('avatar')->getClientOriginalExtension();
+            $base = pathinfo($request->file('avatar')->getClientOriginalName(), PATHINFO_FILENAME);
+            $safe = Str::slug($base);
+            $file = $safe . '-' . Str::random(8) . '.' . $ext;
 
-            // Crear carpeta si no existe
-            Storage::disk('public')->makeDirectory($path);
+            Storage::disk('public')->makeDirectory($dir);
+            $request->file('avatar')->storeAs($dir, $file, 'public');
 
-            // Guardar archivo
-            $image->storeAs($path, $filename, 'public');
-
-            $avatarPath = 'storage/' . $path . $filename;
+            $avatarPath = $dir . '/' . $file;                                     // guarda solo la ruta relativa
         } else {
-            // Imagen por defecto
-            $avatarPath = 'storage/img/avatarUser/avatar_default.png';
+            $avatarPath = 'imagenes/avatarUser/avatar_default.png';
         }
 
         // Insertamos en la tabla users y asignamos el rol de cliente
@@ -106,7 +105,7 @@ class AuthController extends Controller
         return redirect()->route('home')->with('success', 'Registro completado correctamente');
     }
 
-   /* public function registrarAdmin(Request $request)
+    /* public function registrarAdmin(Request $request)--Crear 1 solo admin
     {
         // Validación de datos (similar al cliente, agregar o quitar campos según necesidad)
         $request->validate([
@@ -188,5 +187,4 @@ class AuthController extends Controller
 
         return redirect()->route('home')->with('success', 'Usuario administrador registrado correctamente.');
     }*/
-
 }

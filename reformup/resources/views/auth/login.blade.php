@@ -54,7 +54,6 @@
         <!-- Panel Derecho: Imagen (solo escritorio) -->
         <div class="d-none d-md-block w-50 h-100">
             <img src="{{ asset('img/login/panel_login2.jpg') }}" alt="Imagen Inicio de Sesión" class="login-panel">
-
         </div>
     </div>
 @endsection

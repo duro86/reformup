@@ -69,9 +69,9 @@ class LoginController extends Controller
 
     public function logout(Request $request)
     {
-        Auth::logout();
-        $request->session()->invalidate();
-        $request->session()->regenerateToken();
+        Auth::logout();                    // Cierra la sesión del usuario autenticado: borra la información de autenticación.
+        $request->session()->invalidate(); // Invalida la sesión actual, borrando todos los datos de sesión.
+        $request->session()->regenerateToken(); // Genera un nuevo token CSRF para evitar ataques de falsificación de solicitudes.
 
         return redirect('/')->with('success', 'Sesión cerrada correctamente');
     }

@@ -6,6 +6,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 
 // IMPORTA TU MIDDLEWARE:
 use App\Http\Middleware\VerificarRolORedireccionar;
+use App\Http\Middleware\CheckAuthRedirect;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -17,6 +18,7 @@ return Application::configure(basePath: dirname(__DIR__))
         // ALIAS PERSONALIZADO
         $middleware->alias([
             'rol.redirigir' => VerificarRolORedireccionar::class,
+            'auth.redirect' => CheckAuthRedirect::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

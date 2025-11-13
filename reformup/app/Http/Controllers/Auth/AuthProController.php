@@ -8,6 +8,7 @@ use App\Models\Oficio;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait
 
@@ -22,30 +23,41 @@ class AuthProController extends Controller
         return view('auth.registro_pro');
     }
 
-    public function mostrarFromProNuevo()
+    public function mostrarFormProNuevo()
     {
         return view('auth.registro_pro_nuevo');
     }
 
-    public function mostrarFromProEmpresa()
+    public function mostrarFormProEmpresa()
     {
         $userId = session('user_id'); // Obtener user_id de la sesión
 
-        if (!$userId) {
-            // Si no hay user_id en sesión, redirige a home con mensaje de error
-            return redirect()->route('home')->with('error', 'Acceso no autorizado.');
-        }
-
         $user = User::find($userId);
-        if (!$user || !$user->hasRole('profesional')) {
-            // Si el usuario no existe o no tiene rol profesional
-            return redirect()->route('home')->with('error', 'Acceso no autorizado.');
+
+        if (!$userId || !$user) {
+            return redirect()->route('login')->with('error', 'Debes iniciar sesión para continuar.');
         }
 
-        // Usuario válido, continuar mostrando formulario
+        // Si el usuario tiene rol admin, redirigir a crear usuario
+        if ($user->hasRole('admin')) {
+            return redirect()->route('admin.usuarios.crear')->with('info', 'Acceso admin para crear usuarios.');
+        }
+
+        // Control de roles profesional + usuario
+        if ($user->hasRole('profesional') && $user->hasRole('usuario')) {
+            $perfil = $user->perfil_Profesional;
+
+            if ($perfil) {
+                return redirect()->back()->with('info', 'Ya tienes una empresa registrada, ' . $user->nombre . ': ' . $perfil->empresa);
+            }
+        }
+
+        // Usuario válido, mostrar formulario y oficios
         $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre', 'slug']);
+
         return view('auth.registro_pro_empresa', compact('userId', 'oficios'));
     }
+
 
     public function registrarClientePro(Request $request)
     {
@@ -197,17 +209,25 @@ class AuthProController extends Controller
             'oficios.required' => 'Debes seleccionar al menos un oficio.',
         ]);
 
+        // Manejo avatar Empresa
         if ($request->hasFile('avatar_empresa') && $request->file('avatar_empresa')->isValid()) {
-            $image = $request->file('avatar_empresa');
-            $path = 'img/avatarEmpresa/' . date('Ymd') . '/';
-            $filename = time() . '_' . $image->getClientOriginalName();
+            $dir = 'imagenes/avatarEmpresa/' . now()->format('Ymd');          // carpeta por fecha
+            $ext = $request->file('avatar_empresa')->getClientOriginalExtension();
+            $base = pathinfo($request->file('avatar_empresa')->getClientOriginalName(), PATHINFO_FILENAME);
+            $safe = Str::slug($base);                                         // nombre “limpio”
+            $file = $safe . '-' . Str::random(8) . '.' . $ext;                        // único y legible
 
-            Storage::disk('public')->makeDirectory($path);
-            $image->storeAs($path, $filename, 'public');
+            // crea el directorio si no existe
+            Storage::disk('public')->makeDirectory($dir);
 
-            $avatarPath = 'storage/' . $path . $filename;
+            // guarda el archivo en el disco public
+            $request->file('avatar_empresa')->storeAs($dir, $file, 'public');
+
+            // >>> Guarda en BD SOLO la ruta relativa dentro del disco public:
+            $avatarPath = $dir . '/' . $file;                                     // p.ej. imagenes/avatarEmpresa/20251112/foto.png
         } else {
-            $avatarPath = 'storage/img/avatarEmpresa/avatar_default.png';
+            // ruta por defecto (también relativa al disco public)
+            $avatarPath = 'imagenes/avatarEmpresa/avatar_default.png';
         }
 
         // Guardar empresa asociada a user_id
@@ -228,6 +248,10 @@ class AuthProController extends Controller
         // Sincronizar los oficios seleccionados
         $perfil->oficios()->sync($request->oficios);
 
+        $user = User::find($userId);
+        if ($user) {
+            $user->assignRole('profesional'); // Asignas el rol profesional al usuario
+        }
         return redirect()->route('home')->with('success', 'Registro profesional completado correctamente. Ya puedes iniciar sesión.');
     }
 
@@ -248,38 +272,43 @@ class AuthProController extends Controller
             'password.min' => 'La contraseña debe tener al menos 6 caracteres.',
         ]);
 
-        //Comprobar credenciales
-        if (Auth::attempt($creedenciales)) {
-            $request->session()->regenerate();
+        $user = User::where('email', $request->email)->first();
 
-            $user = Auth::user(); //Datos del usuario autenticado
-
-            if ($user->hasRole('profesional')) {
-                $perfil = $user->perfil_Profesional; // Obtenemos el perfil profesional
-
-                if ($perfil) {
-                    // Si ya tiene empresa registrada, redirigimos con mensaje que incluye el nombre de la empresa
-                    return redirect()->back()
-                        ->with('info', 'Ya tienes una empresa registrada,' . $user->nombre . ': ' . $perfil->empresa);
-                } else {
-                    // Sin perfil profesional, asignamos user_id en sesión y dejamos registrar. esto no deberia pasar, lo gestionamos por si acaso
-                    session(['user_id' => $user->id]);
-                    return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
-                }
-            } elseif ($user->hasRole('usuario')) {
-                // Sin perfil profesional, asignamos user_id en sesión y dejamos registrar
-                session(['user_id' => $user->id]);
-                return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
-            }
+        if (!$user) {
+            return redirect()->route('registrar.profesional.opciones')
+                ->with('error', 'Usuario no registrado, debes tener cuenta para poder registrar una empresa');
         }
 
-        // Si el Usuario existe
-        $userExiste = User::where('email', $request->email)->exists();
-
-        if (!$userExiste) {
-            return redirect()->back()->with('error', 'El usuario no está registrado');
-        } else {
+        if (!Auth::attempt($creedenciales)) {
             return redirect()->back()->with('error', 'La contraseña es incorrecta');
+        }
+
+        $request->session()->regenerate(); // Regenera la sesión del usuario autenticado para mayor seguridad
+        $user = Auth::user(); // Obtenemos el usuario autenticado mediante Auth::user()
+
+        // Control de roles
+        if ($user->hasRole('profesional') && $user->hasRole('usuario')) {
+            // Ya tiene ambos roles: profesional y usuario
+            $perfil = $user->perfil_Profesional;
+
+            // Si tiene una empresa (perfil profesional registrada)
+            if ($perfil) {
+                return redirect()->back()->with('info', 'Ya tienes una empresa registrada, ' . $user->nombre . ': ' . $perfil->empresa);
+            }
+
+            // Tiene rol profesional pero sin perfil creado: permitir registrar empresa
+            session(['user_id' => $user->id]);
+            return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
+
+            // Si tiene rol de usuario y no tiene perfil profesional
+        } elseif ($user->hasRole('usuario') && !$user->hasRole('profesional')) {
+            // Tiene solo rol usuario, permitir registrar empresa y asignar rol profesional posteriormente
+            session(['user_id' => $user->id]);
+            return redirect()->route('registro.pro.empresa')->with('success', 'Usuario ' . $user->nombre . ' validado correctamente. Completa los datos de tu empresa.');
+        } else {
+            // Caso raro o inconsistencia: no tiene rol usuario
+            return redirect()->route('registrar.profesional.opciones')
+                ->with('error', 'El usuario no tiene permisos adecuados para registrar una empresa. Póngase en contacto con el Administrador.');
         }
     }
 }

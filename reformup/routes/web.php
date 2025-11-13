@@ -21,16 +21,20 @@ Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->
 // Registro de profesional: muestra opciones (por ejemplo, tipo de cuenta)
 Route::get('/registrar/profesional/opciones', [AuthProController::class, 'mostrarOpcionesPro'])->name('registrar.profesional.opciones');
 
-// Validar usuario (ejemplo: email o usuario tras registro antes de login)
+// Registro de profesional (nuevo profesional individual)
+Route::get('/registro/profesional/nuevo', [AuthProController::class, 'mostrarFormProNuevo'])
+->name('registro.pro.form');
+Route::post('/registrar/profesional', [AuthProController::class, 'registrarClientePro'])
+->name('registrar.profesional');
+
+// Registro de empresa por parte de usuario (validacion)
 Route::get('/validarUsuario', [AuthProController::class, 'mostrarValidarUsuario'])->name('validar.usuario');
 Route::post('/validarUsuario', [AuthProController::class, 'validarUsuario'])->name('validar.usuario.post');
 
-// Registro de profesional (nuevo profesional individual)
-Route::get('/registro/profesional/nuevo', [AuthProController::class, 'mostrarFromProNuevo'])->name('registro.pro.form');
-Route::post('/registrar/profesional', [AuthProController::class, 'registrarClientePro'])->name('registrar.profesional');
-
-// Registro de empresa profesional
-Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarFromProEmpresa'])->name('registro.pro.empresa');
+// Registro de empresa profesional(confirmado cuenta usuario)
+Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarFormProEmpresa'])
+->name('registro.pro.empresa')
+->middleware('auth.redirect'); // Middleware personalizado por si no esta logueado el usuario
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
 
 //Login 
@@ -42,6 +46,8 @@ Route::post('/login', [LoginController::class, 'login'])->name('login.post');
 
 // Salir / logout
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
+Route::get('/logout', [LoginController::class, 'logout'])->name('logoutget'); //Pruebas
+
 
 // --- ADMIN ---
 
@@ -52,7 +58,8 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
 // Dashboard admin con middleware personalizado
 Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')->name('admin.')->group(function () {
-    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard');
+    Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); //Mostrar dashboard
+    // Eventos usuarios
     Route::get('/usuarios', [AdminDashboardController::class, 'listarUsuarios'])->name('usuarios');
     Route::get('/usuarios/{id}', [AdminDashboardController::class, 'verUsuario'])->name('usuarios.ver');
     Route::get('/usuarios/{id}/editar', [AdminDashboardController::class, 'editarUsuario'])->name('usuarios.editar');
