@@ -78,7 +78,7 @@
             </ul>
         </div>
         @if (Auth::check())
-            <p>Usuario: {{ Auth::user()->name }}</p>
+            <p>Usuario: {{ Auth::user()->nombre }}</p>
             <p>Email: {{ Auth::user()->email }}</p>
             <p>ID: {{ Auth::user()->id }}</p>
             <p>Rol: {{ Auth::user()->getRoleNames() }}</p>

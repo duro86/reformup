@@ -1,5 +1,4 @@
 @extends('layouts.main')
-
 @section('content')
     <div class="d-flex" style="gap: 1rem;"> {{-- gap agrega espacio entre hijos del flex container --}}
 
@@ -16,14 +15,13 @@
                 <h1 class="text-center d-flex align-items-center justify-content-center gap-3">
                     Listado de Usuarios
                     {{-- Enlace Añadir Usuario --}}
-                    <a href="#" class="btn btn-sm"
+                    <a href="{{ route('admin.admin.form.registrar.cliente') }}" class="btn btn-sm"
                         style="background-color: #718355; color: white;">
                         <i class="bi bi-plus-lg"></i> Añadir usuario
                     </a>
 
                     {{-- Enlace Exportar PDF --}}
-                    <a href="#" class="btn btn-sm"
-                        style="background-color: #B5C99A; color: black;">
+                    <a href="#" class="btn btn-sm" style="background-color: #B5C99A; color: black;">
                         Exportar PDF usuario
                     </a>
                 </h1>

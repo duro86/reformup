@@ -64,6 +64,8 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')->name('admin
     Route::get('/usuarios/{id}', [AdminDashboardController::class, 'verUsuario'])->name('usuarios.ver');
     Route::get('/usuarios/{id}/editar', [AdminDashboardController::class, 'editarUsuario'])->name('usuarios.editar');
     Route::delete('/usuarios/{id}', [AdminDashboardController::class, 'eliminarUsuario'])->name('usuarios.eliminar');
+    Route::get('/registrar/cliente', [AdminDashboardController::class, 'mostrarFormAdminUsuarioNuevo'])->name('admin.form.registrar.cliente');
+    Route::post('/registrar/cliente', [AdminDashboardController::class, 'crearUsuarioNuevo'])->name('admin.registrar.cliente');
 });
 
 // Rutas adicionales para la gestión de usuarios por parte del admin

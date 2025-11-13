@@ -2,9 +2,12 @@
 @section('title', 'Iniciar Sesión - ReformUp')
 
 @section('content')
+
     <div class="d-flex flex-column flex-md-row align-items-stretch"
         style="height: 100vh; min-height: 100vh; width: 100vw; overflow: hidden;">
-
+        @if (session('error'))
+            <div class="alert alert-danger">{{ session('error') }}</div>
+        @endif
         <!-- Panel Izquierdo: Formulario -->
         <div class="d-flex flex-column justify-content-center align-items-center w-100 w-md-50">
             <!-- Logo arriba -->

@@ -27,12 +27,12 @@ class AdminDashboardController extends Controller
         return view('layouts.admin.usuarios', compact('usuarios'));
     }
 
-    public function create()
+    public function mostrarFormAdminUsuarioNuevo()
     {
-        return view('admin.usuarios.nuevo'); // Vista con formulario para crear usuario
+        return view('layouts.admin.registro_cliente'); // Vista con formulario para crear usuario siendo admin
     }
 
-    public function store(Request $request)
+    public function crearUsuarioNuevo(Request $request)
     {
         // Validación de datos
         $request->validate([
@@ -117,7 +117,7 @@ class AdminDashboardController extends Controller
         $user->assignRole('usuario'); // Usando Spatie asigando el rol de usuario
 
         // Volver a la página de inicio con un mensaje de éxito
-        return redirect()->route('layouts.admin.usuarios')->with('success', 'Usuario completado correctamente');
+        return redirect()->route('admin.usuarios')->with('success', 'Usuario: '.$user->nombre.' '.$user->apellidos.'  creado correctamente');
     }
 
     public function show(User $usuario)
