@@ -1,22 +1,21 @@
 import "./bootstrap";
 import "../scss/app.scss";
-import { createApp } from 'vue';
-import UsersTable from './components/tablaUsuarios.vue';
+import { createApp } from "vue";
+
+import UserModal from "./components/UserModal.vue";
 
 const app = createApp({
-  data() {
-    return {
-      vistaActual: '', // vacía al inicio, nada se muestra
-    };
-  },
-  methods: {
-    mostrarVista(nombre) {
-      this.vistaActual = nombre;
+    methods: {
+        openUserModal(id) {
+            // accedemos al componente hijo por la ref
+            this.$refs.userModal.openModal(id);
+        },
     },
-  },
 });
 
-app.component('users-table', UsersTable);
+app.component("user-modal", UserModal);
 
-app.mount('#app');
-
+const el = document.getElementById('app');
+if (el) {
+  app.mount(el);
+}

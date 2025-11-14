@@ -144,7 +144,7 @@ class AuthProController extends Controller
         ]);
 
 
-        $user->assignRole('profesional'); // Usando Spatie asigando el rol de usuario
+        $user->assignRole('usuario'); // Usando Spatie asigando el rol de usuario
 
         // Volver a la página de datos de la empresa con un mensaje de éxito
         session(['user_id' => $user->id]);

@@ -117,11 +117,15 @@ class AdminDashboardController extends Controller
         $user->assignRole('usuario'); // Usando Spatie asigando el rol de usuario
 
         // Volver a la página de inicio con un mensaje de éxito
-        return redirect()->route('admin.usuarios')->with('success', 'Usuario: '.$user->nombre.' '.$user->apellidos.'  creado correctamente');
+        return redirect()->route('admin.usuarios')->with('success', 'Usuario: ' . $user->nombre . ' ' . $user->apellidos . '  creado correctamente');
     }
 
     public function show(User $usuario)
-    {
+    {   
+        // Axios envía la cabecera X-Requested-With: XMLHttpRequest porque Laravel la configura en resources/js/bootstrap.js, así que request()->ajax() será true y devolverá JSON.
+        if (request()->ajax()) {
+            return response()->json($usuario);
+        }
         return view('admin.usuarios.show', compact('usuario'));
     }
 
