@@ -34,6 +34,7 @@
                                 <th>Email</th>
                                 <th>Teléfono</th>
                                 <th>Acciones</th>
+                                <th>Rol</th>
                             </tr>
                         </thead>
                         <tbody style="font-size: 0.875rem;">
@@ -52,23 +53,32 @@
                                     <td>{{ $usuario->email }}</td>
                                     <td>{{ $usuario->telefono }}</td>
                                     <td>
-                                        <button class="btn btn-info btn-sm px-2 py-1" @click="openUserModal({{ $usuario->id }})">
+                                        <button class="btn btn-info btn-sm px-2 py-1"
+                                            @click="openUserModal({{ $usuario->id }})">
                                             Ver
                                         </button>
 
                                         <a href="{{ route('admin.usuarios.editar', $usuario->id) }}"
-                                            class="btn btn-warning btn-sm px-2 py-1">Editar</a>
+                                            class="btn btn-warning btn-sm px-2 py-1">
+                                            Editar
+                                        </a>
 
-                                        <form action="{{ route('admin.usuarios.eliminar', $usuario->id) }}" method="POST"
-                                            style="display:inline;">
+                                        {{-- Elimanr usuarios --}}
+                                        <form id="delete-user-{{ $usuario->id }}"
+                                            action="{{ route('admin.usuarios.eliminar', $usuario->id) }}" method="POST"
+                                            class="d-inline">
                                             @csrf
                                             @method('DELETE')
-                                            <button type="submit" class="btn btn-danger btn-sm px-2 py-1"
-                                                onclick="return confirm('¿Estás seguro de eliminar este usuario?')">
-                                                Eliminar
-                                            </button>
+
+                                            <delete-user-button form-id="delete-user-{{ $usuario->id }}"
+                                                user-nombre="{{ $usuario->nombre }} {{ $usuario->apellidos }}"
+                                                user-email="{{ $usuario->email }}"
+                                                :tiene-perfil="{{ $usuario->perfil_Profesional ? 'true' : 'false' }}"></delete-user-button>
                                         </form>
+
                                     </td>
+                                    {{-- Mostramos roles separados por una , --}}
+                                    <td>{{ $usuario->getRoleNames()->implode(', ') }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -76,10 +86,12 @@
 
                     {{ $usuarios->links('pagination::bootstrap-5') }}
                 </div>
-                {{-- Vue solo controla el modal --}}
+
 
             </div>
 
         </div>
     </div>
 @endsection
+
+<x-alertas_sweet />

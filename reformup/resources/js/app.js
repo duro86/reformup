@@ -3,6 +3,7 @@ import "../scss/app.scss";
 import { createApp } from "vue";
 
 import UserModal from "./components/UserModal.vue";
+import DeleteUserButton from "./components/DeleteUserButton.vue";
 
 const app = createApp({
     methods: {
@@ -14,6 +15,7 @@ const app = createApp({
 });
 
 app.component("user-modal", UserModal);
+app.component("delete-user-button", DeleteUserButton);
 
 const el = document.getElementById('app');
 if (el) {

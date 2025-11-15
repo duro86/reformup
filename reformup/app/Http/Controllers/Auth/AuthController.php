@@ -68,19 +68,25 @@ class AuthController extends Controller
             'avatar.max' => 'La imagen no debe superar los 2MB.'
         ]);
 
-        // Manejo imagen avatar
+        // --- Manejo imagen avatar al CREAR usuario ---
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-            $dir = 'imagenes/avatarUser/' . now()->format('Ymd');
-            $ext = $request->file('avatar')->getClientOriginalExtension();
+
+            $dir  = 'imagenes/avatarUser/' . now()->format('Ymd');
+            $ext  = $request->file('avatar')->getClientOriginalExtension();
             $base = pathinfo($request->file('avatar')->getClientOriginalName(), PATHINFO_FILENAME);
             $safe = Str::slug($base);
             $file = $safe . '-' . Str::random(8) . '.' . $ext;
 
+            // Creamos el directorio si no existe
             Storage::disk('public')->makeDirectory($dir);
+
+            // Guardamos el archivo en storage/app/public/...
             $request->file('avatar')->storeAs($dir, $file, 'public');
 
-            $avatarPath = $dir . '/' . $file;                                     // guarda solo la ruta relativa
+            // Guardamos solo la ruta relativa en BD
+            $avatarPath = $dir . '/' . $file;
         } else {
+            // Si no sube nada, asignamos el avatar por defecto
             $avatarPath = 'imagenes/avatarUser/avatar_default.png';
         }
 
