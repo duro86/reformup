@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
+use App\Http\Controllers\Admin\ProfesionalPerfilController;
 
 // Página de inicio
 Route::get('/', function () {
@@ -60,6 +61,7 @@ Route::get('/logout', [LoginController::class, 'logout'])->name('logoutget'); //
 Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
     ->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); //Mostrar dashboard
+
         // Eventos usuarios
         Route::get('/usuarios', [AdminDashboardController::class, 'listarUsuarios'])
             ->name('usuarios');
@@ -75,12 +77,27 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // Registrar un cliente siendo Admin
         Route::get('/registrar/cliente', [AdminDashboardController::class, 'mostrarFormAdminUsuarioNuevo'])->name('admin.form.registrar.cliente');
         Route::post('/registrar/cliente', [AdminDashboardController::class, 'crearUsuarioNuevo'])->name('admin.registrar.cliente');
-    });
 
-// Rutas adicionales para la gestión de usuarios por parte del admin
-//Route::get('/usuarios/{id}', [AdminDashboardController::class, 'verUsuario'])->name('admin.usuarios.ver');
-//Route::get('/usuarios/{id}/editar', [AdminDashboardController::class, 'editarUsuario'])->name('admin.usuarios.editar');
-//Route::delete('/usuarios/{id}', [AdminDashboardController::class, 'eliminarUsuario'])->name('admin.usuarios.eliminar');
+        // Eventos usuarios profesionales
+        Route::get('/profesionales/profesionales', [ProfesionalPerfilController::class, 'listarProfesionales'])
+            ->name('profesionales');
+
+        Route::get('/profesionales/{profesional}', [ProfesionalPerfilController::class, 'show'])
+            ->name('admin.profesionales.ver');
+
+        Route::get('/profesionales/{id}/editar', [ProfesionalPerfilController::class, 'editarProfesional'])
+            ->name('profesionales.editar');
+
+        Route::put('/profesionales/{id}', [ProfesionalPerfilController::class, 'actualizarProfesional'])
+            ->name('profesionales.actualizar');
+
+        Route::delete('/profesionales/{id}', [ProfesionalPerfilController::class, 'eliminarProfesional'])
+            ->name('profesionales.eliminar');
+
+        // Registrar un profesional siendo Admin
+        Route::get('/registrar/profesional', [ProfesionalPerfilController::class, 'mostrarFormAdminProNuevo'])->name('admin.form.registrar.profesional');
+        Route::post('/registrar/profesional', [ProfesionalPerfilController::class, 'crearProNuevo'])->name('admin.registrar.profesional');
+    });
 
 
 // --- PROFESIONAL ---

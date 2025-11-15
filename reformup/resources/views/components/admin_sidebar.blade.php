@@ -11,7 +11,7 @@
     <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
         <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
             <li class="nav-item"><a class="nav-link" href="{{route('admin.usuarios')}}"><i class="bi bi-people-fill"></i> Usuarios</a></li>
-            <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-person-badge"></i> Perfiles Profesionales</a></li>
+            <li class="nav-item"><a class="nav-link" href="{{route('admin.profesionales')}}"><i class="bi bi-person-badge"></i> Perfiles Profesionales</a></li>
             <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> Solicitudes</a></li>
             <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-receipt"></i> Presupuestos</a></li>
             <li class="nav-item"><a class="nav-link" href="#"><i class="bi bi-briefcase-fill"></i> Trabajos</a></li>

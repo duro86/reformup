@@ -53,6 +53,7 @@
                                     <td>{{ $usuario->email }}</td>
                                     <td>{{ $usuario->telefono }}</td>
                                     <td>
+                                        {{-- Boton ver modal usuario --}}
                                         <button class="btn btn-info btn-sm px-2 py-1"
                                             @click="openUserModal({{ $usuario->id }})">
                                             Ver
