@@ -30,12 +30,10 @@
                             Revisa los campos marcados en rojo.
                         </div>
                     @endif
-                    
+
                     {{-- Actualizar perfil --}}
-                    <form method="POST"
-                          action="{{ route('admin.perfil.actualizar') }}"
-                          enctype="multipart/form-data"
-                          novalidate>
+                    <form method="POST" action="{{ route('admin.perfil.actualizar') }}" enctype="multipart/form-data"
+                        novalidate>
                         @csrf
                         @method('PUT')
 
@@ -45,11 +43,39 @@
                         {{-- Bloque profesional (solo si tiene rol profesional) --}}
                         @if ($roles->contains('profesional'))
                             <hr class="my-4">
-                            <x-admin.perfil.profesional
-                                :perfil-profesional="$perfilProfesional"
-                                :oficios="$oficios"
-                                :oficios-seleccionados="$oficiosSeleccionados"
-                            />
+                            <x-admin.perfil.profesional :perfil-profesional="$perfilProfesional" :oficios="$oficios" :oficios-seleccionados="$oficiosSeleccionados" />
+                        @endif
+
+                        {{-- Sólo dejamos tocar roles si el usuario tiene rol admin --}}
+                        @if ($roles->contains('admin'))
+                            <hr class="my-4">
+                            <h5>Roles del usuario</h5>
+
+                            @php
+                                // $allRoles y $currentRoles vienen del controlador
+                            @endphp
+
+                            @foreach ($allRoles as $roleName)
+                                @php
+                                    $isChecked = in_array($roleName, old('roles', $currentRoles));
+                                @endphp
+
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input rol-input" type="checkbox" name="roles[]"
+                                        id="role_{{ $roleName }}" value="{{ $roleName }}"
+                                        {{ $isChecked ? 'checked' : '' }}
+                                        @if ($roleName === 'profesional' && $perfilProfesional) data-tiene-perfil-profesional="1" @endif>
+                                    <label class="form-check-label" for="role_{{ $roleName }}">
+                                        {{ ucfirst($roleName) }}
+                                    </label>
+                                </div>
+                            @endforeach
+
+                            @error('roles')
+                                <div class="invalid-feedback d-block">
+                                    {{ $message }}
+                                </div>
+                            @enderror
                         @endif
 
                         {{-- Botones --}}
@@ -71,5 +97,8 @@
 
     <x-footer />
 @endsection
+
+{{-- Alertas Roles JS personalizados --}}
+<x-admin.roles.roles_alertas />
 
 <x-alertas_sweet />

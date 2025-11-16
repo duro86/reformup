@@ -316,36 +316,44 @@ class AdminDashboardController extends Controller
             ->with('success', 'Usuario eliminado correctamente (y su perfil profesional, si tenía).');
     }
 
-    // PERFIL DEL USUARIO LOGUEADO (admin, usuario, profesional...)
+    // Perfil Usuario Logueado (admin, usuario, profesional...)
     public function mostrarPerfil()
     {
         $usuario = Auth::user();
-        $roles   = $usuario->getRoleNames();  // colección ['admin', 'usuario', 'profesional', ...]
+        $roles   = $usuario->getRoleNames();
 
         $oficios = Oficio::orderBy('nombre')->get();
 
-        // relación hasOne en User: perfil_Profesional()
         $perfilProfesional = $usuario->perfil_Profesional()
             ->with('oficios')
-            ->first(); // puede ser null
+            ->first();
 
         $oficiosSeleccionados = $perfilProfesional
             ? $perfilProfesional->oficios->pluck('id')->toArray()
             : [];
+
+        // Roles disponibles para checkboxes
+        $allRoles = Role::whereIn('name', ['usuario', 'profesional', 'admin'])
+            ->pluck('name')
+            ->toArray();
+
+        $currentRoles = $usuario->getRoleNames()->toArray();
 
         return view('layouts.admin.perfil.perfil', compact(
             'usuario',
             'roles',
             'perfilProfesional',
             'oficios',
-            'oficiosSeleccionados'
+            'oficiosSeleccionados',
+            'allRoles',
+            'currentRoles'
         ));
     }
 
     public function actualizarPerfil(Request $request)
     {
         $usuario = Auth::user();
-        $roles   = $usuario->getRoleNames();
+        $rolesActuales    = $usuario->getRoleNames();
         $perfilProfesional = $usuario->perfil_Profesional()->first(); // puede ser null
 
         // ---------- 1) VALIDACIÓN DINÁMICA ----------
@@ -373,7 +381,11 @@ class AdminDashboardController extends Controller
 
         $messages = [
             'nombre.required'    => 'El nombre es obligatorio.',
+            'nombre.string'    => 'El formato no es válido.',
+            'nombre.max'    => 'El nombre no puede tener mas de 50 caracteres.',
             'apellidos.required' => 'Los apellidos son obligatorios.',
+            'apellidos.max' => 'Los apellidos no pueden tener mas de 100 caracteres.',
+            'apellidos.string' => 'El formato no es válido.',
             'email.required'     => 'El email es obligatorio.',
             'email.email'        => 'Debes introducir un correo válido.',
             'email.unique'       => 'El email ya está registrado.',
@@ -382,6 +394,12 @@ class AdminDashboardController extends Controller
             'telefono.required'  => 'El teléfono es obligatorio.',
             'telefono.regex'     => 'El teléfono no tiene un formato válido.',
             'telefono.unique'    => 'El teléfono ya está registrado.',
+            'ciudad.max'    => 'El nombre de la ciudad no puede superar los 100 caracteres.',
+            'ciudad.string'    => 'El formato no es válido.',
+            'provincia.max'    => 'El nombre de la provincia no puede superar los 100 caracteres.',
+            'provincia.string'    => 'El formato no es válido.',
+            'direccion.max'    => 'El nombre de la dirección no puede superar los 255 caracteres.',
+            'direccion.string'    => 'El formato no es válido.',
             'cp.regex'           => 'El código postal no tiene un formato válido.',
             'avatar.image'       => 'El archivo debe ser una imagen.',
             'avatar.mimes'       => 'Sólo se permiten archivos JPG, PNG, JPEG, GIF o WEBP.',
@@ -389,7 +407,7 @@ class AdminDashboardController extends Controller
         ];
 
         // Si tiene rol profesional Y perfil profesional, añadimos reglas de profesional
-        if ($roles->contains('profesional') && $perfilProfesional) {
+        if ($rolesActuales ->contains('profesional') && $perfilProfesional) {
             $rules = array_merge($rules, [
                 'empresa' => ['required', 'string', 'max:255'],
                 'cif' => [
@@ -448,6 +466,18 @@ class AdminDashboardController extends Controller
             ]);
         }
 
+        // --- Reglas de ROLES (opcional, sólo si vienen en el formulario) ---
+        $validRoleNames = Role::whereIn('name', ['usuario', 'profesional', 'admin'])
+            ->pluck('name')
+            ->toArray();
+
+        $rules['roles'] = ['nullable', 'array', 'min:1'];
+        $rules['roles.*'] = ['string', Rule::in($validRoleNames)];
+
+        $messages['roles.array'] = 'El formato de los roles no es válido.';
+        $messages['roles.min']   = 'Debes tener al menos un rol asignado.';
+        $messages['roles.*.in']  = 'Alguno de los roles seleccionados no es válido.';
+
         $validated = $request->validate($rules, $messages);
 
         // ---------- 2) AVATAR USUARIO ----------
@@ -490,7 +520,7 @@ class AdminDashboardController extends Controller
             $usuario->save();
 
             // ---------- 4) ACTUALIZAR PROFESIONAL (si aplica) ----------
-            if ($roles->contains('profesional') && $perfilProfesional) {
+            if ($rolesActuales ->contains('profesional') && $perfilProfesional) {
 
                 // Avatar profesional
                 if ($request->hasFile('avatar_profesional') && $request->file('avatar_profesional')->isValid()) {
@@ -513,6 +543,7 @@ class AdminDashboardController extends Controller
                     $avatarProPath = $perfilProfesional->avatar;
                 }
 
+                // Guardar datos del perfil profesional
                 $perfilProfesional->empresa          = $request->empresa;
                 $perfilProfesional->cif              = $request->cif;
                 $perfilProfesional->email_empresa    = $request->email_empresa;
@@ -531,6 +562,29 @@ class AdminDashboardController extends Controller
                 $perfilProfesional->oficios()->sync($request->oficios ?? []);
             }
 
+             // ---------- 5) Sincronizar ROLES (si el formulario los envía) ----------
+        if ($request->has('roles')) {
+            $nuevosRoles = $request->input('roles', []);
+
+            // Seguridad: NO permitir que un admin se quite su propio rol admin
+            if ($rolesActuales->contains('admin') && !in_array('admin', $nuevosRoles)) {
+                return back()
+                    ->withInput()
+                    ->withErrors([
+                        'roles' => 'No puedes quitarte tu propio rol de administrador.',
+                    ]);
+            }
+
+            // Sempre tenga al menos 'usuario'
+            if (!in_array('usuario', $nuevosRoles)) {
+                $nuevosRoles[] = 'usuario';
+            }
+
+            // Guardar los nuevos roles
+            $usuario->syncRoles($nuevosRoles);
+        }
+
+        // Si vamos bien, redirigimos con éxito
             return redirect()
                 ->route('admin.dashboard')
                 ->with('success', 'Tu perfil se ha actualizado correctamente.');
