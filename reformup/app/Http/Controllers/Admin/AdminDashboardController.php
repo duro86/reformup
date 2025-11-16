@@ -3,6 +3,8 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Models\User;
+use App\Models\Oficio;
+use App\Models\Perfil_Profesional;
 use Spatie\Permission\Traits\HasRoles;
 
 use App\Http\Controllers\Controller;
@@ -12,6 +14,8 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
+use Illuminate\Database\QueryException;
+use Exception;
 
 class AdminDashboardController extends Controller
 {
@@ -287,13 +291,6 @@ class AdminDashboardController extends Controller
             ->with('success', 'Usuario actualizado correctamente');
     }
 
-    /* public function update(Request $request, User $usuario)
-    {
-        // validar y actualizar
-        $usuario->update($request->all());
-        return redirect()->route('admin.usuarios.index')->with('success', 'Usuario actualizado correctamente');
-    }*/
-
     // Eliminar usuario desde el panel admin
     public function eliminarUsuario($id)
     {
@@ -317,5 +314,234 @@ class AdminDashboardController extends Controller
         return redirect()
             ->route('admin.usuarios')
             ->with('success', 'Usuario eliminado correctamente (y su perfil profesional, si tenía).');
+    }
+
+    // PERFIL DEL USUARIO LOGUEADO (admin, usuario, profesional...)
+    public function mostrarPerfil()
+    {
+        $usuario = Auth::user();
+        $roles   = $usuario->getRoleNames();  // colección ['admin', 'usuario', 'profesional', ...]
+
+        $oficios = Oficio::orderBy('nombre')->get();
+
+        // relación hasOne en User: perfil_Profesional()
+        $perfilProfesional = $usuario->perfil_Profesional()
+            ->with('oficios')
+            ->first(); // puede ser null
+
+        $oficiosSeleccionados = $perfilProfesional
+            ? $perfilProfesional->oficios->pluck('id')->toArray()
+            : [];
+
+        return view('layouts.admin.perfil.perfil', compact(
+            'usuario',
+            'roles',
+            'perfilProfesional',
+            'oficios',
+            'oficiosSeleccionados'
+        ));
+    }
+
+    public function actualizarPerfil(Request $request)
+    {
+        $usuario = Auth::user();
+        $roles   = $usuario->getRoleNames();
+        $perfilProfesional = $usuario->perfil_Profesional()->first(); // puede ser null
+
+        // ---------- 1) VALIDACIÓN DINÁMICA ----------
+        $rules = [
+            // Bloque USUARIO (siempre activo, porque tu admin también es user)
+            'nombre'     => ['required', 'string', 'max:50'],
+            'apellidos'  => ['required', 'string', 'max:100'],
+            'email'      => [
+                'required',
+                'email:rfc,dns',
+                Rule::unique('users', 'email')->ignore($usuario->id),
+            ],
+            'password'   => ['nullable', 'confirmed', 'min:6'],
+            'telefono'   => [
+                'required',
+                'regex:/^[6789]\d{8}$/',
+                Rule::unique('users', 'telefono')->ignore($usuario->id),
+            ],
+            'ciudad'     => ['nullable', 'string', 'max:100'],
+            'provincia'  => ['nullable', 'string', 'max:100'],
+            'cp'         => ['nullable', 'regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'],
+            'direccion'  => ['nullable', 'string', 'max:255'],
+            'avatar'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+        ];
+
+        $messages = [
+            'nombre.required'    => 'El nombre es obligatorio.',
+            'apellidos.required' => 'Los apellidos son obligatorios.',
+            'email.required'     => 'El email es obligatorio.',
+            'email.email'        => 'Debes introducir un correo válido.',
+            'email.unique'       => 'El email ya está registrado.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+            'password.min'       => 'La contraseña debe tener al menos 6 caracteres.',
+            'telefono.required'  => 'El teléfono es obligatorio.',
+            'telefono.regex'     => 'El teléfono no tiene un formato válido.',
+            'telefono.unique'    => 'El teléfono ya está registrado.',
+            'cp.regex'           => 'El código postal no tiene un formato válido.',
+            'avatar.image'       => 'El archivo debe ser una imagen.',
+            'avatar.mimes'       => 'Sólo se permiten archivos JPG, PNG, JPEG, GIF o WEBP.',
+            'avatar.max'         => 'La imagen no debe superar los 2MB.',
+        ];
+
+        // Si tiene rol profesional Y perfil profesional, añadimos reglas de profesional
+        if ($roles->contains('profesional') && $perfilProfesional) {
+            $rules = array_merge($rules, [
+                'empresa' => ['required', 'string', 'max:255'],
+                'cif' => [
+                    'required',
+                    'string',
+                    'max:15',
+                    'regex:/^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/',
+                    Rule::unique('perfiles_profesionales', 'cif')->ignore($perfilProfesional->id),
+                ],
+                'email_empresa' => [
+                    'required',
+                    'email',
+                    'email:rfc,dns',
+                    Rule::unique('perfiles_profesionales', 'email_empresa')->ignore($perfilProfesional->id),
+                ],
+                'telefono_empresa' => [
+                    'required',
+                    'regex:/^(\\+34|0034|34)?[ -]*([6|7|8|9])[ -]*([0-9][ -]*){8}$/',
+                    Rule::unique('perfiles_profesionales', 'telefono_empresa')->ignore($perfilProfesional->id),
+                ],
+                'ciudad_empresa'    => ['nullable', 'string', 'max:120'],
+                'provincia_empresa' => ['nullable', 'string', 'max:120'],
+                'direccion_empresa' => ['nullable', 'string', 'max:255'],
+                'web'               => ['nullable', 'url', 'max:255'],
+                'bio'               => ['nullable', 'string', 'max:500'],
+                'avatar_profesional' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
+                'visible'           => ['required', 'in:0,1'],
+                'oficios'           => ['required', 'array', 'min:1'],
+                'oficios.*'         => ['exists:oficios,id'],
+            ]);
+
+            $messages = array_merge($messages, [
+                'empresa.required' => 'El nombre de la empresa es obligatorio.',
+                'cif.required'     => 'El CIF es obligatorio.',
+                'cif.regex'        => 'El CIF no tiene un formato válido.',
+                'cif.unique'       => 'Este CIF ya está registrado.',
+                'email_empresa.required' => 'El email de la empresa es obligatorio.',
+                'email_empresa.email'    => 'Debes introducir un correo empresarial válido.',
+                'email_empresa.unique'   => 'Este email de empresa ya está registrado.',
+                'telefono_empresa.required' => 'El teléfono de la empresa es obligatorio.',
+                'telefono_empresa.regex'    => 'El teléfono de la empresa no tiene el formato correcto.',
+                'telefono_empresa.unique'   => 'Este teléfono de empresa ya está registrado.',
+                'ciudad_empresa.string'     => 'La ciudad de empresa debe ser texto válido.',
+                'provincia_empresa.string'  => 'La provincia de empresa debe ser texto válido.',
+                'direccion_empresa.string'  => 'La dirección de empresa debe ser texto válido.',
+                'web.url'   => 'Debes introducir una URL válida para la web.',
+                'web.max'   => 'La URL es demasiado larga.',
+                'bio.string' => 'La biografía debe ser texto válido.',
+                'bio.max'    => 'La biografía es demasiado larga.',
+                'avatar_profesional.image' => 'El archivo de avatar profesional debe ser una imagen.',
+                'avatar_profesional.mimes' => 'Sólo se permiten archivos JPG, PNG, JPEG, GIF, SVG o WEBP.',
+                'avatar_profesional.max'   => 'La imagen profesional no debe superar los 2MB.',
+                'visible.required' => 'Debes indicar si el perfil profesional está visible.',
+                'visible.in'       => 'El campo visible debe ser Sí o No.',
+                'oficios.required' => 'Debes seleccionar al menos un oficio.',
+            ]);
+        }
+
+        $validated = $request->validate($rules, $messages);
+
+        // ---------- 2) AVATAR USUARIO ----------
+        if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
+
+            if ($usuario->avatar && $usuario->avatar !== 'imagenes/avatarUser/avatar_default.png') {
+                Storage::disk('public')->delete($usuario->avatar);
+            }
+
+            $dir  = 'imagenes/avatarUser/' . now()->format('Ymd');
+            $ext  = $request->file('avatar')->getClientOriginalExtension();
+            $base = pathinfo($request->file('avatar')->getClientOriginalName(), PATHINFO_FILENAME);
+            $safe = Str::slug($base);
+            $file = $safe . '-' . Str::random(8) . '.' . $ext;
+
+            Storage::disk('public')->makeDirectory($dir);
+            $request->file('avatar')->storeAs($dir, $file, 'public');
+
+            $avatarUserPath = $dir . '/' . $file;
+        } else {
+            $avatarUserPath = $usuario->avatar;
+        }
+
+        try {
+            // ---------- 3) ACTUALIZAR USUARIO ----------
+            $usuario->nombre    = $request->nombre;
+            $usuario->apellidos = $request->apellidos;
+            $usuario->email     = $request->email;
+            $usuario->telefono  = $request->telefono;
+            $usuario->ciudad    = $request->ciudad;
+            $usuario->provincia = $request->provincia;
+            $usuario->cp        = $request->cp;
+            $usuario->direccion = $request->direccion;
+            $usuario->avatar    = $avatarUserPath;
+
+            if ($request->filled('password')) {
+                $usuario->password = bcrypt($request->password);
+            }
+
+            $usuario->save();
+
+            // ---------- 4) ACTUALIZAR PROFESIONAL (si aplica) ----------
+            if ($roles->contains('profesional') && $perfilProfesional) {
+
+                // Avatar profesional
+                if ($request->hasFile('avatar_profesional') && $request->file('avatar_profesional')->isValid()) {
+
+                    if ($perfilProfesional->avatar) {
+                        Storage::disk('public')->delete($perfilProfesional->avatar);
+                    }
+
+                    $dirPro  = 'imagenes/avatarProfesional/' . now()->format('Ymd');
+                    $extPro  = $request->file('avatar_profesional')->getClientOriginalExtension();
+                    $basePro = pathinfo($request->file('avatar_profesional')->getClientOriginalName(), PATHINFO_FILENAME);
+                    $safePro = Str::slug($basePro);
+                    $filePro = $safePro . '-' . Str::random(8) . '.' . $extPro;
+
+                    Storage::disk('public')->makeDirectory($dirPro);
+                    $request->file('avatar_profesional')->storeAs($dirPro, $filePro, 'public');
+
+                    $avatarProPath = $dirPro . '/' . $filePro;
+                } else {
+                    $avatarProPath = $perfilProfesional->avatar;
+                }
+
+                $perfilProfesional->empresa          = $request->empresa;
+                $perfilProfesional->cif              = $request->cif;
+                $perfilProfesional->email_empresa    = $request->email_empresa;
+                $perfilProfesional->telefono_empresa = $request->telefono_empresa;
+                $perfilProfesional->ciudad           = $request->ciudad_empresa;
+                $perfilProfesional->provincia        = $request->provincia_empresa;
+                $perfilProfesional->dir_empresa      = $request->direccion_empresa;
+                $perfilProfesional->web              = $request->web;
+                $perfilProfesional->bio              = $request->bio;
+                $perfilProfesional->visible          = $request->visible;
+                $perfilProfesional->avatar           = $avatarProPath;
+
+                $perfilProfesional->save();
+
+                // relación muchos-a-muchos oficios
+                $perfilProfesional->oficios()->sync($request->oficios ?? []);
+            }
+
+            return redirect()
+                ->route('admin.dashboard')
+                ->with('success', 'Tu perfil se ha actualizado correctamente.');
+        } catch (QueryException $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Ha ocurrido un problema al guardar los datos. Inténtalo de nuevo.');
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Ha ocurrido un error inesperado.');
+        }
     }
 }

@@ -8,18 +8,11 @@
     $isProfesional = $roles->contains('profesional');
 @endphp
 
-<div
-    class="position-fixed d-flex flex-column p-3 bg-light"
-    style="height: 100vh; width: 200px; max-width: 100%; z-index: 1040; overflow: visible;"
-    id="sidebar"
->
+<div class="position-fixed d-flex flex-column p-3 bg-light"
+    style="height: 100vh; width: 200px; max-width: 100%; z-index: 1040; overflow: visible;" id="sidebar">
     {{-- Botón para plegar/desplegar --}}
-    <button
-        id="sidebar-toggle"
-        type="button"
-        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
-        aria-label="Contraer/expandir menú"
-    >
+    <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
+        aria-label="Contraer/expandir menú">
         <i class="bi bi-chevron-left"></i>
     </button>
 
@@ -75,7 +68,9 @@
                 {{-- Listado Comentarios --}}
                 <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i> Comentarios</a>
             </li>
-            <li><hr></li> {{-- Separador visual --}}
+            <li>
+                <hr>
+            </li> {{-- Separador visual --}}
         </ul>
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
@@ -84,7 +79,9 @@
                 <a class="nav-link" href="{{ route('home') }}"><i class="bi bi-house-door"></i> Inicio</a>
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="bi bi-file-person-fill"></i> Perfil</a>
+                <a class="nav-link" href="{{ route('admin.perfil') }}">
+                    <i class="bi bi-file-person-fill"></i> Perfil
+                </a>
             </li>
             <li class="nav-item">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
@@ -99,29 +96,28 @@
 </div>
 {{-- Nota: El botón de plegar/desplegar sidebar requiere JavaScript adicional para funcionar --}}
 @push('scripts')
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const sidebar = document.getElementById('sidebar');
-        const toggleBtn = document.getElementById('sidebar-toggle');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const sidebar = document.getElementById('sidebar');
+            const toggleBtn = document.getElementById('sidebar-toggle');
 
-        if (!sidebar || !toggleBtn) return;
+            if (!sidebar || !toggleBtn) return;
 
-        const icon = toggleBtn.querySelector('i');
+            const icon = toggleBtn.querySelector('i');
 
-        toggleBtn.addEventListener('click', function () {
-            const collapsed = sidebar.classList.toggle('sidebar-collapsed');
+            toggleBtn.addEventListener('click', function() {
+                const collapsed = sidebar.classList.toggle('sidebar-collapsed');
 
-            if (collapsed) {
-                // Sidebar recogido → flecha hacia la derecha (para indicar que se puede abrir)
-                icon.classList.remove('bi-chevron-left');
-                icon.classList.add('bi-chevron-right');
-            } else {
-                // Sidebar abierto → flecha hacia la izquierda (para cerrarlo)
-                icon.classList.remove('bi-chevron-right');
-                icon.classList.add('bi-chevron-left');
-            }
+                if (collapsed) {
+                    // Sidebar recogido → flecha hacia la derecha (para indicar que se puede abrir)
+                    icon.classList.remove('bi-chevron-left');
+                    icon.classList.add('bi-chevron-right');
+                } else {
+                    // Sidebar abierto → flecha hacia la izquierda (para cerrarlo)
+                    icon.classList.remove('bi-chevron-right');
+                    icon.classList.add('bi-chevron-left');
+                }
+            });
         });
-    });
-</script>
+    </script>
 @endpush
-

@@ -30,23 +30,7 @@ class ProfesionalPerfilController extends Controller
     }
 
     /**
-     * Show the form for creating a new resource.
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
+     * Mostrar perfil profesional en formato JSON para vue.js
      */
     public function show($id)
     {
@@ -189,7 +173,7 @@ class ProfesionalPerfilController extends Controller
             $avatarPath = $perfil->avatar;
         }
 
-        //Manejo d errores
+        //Manejo de errores
         try {
             // ACTUALIZAR CAMPOS
             $perfil->empresa             = $request->empresa;
@@ -233,7 +217,7 @@ class ProfesionalPerfilController extends Controller
     }
 
     /**
-     * Remove the specified resource from storage.
+     * Elimina solo el perfil profesional (no el usuario)
      */
     public function eliminarProfesional($id)
     {

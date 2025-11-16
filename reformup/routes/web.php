@@ -97,6 +97,13 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // Registrar un profesional siendo Admin
         Route::get('/registrar/profesional', [ProfesionalPerfilController::class, 'mostrarFormAdminProNuevo'])->name('admin.form.registrar.profesional');
         Route::post('/registrar/profesional', [ProfesionalPerfilController::class, 'crearProNuevo'])->name('admin.registrar.profesional');
+
+        // PERFIL
+        Route::get('/perfil', [AdminDashboardController::class, 'mostrarPerfil'])
+            ->name('perfil');
+
+        Route::put('/perfil', [AdminDashboardController::class, 'actualizarPerfil'])
+            ->name('perfil.actualizar');
     });
 
 
