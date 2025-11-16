@@ -16,23 +16,23 @@
                 {{-- Modal profesional --}}
                 <professional-modal ref="professionalModal"></professional-modal>
 
+                {{-- Listado Profesionales --}}
                 <div class="container p-3">
                     <h1 class="text-center d-flex align-items-center justify-content-center gap-3">
                         Listado de Profesionales
 
-                        {{-- Si más adelante añadir un botón para crear profesional manualmente, lo pones aquí --}}
-                        {{-- 
-                        <a href="{{ route('admin.profesionales.create') }}" class="btn btn-sm"
+                        {{-- Añadir Profesional nuevo --}}
+                        <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm"
                            style="background-color: #718355; color: white;">
                             <i class="bi bi-plus-lg"></i> Añadir profesional
                         </a>
-
+                        {{-- Exportar PDF profesionales --}}
                         <a href="#" class="btn btn-sm" style="background-color: #B5C99A; color: black;">
                             Exportar PDF profesionales
                         </a>
-                        --}}
                     </h1>
 
+                    {{-- Tabla profesionales --}}
                     <table class="table table-sm">
                         {{-- Encabezados --}}
                         <thead>
@@ -117,12 +117,12 @@
                             @endforeach
                         </tbody>
                     </table>
-
+                    {{-- Paginación --}}
                     {{ $profesionales->links('pagination::bootstrap-5') }}
                 </div>
             </div>
         </div>
     </div>
 @endsection
-
+{{-- Alertas --}}
 <x-alertas_sweet />

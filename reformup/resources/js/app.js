@@ -15,7 +15,7 @@ const app = createApp({
             this.$refs.userModal.openModal(id);
         },
         openProfessionalModal(id) {
-            this.$refs.profesionalModal.openModal(id);
+            this.$refs.professionalModal.openModal(id);
         },
     },
 });

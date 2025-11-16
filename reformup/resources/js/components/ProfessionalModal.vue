@@ -38,6 +38,7 @@
             </a>
             <span v-else class="text-muted">Sin web</span>
           </p>
+          <p><strong>Oficios:</strong> {{ oficiosTexto }}</p>
 
           <p><strong>Puntuación media:</strong> {{ profesional.puntuacion_media ? profesional.puntuacion_media : '—' }}</p>
           <p><strong>Trabajos realizados:</strong> {{ profesional.trabajos_realizados ? profesional.trabajos_realizados : 0 }}</p>
@@ -85,6 +86,23 @@ export default {
       profesional: null,
       bsModal: null,
     };
+  },
+  computed: {
+    oficiosTexto() {
+      if (!this.profesional || !this.profesional.oficios || this.profesional.oficios.length === 0) {
+        return '—';
+      }
+
+      return this.profesional.oficios
+        .map(o => {
+          if (!o.nombre) return '';
+          // igual que en Blade: reemplazar _ por espacio y capitalizar primera letra
+          const limpio = o.nombre.replace(/_/g, ' ');
+          return limpio.charAt(0).toUpperCase() + limpio.slice(1);
+        })
+        .filter(Boolean)   // quita strings vacíos
+        .join(', ');
+    }
   },
   mounted() {
     this.bsModal = new Modal(this.$refs.modal);

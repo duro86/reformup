@@ -260,3 +260,16 @@ h1.destacado {
     padding: 0;
 }
 
+// SideBar Admin
+#sidebar {
+    transition: transform 0.3s ease;
+}
+
+/* Cuando está colapsado, lo movemos hacia la izquierda casi entero,
+   dejando ~40px visibles para que se vea el botón con la flecha */
+#sidebar.sidebar-collapsed {
+    transform: translateX(calc(-100% + 40px));
+}
+
+
+

@@ -164,47 +164,71 @@ class AuthProController extends Controller
                 ->with('error', 'No se encontró el usuario de la sesión. Repite el Paso 1.');
         }
 
-        // Validación de datos
+        // Validación de datos (ALTA)
         $request->validate([
             'user_id' => ['required', 'exists:users,id'],
+
             'empresa' => ['required', 'string', 'max:255'],
-            'cif' => ['required', 'string', 'max:15', 'unique:perfiles_profesionales,cif', 'regex:/^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/', 'unique:perfiles_profesionales,email_empresa'],
-            'email_empresa' => ['required', 'email', 'email:rfc,dns', 'unique:perfiles_profesionales,email_empresa'],
+
+            'cif' => [
+                'required',
+                'string',
+                'max:15',
+                'unique:perfiles_profesionales,cif',
+                'regex:/^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/',
+            ],
+
+            'email_empresa' => [
+                'required',
+                'email',
+                'email:rfc,dns',
+                'unique:perfiles_profesionales,email_empresa',
+            ],
+
             'bio' => ['nullable', 'string', 'max:500'],
+
             'web' => ['nullable', 'url', 'max:255'],
-            'telefono_empresa' => ['required', 'regex:/^(\\+34|0034|34)?[ -]*([6|7|8|9])[ -]*([0-9][ -]*){8}$/', 'unique:perfiles_profesionales,telefono_empresa'], //Movil y fijo España
-            'ciudad_empresa' => ['nullable', 'string', 'max:120'],
-            'provincia_empresa' => ['nullable', 'string', 'max:120'],
-            'direccion_empresa' => ['nullable', 'string', 'max:255'],
+
+            'telefono_empresa' => [
+                'required',
+                'regex:/^(\\+34|0034|34)?[ -]*([6|7|8|9])[ -]*([0-9][ -]*){8}$/',
+                'unique:perfiles_profesionales,telefono_empresa',
+            ],
+
+            'ciudad_empresa'     => ['nullable', 'string', 'max:120'],
+            'provincia_empresa'  => ['nullable', 'string', 'max:120'],
+            'direccion_empresa'  => ['nullable', 'string', 'max:255'],
+
             'avatar_empresa' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
-            'oficios' => ['required', 'array', 'min:1'],
-            'oficios.*' => ['exists:oficios,id']
+
+            'oficios'   => ['required', 'array', 'min:1'],
+            'oficios.*' => ['exists:oficios,id'],
         ], [
             'user_id.required' => 'El usuario es obligatorio.',
-            'user_id.exists' => 'El usuario no existe.',
+            'user_id.exists'   => 'El usuario no existe.',
 
             'empresa.required' => 'El nombre de la empresa es obligatorio.',
-            'empresa.max' => 'El nombre de la empresa es demasiado largo.',
+            'empresa.max'      => 'El nombre de la empresa es demasiado largo.',
 
             'cif.required' => 'El CIF es obligatorio.',
-            'cif.unique' => 'Este CIF ya está registrado.',
-            'cif.regex' => 'El CIF no tiene un formato válido.',
+            'cif.unique'   => 'Este CIF ya está registrado.',
+            'cif.regex'    => 'El CIF no tiene un formato válido.',
 
             'email_empresa.required' => 'El email de la empresa es obligatorio.',
-            'email_empresa.email' => 'El email de la empresa no es válido.',
-            'email_empresa.unique' => 'Este email de empresa ya está registrado.',
+            'email_empresa.email'    => 'El email de la empresa no es válido.',
+            'email_empresa.unique'   => 'Este email de empresa ya está registrado.',
 
-            'bio.max' => 'La descripción es demasiado larga.',
+            'bio.max'  => 'La descripción es demasiado larga.',
+
             'web.url' => 'La web no es una URL válida.',
-            'web.regex' => 'La web no tiene un formato válido.',
 
             'telefono_empresa.required' => 'El teléfono de la empresa es obligatorio.',
-            'telefono_empresa.regex' => 'El teléfono de la empresa no tiene el formato correcto.',
-            'telefono_empresa.unique' => 'Este teléfono de empresa ya está registrado.',
+            'telefono_empresa.regex'    => 'El teléfono de la empresa no tiene el formato correcto.',
+            'telefono_empresa.unique'   => 'Este teléfono de empresa ya está registrado.',
 
             'avatar_empresa.image' => 'El archivo debe ser una imagen.',
             'avatar_empresa.mimes' => 'Extensiones permitidas: jpeg, png, jpg, gif, svg, webp.',
-            'avatar_empresa.max' => 'La imagen no debe superar los 2MB.',
+            'avatar_empresa.max'   => 'La imagen no debe superar los 2MB.',
 
             'oficios.required' => 'Debes seleccionar al menos un oficio.',
         ]);
