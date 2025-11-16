@@ -107,8 +107,9 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
     });
 
 
+
 // --- PROFESIONAL ---
-Route::middleware(['auth', 'role:profesional'])
+Route::middleware(['auth', 'rol.redirigir:profesional', 'tiene.perfil.profesional'])
     ->prefix('profesional')->name('profesional.')
     ->group(function () {
         Route::get('/dashboard', [ProfesionalDashboardController::class, 'index'])->name('dashboard');
@@ -116,11 +117,15 @@ Route::middleware(['auth', 'role:profesional'])
     });
 
 // --- USUARIO ---
-Route::middleware(['auth', 'role:usuario'])
+Route::middleware(['auth', 'rol.redirigir:usuario'])
     ->prefix('usuario')->name('usuario.')
     ->group(function () {
+        // Usuario dashboard
         Route::get('/dashboard', [UsuarioDashboardController::class, 'index'])->name('dashboard');
-        // mis solicitudes, mis reseñas, datos de cuenta, etc.
+
+        // PERFIL USUARIO
+        Route::get('/perfil', [UsuarioDashboardController::class, 'mostrarPerfil'])->name('perfil');
+        Route::put('/perfil', [UsuarioDashboardController::class, 'actualizarPerfil'])->name('perfil.actualizar');
     });
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])

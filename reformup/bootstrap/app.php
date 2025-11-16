@@ -7,6 +7,7 @@ use Illuminate\Foundation\Configuration\Middleware;
 // IMPORTA TU MIDDLEWARE:
 use App\Http\Middleware\VerificarRolORedireccionar;
 use App\Http\Middleware\CheckAuthRedirect;
+use App\Http\Middleware\TienePerfilProfesional;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,6 +20,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'rol.redirigir' => VerificarRolORedireccionar::class,
             'auth.redirect' => CheckAuthRedirect::class,
+            'tiene.perfil.profesional' => TienePerfilProfesional::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
