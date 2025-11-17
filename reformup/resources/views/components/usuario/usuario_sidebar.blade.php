@@ -41,15 +41,19 @@
     <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
         <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
             <li class="nav-item">
-                <a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> Solicitudes</a>
+                {{-- Listado Solicitudes --}}
+                <a class="nav-link" href="{{ route('usuario.solicitudes.index') }}"><i class="bi bi-file-earmark-text"></i> Solicitudes</a>
             </li>
             <li class="nav-item">
+                {{-- Listado Presupuestos --}}
                 <a class="nav-link" href="#"><i class="bi bi-receipt"></i> Presupuestos</a>
             </li>
             <li class="nav-item">
+                {{-- Listado Trabajos --}}
                 <a class="nav-link" href="#"><i class="bi bi-briefcase-fill"></i> Trabajos</a>
             </li>
             <li class="nav-item">
+                {{-- Listado Comentarios --}}
                 <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i> Comentarios</a>
             </li>
 

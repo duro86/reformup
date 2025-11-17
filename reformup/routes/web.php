@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
+use App\Http\Controllers\Usuario\UsuarioSolicitudController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
 use App\Http\Controllers\Auth\OlvidarPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -150,6 +151,27 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         // PERFIL USUARIO
         Route::get('/perfil', [UsuarioDashboardController::class, 'mostrarPerfil'])->name('perfil');
         Route::put('/perfil', [UsuarioDashboardController::class, 'actualizarPerfil'])->name('perfil.actualizar');
+
+        // SOLICITUDES DE PRESUPUESTOS
+        // LISTADO de solicitudes del cliente
+        Route::get('/solicitudes', [UsuarioSolicitudController::class, 'index'])
+            ->name('solicitudes.index');
+
+        // FORMULARIO nueva solicitud
+        Route::get('/solicitudes/crear', [UsuarioSolicitudController::class, 'seleccionarProfesional'])
+            ->name('solicitudes.crear');
+
+        // GUARDAR nueva solicitud
+        // PASO 2: formulario de solicitud con un profesional concreto
+        Route::get('/solicitudes/crear/profesional/{pro}', [UsuarioSolicitudController::class, 'crearConProfesional'])
+            ->name('solicitudes.crear_con_profesional');
+
+        // Guardar solicitud
+        Route::post('/solicitudes', [UsuarioSolicitudController::class, 'guardar'])
+            ->name('solicitudes.guardar');
+        // ELIMINAR una solicitud del cliente
+        Route::delete('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'eliminar'])
+            ->name('solicitudes.eliminar');
     });
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])

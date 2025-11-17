@@ -7,7 +7,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Presupuesto extends Model
 {
-    use SoftDeletes;
+    //use SoftDeletes;
 
     protected $table = 'presupuestos';
 

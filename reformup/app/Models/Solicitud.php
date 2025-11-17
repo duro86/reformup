@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Solicitud extends Model
 {
     //Modelo para Solicitudes
-    use SoftDeletes;
+    //use SoftDeletes; guarda lo eliminado en la base de datos pero lo borra físicamente
 
     protected $table = 'solicitudes';
     /**
@@ -31,6 +31,10 @@ class Solicitud extends Model
     protected $fillable = [
         'pro_id', 'cliente_id', 'titulo', 'descripcion',
         'ciudad', 'provincia', 'dir_empresa', 'estado', 'presupuesto_max', 'fecha'
+    ];
+
+    protected $casts = [
+        'fecha' => 'datetime',
     ];
 
     /**

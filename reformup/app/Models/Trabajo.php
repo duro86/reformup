@@ -11,7 +11,7 @@ use App\Models\Medio;
 class Trabajo extends Model
 {
     //
-    use SoftDeletes;
+    //use SoftDeletes;
 
     protected $table = 'trabajos';
 

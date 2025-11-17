@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 class Perfil_Profesional extends Model
 {
     //Modelo para Perfiles Profesionales
-    use SoftDeletes;
+    //use SoftDeletes;
 
     protected $table = 'perfiles_profesionales';
 
