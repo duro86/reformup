@@ -10,6 +10,7 @@ use Spatie\Permission\Traits\HasRoles;
 use App\Models\Perfil_Profesional;
 use App\Models\Solicitud;
 use App\Models\Comentario;
+use App\Notifications\ResetPasswordReformUp;
 
 class User extends Authenticatable
 {
@@ -23,21 +24,21 @@ class User extends Authenticatable
      */
 
     /**
-         * Atributos que se pueden asignar de forma masiva (mas asignable).
-         * 
-         * Laravel protege los modelos contra la asignación masiva no deseada
-         * (mass assignment vulnerability). La propiedad `$fillable` define
-         * explícitamente qué campos pueden recibir valores al crear o actualizar
-         * un usuario mediante métodos como `User::create()` o `$user->update()`.
-         * asignación masiva, evitando modificaciones accidentales o maliciosas.
-         * 
-         * Campos:
-         * - nombre, apellidos: datos personales del usuario.
-         * - email: correo único para autenticación.
-         * - password: contraseña encriptada (bcrypt).
-         * - telefono, ciudad, provincia, cp, direccion: datos de contacto.
-         * - avatar: ruta o URL del archivo de imagen del perfil.
-    */
+     * Atributos que se pueden asignar de forma masiva (mas asignable).
+     * 
+     * Laravel protege los modelos contra la asignación masiva no deseada
+     * (mass assignment vulnerability). La propiedad `$fillable` define
+     * explícitamente qué campos pueden recibir valores al crear o actualizar
+     * un usuario mediante métodos como `User::create()` o `$user->update()`.
+     * asignación masiva, evitando modificaciones accidentales o maliciosas.
+     * 
+     * Campos:
+     * - nombre, apellidos: datos personales del usuario.
+     * - email: correo único para autenticación.
+     * - password: contraseña encriptada (bcrypt).
+     * - telefono, ciudad, provincia, cp, direccion: datos de contacto.
+     * - avatar: ruta o URL del archivo de imagen del perfil.
+     */
     protected $fillable = [
         'nombre',
         'apellidos',
@@ -83,7 +84,7 @@ class User extends Authenticatable
      * 
      * Ejemplo de uso:
      * $perfil = $user->perfil_Profesional;
-    */
+     */
     public function perfil_Profesional()
     {
         return $this->hasOne(Perfil_Profesional::class, 'user_id');
@@ -98,7 +99,7 @@ class User extends Authenticatable
      * 
      * Ejemplo de uso:
      * $solicitudes = $user->solicitudes;
-    */
+     */
     public function solicitudes()
     {
         return $this->hasMany(Solicitud::class, 'cliente_id');
@@ -112,9 +113,14 @@ class User extends Authenticatable
      * 
      * Ejemplo de uso:
      * $comentarios = $user->comentarios;
-    */
+     */
     public function comentarios()
     {
         return $this->hasMany(Comentario::class, 'cliente_id');
+    }
+
+    public function sendPasswordResetNotification($token)
+    {
+        $this->notify(new ResetPasswordReformUp($token));
     }
 }

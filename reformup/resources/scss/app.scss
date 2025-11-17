@@ -129,7 +129,7 @@ h1.destacado {
     }
   }
 }
-
+// ADMIN
 // Sidebar Admin Personalizado
 .admin-sidebar {
   /* Hacer sidebar ancho completo en xs */
@@ -182,6 +182,15 @@ h1.destacado {
       // sin text-decoration ni subrayado
     }
   }
+
+  // Refuerzo específico para los botones primarios del sidebar de usuario
+.btn-primary,
+.btn-primary:focus,
+.btn-primary:hover {
+  background-color: $primary;
+  border: none;
+  color: $white;
+}
 }
 
 //Márgenes personalizados(btn entrar)

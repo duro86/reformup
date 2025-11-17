@@ -27,7 +27,7 @@ class LoginController extends Controller
      */
     public function login(Request $request)
     {
-        // Validación
+        // 1) Validación básica
         $credenciales = $request->validate([
             'email'    => ['required', 'email'],
             'password' => ['required', 'string', 'min:6'],
@@ -40,53 +40,50 @@ class LoginController extends Controller
 
         $remember = $request->boolean('remember', false);
 
-        // Happy path: credenciales correctas
         if (Auth::attempt($credenciales, $remember)) {
             $request->session()->regenerate();
 
             $user = Auth::user();
 
-            // Redirección por rol (Spatie)
+            // 2) Si es admin, se va al panel de admin sí o sí
             if ($user->hasRole('admin')) {
-                return redirect()->route('admin.dashboard')
+                return redirect()
+                    ->route('admin.dashboard')
                     ->with('success', 'Bienvenido/a al panel de administración');
             }
 
+            // 3) Si tiene rol profesional, revisamos si tiene perfil profesional
             if ($user->hasRole('profesional')) {
-
-                $perfilProfesional = $user->perfil_Profesional()->first(); // null si no existe
+                $perfilProfesional = $user->perfil_Profesional()->first();
 
                 if (!$perfilProfesional) {
-                    // OPCIÓN 1: Mantener rol pero forzar completar perfil
-                    return redirect()
-                        ->route('usuario.dashboard')  // Vamos a usuario dashboard
-                        ->with('warning', 'Tienes el rol de profesional pero aún no has completado tu perfil de empresa. Complétalo para poder usar el panel de profesional.');
-
-                    // OPCIÓN 2: Quitarle el rol directamente (yo no lo haría aquí, pero se podría):
-                    /*
-                    $user->removeRole('profesional');
-
+                    // Tiene rol profesional pero no perfil empresa
                     return redirect()
                         ->route('usuario.dashboard')
-                        ->with('warning', 'Tu rol de profesional se ha desactivado porque no tienes perfil de empresa. Contacta con soporte o vuelve a registrarte como profesional.');
-                    */
+                        ->with('warning', 'Tienes el rol de profesional pero aún no has completado tu perfil de empresa. Complétalo para poder usar el panel de profesional.');
                 }
 
-                return redirect()->route('profesional.dashboard')
-                    ->with('success', 'Bienvenido/a a tu panel de profesional');
+                // Ojo: aun así lo mantenemos entrando por usuario.dashboard
+                // Desde allí le pones un botón "Ir a mi panel profesional"
+                return redirect()
+                    ->route('usuario.dashboard')
+                    ->with('success', 'Bienvenido/a. Tienes acceso como profesional desde tu panel.');
             }
 
-            // Por defecto, usuarios normales
+            // 4) Por defecto, cualquier usuario normal → dashboard usuario
             if ($user->hasRole('usuario')) {
-                return redirect()->route('usuario.dashboard')
+                return redirect()
+                    ->route('usuario.dashboard')
                     ->with('success', 'Bienvenido/a');
             }
 
-            // Fallback raro: si por lo que sea no tiene ninguno
-            return redirect()->route('home')->with('error', 'error en el Inicio de Sesión');;
+            // 5) Fallback muy raro
+            return redirect()
+                ->route('home')
+                ->with('error', 'Error en el inicio de sesión.');
         }
 
-        // 3) Error: diferenciamos “no existe” vs “contraseña incorrecta”
+        // 6) Credenciales incorrectas
         $userExiste = User::where('email', $request->email)->exists();
 
         if (!$userExiste) {
@@ -99,6 +96,7 @@ class LoginController extends Controller
             ->withInput($request->only('email'))
             ->with('error', 'La contraseña es incorrecta');
     }
+
 
     /**
      * Cierra la sesión del usuario autenticado.

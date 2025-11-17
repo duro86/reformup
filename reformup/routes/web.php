@@ -8,6 +8,8 @@ use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
+use App\Http\Controllers\Auth\OlvidarPasswordController;
+use App\Http\Controllers\Auth\ResetPasswordController;
 
 // Página de inicio
 Route::get('/', function () {
@@ -38,9 +40,26 @@ Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarF
     ->middleware('auth.redirect'); // Middleware personalizado por si no esta logueado el usuario
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
 
-//Login 
+// ---  LOGIN ---
 // Mostrar formulario login
 Route::get('/login', [LoginController::class, 'mostrarLoginForm'])->name('login');
+// Solicitar enlace de reseteo
+Route::get('/olvidar_password', [OlvidarPasswordController::class, 'mostrarLinkRequestForm'])
+    ->middleware('guest')
+    ->name('password.request');
+
+Route::post('/olvidar_password', [OlvidarPasswordController::class, 'enviarResetLinkEmail'])
+    ->middleware('guest')
+    ->name('password.email');
+
+// Formulario para poner nueva contraseña
+Route::get('/reset_password/{token}', [ResetPasswordController::class, 'mostrarResetForm'])
+    ->middleware('guest')
+    ->name('password.reset');
+
+Route::post('/reset-password', [ResetPasswordController::class, 'reset'])
+    ->middleware('guest')
+    ->name('password.update');
 
 // Procesar login
 Route::post('/login', [LoginController::class, 'login'])->name('login.post');
@@ -105,7 +124,6 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::put('/perfil', [AdminDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
     });
-
 
 
 // --- PROFESIONAL ---

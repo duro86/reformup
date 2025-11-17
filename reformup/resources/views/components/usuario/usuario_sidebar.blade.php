@@ -59,7 +59,43 @@
                 <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i> Comentarios</a>
             </li>
             <li>
-                <hr>
+
+                {{-- Bloque acceso profesional desde el sidebar --}}
+                @if ($isProfesional)
+                    @php
+                        // Perfil profesional asociado (puede ser null)
+                        $perfilProfesional = $user->perfil_Profesional()->first();
+                    @endphp
+
+            <li class="nav-item mt-2">
+                @if ($perfilProfesional)
+                    <div class="px-2 py-2 small border rounded bg-white">
+                        <div class="fw-semibold mb-1">
+                            Perfil profesional activo
+                        </div>
+                        <p class="mb-2 text-muted">
+                            Accede a tu panel como profesional para gestionar solicitudes y trabajos.
+                        </p>
+                        <a href="{{ route('profesional.dashboard') }}" class="btn btn-primary btn-sm w-100">
+                            Ir a panel profesional
+                        </a>
+                    </div>
+                @else
+                    <div class="px-2 py-2 small border rounded bg-white">
+                        <div class="fw-semibold mb-1 text-warning">
+                            Completa tu perfil profesional
+                        </div>
+                        <p class="mb-2 text-muted">
+                            Tienes el rol de profesional, pero aún no has creado tu perfil de empresa.
+                        </p>
+                        <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm btn-warning w-100">
+                            Crear perfil profesional
+                        </a>
+                    </div>
+                @endif
+            </li>
+            @endif
+            <hr>
             </li> {{-- Separador visual --}}
         </ul>
 
@@ -86,4 +122,3 @@
 </div>
 {{-- Funcionalidad boton toggle --}}
 <x-usuario.sidebar_usuario_toggle_script />
-

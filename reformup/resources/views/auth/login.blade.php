@@ -3,11 +3,10 @@
 
 @section('content')
 
+    {{-- Estructura de dos paneles: formulario a la izquierda (o arriba en móvil) e imagen a la derecha (oculta en móvil) --}}
     <div class="d-flex flex-column flex-md-row align-items-stretch"
         style="height: 100vh; min-height: 100vh; width: 100vw; overflow: hidden;">
-        @if (session('error'))
-            <div class="alert alert-danger">{{ session('error') }}</div>
-        @endif
+
         <!-- Panel Izquierdo: Formulario -->
         <div class="d-flex flex-column justify-content-center align-items-center w-100 w-md-50">
             <!-- Logo arriba -->
@@ -40,10 +39,18 @@
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
-                    <div class="form-check mb-3">
-                        <input class="form-check-input" type="checkbox" name="remember" id="remember">
-                        <label class="form-check-label" for="remember">Recuérdame</label>
+
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                            <label class="form-check-label" for="remember">Recuérdame</label>
+                        </div>
+
+                        <a href="{{ route('password.request') }}" class="small">
+                            ¿Has olvidado la contraseña?
+                        </a>
                     </div>
+
                     <div class="d-grid">
                         <button type="submit" class="btn btn-primary">Iniciar Sesión</button>
                     </div>
