@@ -9,7 +9,7 @@
     <x-profesional.profesional_sidebar />
 
     <div class="container-fluid main-content-with-sidebar">
-        {{-- Vue se monta aquí --}}
+        <x-user_bienvenido />
         <div class="container py-4" id="app">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -153,7 +153,8 @@
                                         {{-- Sólo si se puede actuar sobre la solicitud --}}
                                         @if (in_array($solicitud->estado, ['abierta', 'en_revision']))
                                             {{-- PRESUPUESTO - VERDE --}}
-                                            <a href="#" class="btn btn-success btn-sm px-2 py-1 mx-1">
+                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud->id) }}"
+                                                class="btn btn-success btn-sm px-2 py-1 mx-1">
                                                 Enviar presupuesto
                                             </a>
 

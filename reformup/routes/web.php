@@ -7,6 +7,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
+use App\Http\Controllers\Profesional\ProfesionalPresupuestoController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Usuario\UsuarioSolicitudController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
@@ -18,7 +19,7 @@ Route::get('/', function () {
     return view('home');
 })->name('home');
 
-
+// ----  REGISTROS  ---
 // Registro de clientes (usuario normal)
 Route::get('/registrar/cliente', [AuthController::class, 'mostrarFormCliente'])->name('registrar.cliente');
 Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->name('registrar.cliente.enviar');
@@ -42,7 +43,7 @@ Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarF
     ->middleware('auth.redirect'); // Middleware personalizado por si no esta logueado el usuario
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
 
-// ---  LOGIN ---
+// -----  LOGIN -----
 // Mostrar formulario login
 Route::get('/login', [LoginController::class, 'mostrarLoginForm'])->name('login');
 // Solicitar enlace de reseteo
@@ -134,14 +135,14 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         Route::get('/dashboard', [ProfesionalDashboardController::class, 'index'])
             ->name('dashboard');
 
-        // PERFIL PROFESIONAL (ver/editar)
+        // --PERFIL PROFESIONAL (ver/editar)--
         Route::get('/perfil', [ProfesionalDashboardController::class, 'mostrarPerfil'])
             ->name('perfil');
 
         Route::put('/perfil', [ProfesionalDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
 
-        // LISTADO SOLICITUDES que recibe el profesional
+        // --LISTADO SOLICITUDES que recibe el profesional--
         Route::get('/solicitudes', [ProfesionalSolicitudController::class, 'index'])
             ->name('solicitudes.index');
 
@@ -152,6 +153,18 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         // Cancelar solicitud (cambia estado a cancelada)
         Route::patch('/solicitudes/{solicitud}/cancelar', [ProfesionalSolicitudController::class, 'cancelar'])
             ->name('solicitudes.cancelar');
+
+        // --LISTADO de PRESUPUESTOS del profesional--
+        Route::get('/presupuestos', [ProfesionalPresupuestoController::class, 'index'])
+            ->name('presupuestos.index');
+
+        // FORMULARIO de presupuesto desde una solicitud concreta
+        Route::get('/presupuestos/solicitud/{solicitud}', [ProfesionalPresupuestoController::class, 'crearFromSolicitud'])
+            ->name('presupuestos.crear_desde_solicitud');
+
+        // GUARDAR presupuesto para una solicitud concreta
+        Route::post('/presupuestos/solicitud/{solicitud}', [ProfesionalPresupuestoController::class, 'guardarFromSolicitud'])
+            ->name('presupuestos.guardar_desde_solicitud');
     });
 
 // --- USUARIO ---

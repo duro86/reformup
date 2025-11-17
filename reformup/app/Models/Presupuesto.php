@@ -12,22 +12,26 @@ class Presupuesto extends Model
     protected $table = 'presupuestos';
 
     /**
-         * Atributos que se pueden asignar de forma masiva (mas asignable).
-         * 
-         * Define los campos permitidos al crear o actualizar un presupuesto.  
-         * Laravel usará esta lista para proteger el modelo frente a la 
-         * vulnerabilidad de “mass assignment”, permitiendo solo modificar 
-         * los atributos indicados.
-         * Campos:
-         * - pro_id: ID del perfil profesional que emite el presupuesto.
-         * - solicitud_id: ID de la solicitud a la que responde.
-         * - total: importe total propuesto.
-         * - notas: comentarios o aclaraciones del profesional (opcional).
-         * - estado: situación actual del presupuesto (‘enviado’, ‘aceptado’, ‘rechazado’, etc.).
-         * - docu_pdf: ruta del documento PDF generado (opcional).
-         * - fecha: fecha de emisión o actualización del presupuesto.
-    */
+     * Atributos que se pueden asignar de forma masiva (mas asignable).
+     * 
+     * Define los campos permitidos al crear o actualizar un presupuesto.  
+     * Laravel usará esta lista para proteger el modelo frente a la 
+     * vulnerabilidad de “mass assignment”, permitiendo solo modificar 
+     * los atributos indicados.
+     * Campos:
+     * - pro_id: ID del perfil profesional que emite el presupuesto.
+     * - solicitud_id: ID de la solicitud a la que responde.
+     * - total: importe total propuesto.
+     * - notas: comentarios o aclaraciones del profesional (opcional).
+     * - estado: situación actual del presupuesto (‘enviado’, ‘aceptado’, ‘rechazado’, etc.).
+     * - docu_pdf: ruta del documento PDF generado (opcional).
+     * - fecha: fecha de emisión o actualización del presupuesto.
+     */
     protected $fillable = ['pro_id', 'solicitud_id', 'total', 'notas', 'estado', 'docu_pdf', 'fecha'];
+
+    protected $casts = [
+        'fecha' => 'datetime',
+    ];
 
     /**
      * Relación inversa con el perfil profesional.
@@ -37,7 +41,7 @@ class Presupuesto extends Model
      * 
      * Ejemplo de uso:
      * $profesional = $presupuesto->profesional;
-    */
+     */
     public function profesional()
     {
         return $this->belongsTo(Perfil_Profesional::class, 'pro_id');
@@ -52,7 +56,7 @@ class Presupuesto extends Model
      * 
      * Ejemplo de uso:
      * $solicitud = $presupuesto->solicitud;
-    */
+     */
     public function solicitud()
     {
         return $this->belongsTo(Solicitud::class, 'solicitud_id');
@@ -68,7 +72,7 @@ class Presupuesto extends Model
      * 
      * Ejemplo de uso:
      * $trabajo = $presupuesto->trabajo;
-    */
+     */
     public function trabajo()
     {
         return $this->hasOne(Trabajo::class, 'presu_id');

@@ -31,3 +31,15 @@
         });
     </script>
 @endif
+
+@if ($errors->has('concepto'))
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            Swal.fire({
+                icon: 'error',
+                title: 'Error de validación',
+                text: @json($errors->first('concepto')),
+            });
+        });
+    </script>
+@endif
