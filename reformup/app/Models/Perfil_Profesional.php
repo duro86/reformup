@@ -13,28 +13,39 @@ class Perfil_Profesional extends Model
     protected $table = 'perfiles_profesionales';
 
     /**
-         * Atributos que se pueden asignar de forma masiva (mas asignable).
-         * 
-         * Define los campos que pueden ser rellenados mediante asignación masiva en operaciones como `Perfil_Profesional::create()` o `$perfil->update()`.
-         * Campos:
-         * - user_id: ID del usuario propietario del perfil (relación 1:1 con users).
-         * - empresa: nombre comercial o razón social del profesional o empresa.
-         * - cif: identificador fiscal único del profesional o empresa.
-         * - email_empresa: correo de contacto público o profesional.
-         * - bio: descripción breve o presentación del profesional.
-         * - web: URL del sitio web o portafolio.
-         * - telefono_empresa: número de contacto profesional.
-         * - ciudad,provincia: ubicación principal del profesional.
-         * - dir_empresa: dirección física de la empresa o despacho.
-         * - puntuacion_media: valor numérico promedio de reseñas recibidas.
-         * - trabajos_realizados: contador de obras o proyectos completados.
-         * - visible: indica si el perfil está activo o visible en el portal (booleano).
-         * - avatar: imagen o logo de perfil (ruta o URL del archivo).
-    */
+     * Atributos que se pueden asignar de forma masiva (mas asignable).
+     * 
+     * Define los campos que pueden ser rellenados mediante asignación masiva en operaciones como `Perfil_Profesional::create()` o `$perfil->update()`.
+     * Campos:
+     * - user_id: ID del usuario propietario del perfil (relación 1:1 con users).
+     * - empresa: nombre comercial o razón social del profesional o empresa.
+     * - cif: identificador fiscal único del profesional o empresa.
+     * - email_empresa: correo de contacto público o profesional.
+     * - bio: descripción breve o presentación del profesional.
+     * - web: URL del sitio web o portafolio.
+     * - telefono_empresa: número de contacto profesional.
+     * - ciudad,provincia: ubicación principal del profesional.
+     * - dir_empresa: dirección física de la empresa o despacho.
+     * - puntuacion_media: valor numérico promedio de reseñas recibidas.
+     * - trabajos_realizados: contador de obras o proyectos completados.
+     * - visible: indica si el perfil está activo o visible en el portal (booleano).
+     * - avatar: imagen o logo de perfil (ruta o URL del archivo).
+     */
     protected $fillable = [
-        'user_id', 'empresa', 'cif', 'email_empresa', 'bio', 'web',
-        'telefono_empresa', 'ciudad', 'provincia', 'dir_empresa', 'puntuacion_media',
-        'trabajos_realizados', 'visible', 'avatar'
+        'user_id',
+        'empresa',
+        'cif',
+        'email_empresa',
+        'bio',
+        'web',
+        'telefono_empresa',
+        'ciudad',
+        'provincia',
+        'dir_empresa',
+        'puntuacion_media',
+        'trabajos_realizados',
+        'visible',
+        'avatar'
     ];
 
     /**
@@ -45,7 +56,7 @@ class Perfil_Profesional extends Model
      * 
      * Ejemplo de uso:
      * $usuario = $perfil->user;
-    */
+     */
     public function user()
     {
         return $this->belongsTo(User::class, 'user_id');
@@ -66,7 +77,7 @@ class Perfil_Profesional extends Model
      * Ejemplo de uso:
      * $oficios = $perfil->oficios;  
      * $perfil->oficios()->attach($oficioId);
-    */
+     */
     public function oficios()
     {
         return $this->belongsToMany(Oficio::class, 'profesional_oficio', 'pro_id', 'oficio_id')->withTimestamps();
@@ -81,7 +92,7 @@ class Perfil_Profesional extends Model
      * 
      * Ejemplo de uso:
      * $solicitudes = $perfil->solicitudes;
-    */
+     */
     public function solicitudes()
     {
         return $this->hasMany(Solicitud::class, 'pro_id');
@@ -95,7 +106,7 @@ class Perfil_Profesional extends Model
      * 
      * Ejemplo de uso:
      * $presupuestos = $perfil->presupuestos;
-    */
+     */
     public function presupuestos()
     {
         return $this->hasMany(Presupuesto::class, 'pro_id');
@@ -113,8 +124,35 @@ class Perfil_Profesional extends Model
      * 
      * Ejemplo de uso:
      * $perfil->medios()->create(['ruta' => 'uploads/foto.jpg', 'tipo' => 'imagen']);
-    */
-    public function medios() {
+     */
+    public function medios()
+    {
         return $this->morphMany(Medio::class, 'model');
+    }
+
+    /**
+     * Relación uno a muchos (indirecta) entre un perfil profesional y sus trabajos.
+     * 
+     * Cadena de relación:
+     *   perfiles_profesionales (id)
+     *      -> presupuestos (pro_id)
+     *          -> trabajos (presu_id)
+     *
+     * Con esto puedes obtener todos los trabajos asociados a un profesional
+     * pasando por los presupuestos que él mismo ha emitido.
+     * 
+     * Ejemplo de uso:
+     * $trabajos = $perfil->trabajos;
+     */
+    public function trabajos()
+    {
+        return $this->hasManyThrough(
+            Trabajo::class,      // Modelo final
+            Presupuesto::class,  // Modelo intermedio
+            'pro_id',            // FK en presupuestos que apunta a perfiles_profesionales
+            'presu_id',          // FK en trabajos que apunta a presupuestos
+            'id',                // PK en perfiles_profesionales
+            'id'                 // PK en presupuestos
+        );
     }
 }

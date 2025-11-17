@@ -5,7 +5,7 @@
 
         {{-- Sidebar --}}
         <div style="width: 220px;">
-            <x-admin_sidebar />
+            <x-admin.admin_sidebar />
         </div>
 
         {{-- Contenido principal --}}

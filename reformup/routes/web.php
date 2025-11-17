@@ -127,11 +127,18 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
 
 
 // --- PROFESIONAL ---
-Route::middleware(['auth', 'rol.redirigir:profesional', 'tiene.perfil.profesional'])
+Route::middleware(['auth', 'rol.redirigir:profesional'])
     ->prefix('profesional')->name('profesional.')
     ->group(function () {
-        Route::get('/dashboard', [ProfesionalDashboardController::class, 'index'])->name('dashboard');
-        // solicitudes, presupuestos, trabajos, perfil, etc.
+        Route::get('/dashboard', [ProfesionalDashboardController::class, 'index'])
+            ->name('dashboard');
+
+        // PERFIL PROFESIONAL (ver/editar)
+        Route::get('/perfil', [ProfesionalDashboardController::class, 'mostrarPerfil'])
+            ->name('perfil');
+
+        Route::put('/perfil', [ProfesionalDashboardController::class, 'actualizarPerfil'])
+            ->name('perfil.actualizar');
     });
 
 // --- USUARIO ---

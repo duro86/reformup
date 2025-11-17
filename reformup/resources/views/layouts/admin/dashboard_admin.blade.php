@@ -1,10 +1,24 @@
 @extends('layouts.main')
 
-@section('title', 'Admin - ReformUp')
+@section('title', 'Panel Admin - ReformUp')
 
-<x-admin.admin_sidebar />
-<x-user_bienvenido />
 @section('content')
-<div style="margin-left: 250px; padding: 1rem;">
-</div>
+
+    <x-navbar />
+
+    <x-admin.admin_sidebar />
+
+    <div class="container-fluid main-content-with-sidebar">
+        <div class="container">
+            <x-user_bienvenido />
+
+            <div class="row mt-4">
+                <div class="col-12">
+                    <div class="alert alert-info">
+                        Aquí irá tu panel admin: resumen de solicitudes, presupuestos, trabajos y comentarios.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 @endsection

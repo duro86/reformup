@@ -1,27 +1,42 @@
-{{-- Nota: El botón de plegar/desplegar sidebar requiere JavaScript adicional para funcionar --}}
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('sidebar-toggle');
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const sidebar   = document.getElementById('sidebar');
+    const toggleBtn = document.getElementById('sidebar-toggle');
 
-            if (!sidebar || !toggleBtn) return;
+    if (!sidebar || !toggleBtn) return;
 
-            const icon = toggleBtn.querySelector('i');
+    const icon = toggleBtn.querySelector('i');
 
-            toggleBtn.addEventListener('click', function() {
-                const collapsed = sidebar.classList.toggle('sidebar-collapsed');
+    function isMobile() {
+        return window.innerWidth <= 991; // mismo breakpoint que en SCSS
+    }
 
-                if (collapsed) {
-                    // Sidebar recogido → flecha hacia la derecha (para indicar que se puede abrir)
-                    icon.classList.remove('bi-chevron-left');
-                    icon.classList.add('bi-chevron-right');
-                } else {
-                    // Sidebar abierto → flecha hacia la izquierda (para cerrarlo)
-                    icon.classList.remove('bi-chevron-right');
-                    icon.classList.add('bi-chevron-left');
-                }
-            });
-        });
-    </script>
+    toggleBtn.addEventListener('click', function() {
+        if (isMobile()) {
+            // En móvil mostramos/ocultamos completamente
+            const opened = sidebar.classList.toggle('sidebar-open');
+
+            if (opened) {
+                icon.classList.remove('bi-chevron-right');
+                icon.classList.add('bi-chevron-left');
+            } else {
+                icon.classList.remove('bi-chevron-left');
+                icon.classList.add('bi-chevron-right');
+            }
+        } else {
+            // En escritorio usamos la versión "recogida"
+            const collapsed = sidebar.classList.toggle('sidebar-collapsed');
+
+            if (collapsed) {
+                icon.classList.remove('bi-chevron-left');
+                icon.classList.add('bi-chevron-right');
+            } else {
+                icon.classList.remove('bi-chevron-right');
+                icon.classList.add('bi-chevron-left');
+            }
+        }
+    });
+});
+</script>
 @endpush

@@ -1,14 +1,14 @@
-// Paleta ReformUp 2025 - VERDES y básicos
-$primary:    #718355;    // verde oscuro, ideal para nav, footer, botones principales
-$secondary:  #B5C99A;    // verde intermedio, uso en detalles y secciones alternas
-$light:      #E9F5DB;    // verde claro, para fondo general y tarjetas limpias
-$white:      #FFFFFF;    // fondo base y textos en fondos oscuros
-$black:      #000000;    // texto principal y títulos sobre fondos claros
+// =====================
+// PALETA + BOOTSTRAP
+// =====================
+$primary:    #718355;
+$secondary:  #B5C99A;
+$light:      #E9F5DB;
+$white:      #FFFFFF;
+$black:      #000000;
 
-// Tipografía base (Inter o similar en layout principal)
 $font-family-sans-serif: "Inter", "Segoe UI", Arial, "Helvetica Neue", sans-serif !default;
 
-// Sobrescribe variables de Bootstrap para adaptar botones, links y fondo de Bootstrap
 $body-bg:        $light;
 $body-color:     $black;
 $navbar-bg:      $primary;
@@ -18,23 +18,21 @@ $footer-color:   $white;
 $card-bg:        $white;
 $card-color:     $black;
 
-// Botones personalizados para ReformUp
 $btn-primary-bg:      $primary;
 $btn-primary-color:   $white;
 $btn-secondary-bg:    $secondary;
 $btn-secondary-color: $black;
 
-// Importar Bootstrap después de todas las sobrescrituras
 @import "bootstrap/scss/bootstrap";
 
-// Estilos globales 
+// =====================
+// GLOBALES
+// =====================
 body {
   background-color: $body-bg;
   color: $body-color;
   font-family: $font-family-sans-serif;
 }
-
-// Textos
 
 h1, h2, h3 {
   color: $black;
@@ -42,65 +40,64 @@ h1, h2, h3 {
 }
 
 h1.destacado {
-    background-color: $light;
-    padding: 0.5rem 1rem;
-    border-radius: 0.50rem;
-    display: inline-block; /* Ajusta al contenido */
+  background-color: $light;
+  padding: 0.5rem 1rem;
+  border-radius: 0.50rem;
+  display: inline-block;
 }
 
-.hero {
+// =====================
+// NAV-LINK GENÉRICOS
+// =====================
+.nav-link-base {
+  color: $primary !important;
+  font-size: 1rem;
   position: relative;
-  background-image: url('/img/imagenprueba.jpg');
-  background-size: cover;
-  background-position: top center;
-  width: 100%;
-  height: 90vh; /* alto que quieras */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  color: white;
+  text-decoration: none;
 }
 
-.hero .overlay {
-  position: absolute;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0, 0, 0, 0.4); /* negro con 20% de opacidad */
-  z-index: 1;
+.nav-link-base-hover {
+  &:hover,
+  &.active,
+  &:focus {
+    color: $white !important;
+    background-color: darken($primary, 12%);
+    border-radius: 0.5rem;
+    text-decoration: none;
+  }
 }
 
-.hero .hero-content {
-  position: relative;
-  z-index: 2;
-}
-
-// Navbar Personalizado
+// =====================
+// NAVBAR
+// =====================
 .navbar {
   background-color: $white;
   color: $primary;
+  min-height: 80px;
+  align-items: center;
 
-  // El logo y texto marca en verde oscuro
   .navbar-brand,
   .navbar-brand img {
     color: $primary;
     font-weight: bold;
   }
 
-  // Enlaces en verde oscuro
-.nav-link {
-    color: $primary !important;
+  .nav-link {
+    @extend .nav-link-base;
+    @extend .nav-link-base-hover;
+
     font-size: 1.15rem;
+    padding: 0.4rem 0.8rem;
 
-    position: relative;
-    text-decoration: none; // sin subrayado
-
+    // Línea inferior animada SOLO en el navbar
     &:after {
       content: '';
       position: absolute;
       width: 0;
-      height: 2px; // grosor línea
+      height: 2px;
       left: 0;
-      bottom: -4px; // espacio debajo del texto
-      background-color: darken($primary, 20%); // línea más oscura
+      bottom: -4px;
+      background-color: darken($primary, 20%);
       transition: width 0.3s ease;
     }
 
@@ -110,80 +107,144 @@ h1.destacado {
       width: 100%;
     }
 
-    // Media query para pantallas móviles (por debajo de 768px)
+    // En móvil puedes quitar la línea si quieres
     @media (max-width: 767.98px) {
-      &:hover:after,
-      &.active:after,
-      &:focus:after {
-        width: 50%;
+      &:after {
+        display: none;
       }
     }
+  }
 
-    &:hover,
-    &.active,
-    &:focus {
-      color: darken($primary, 15%) !important; // texto algo más oscuro que normal
-      font-weight: bold;
-      background-color: transparent;
-      // sin text-decoration ni subrayado
-    }
+  .btn-navbar-register {
+    padding: 0.4rem 0.9rem;
+    font-size: 0.9rem;
   }
 }
-// ADMIN
-// Sidebar Admin Personalizado
-.admin-sidebar {
-  /* Hacer sidebar ancho completo en xs */
-    @media (max-width: 576px) {
-        #sidebar {
-            width: 100% !important;
-            height: auto !important;
-            position: relative !important;
-        }
-    }
-.nav-link {
-    color: $primary !important;
-    font-size: 1.15rem;
 
-    position: relative;
-    text-decoration: none; // sin subrayado
-
-    &:after {
-      content: '';
-      position: absolute;
-      width: 0;
-      height: 2px; // grosor línea
-      left: 0;
-      bottom: -4px; // espacio debajo del texto
-      background-color: darken($primary, 20%); // línea más oscura
-      transition: width 0.3s ease;
-    }
-
-    &:hover:after,
-    &.active:after,
-    &:focus:after {
-      width: 100%;
-    }
-
-    // Media query para pantallas móviles (por debajo de 768px)
-    @media (max-width: 767.98px) {
-      &:hover:after,
-      &.active:after,
-      &:focus:after {
-        width: 50%;
-      }
-    }
-
-    &:hover,
-    &.active,
-    &:focus {
-      color: darken($primary, 15%) !important; // texto algo más oscuro que normal
-      font-weight: bold;
-      background-color: transparent;
-      // sin text-decoration ni subrayado
-    }
+// Comportamiento en móvil
+@media (max-width: 991.98px) {
+  .navbar {
+    min-height: auto;
+    align-items: flex-start;
   }
 
-  // Refuerzo específico para los botones primarios del sidebar de usuario
+  .navbar-collapse {
+    background-color: $white;
+    padding-top: 0.5rem;
+    padding-bottom: 0.75rem;
+  }
+
+  .navbar-nav.ms-auto {
+    width: 100%;
+  }
+
+  .navbar .btn-navbar-register {
+    width: 100%;
+    text-align: center;
+    display: block;
+    padding: 0.35rem 0.75rem;
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+  }
+}
+
+// Dropdown bonito
+.dropdown-menu {
+  border-radius: 0.75rem;
+  box-shadow: 0 8px 20px rgba($primary, 0.06);
+}
+
+// =====================
+// SIDEBAR GENÉRICO
+// =====================
+$navbar-height: 72px;
+$sidebar-width: 210px;
+
+#sidebar {
+  position: fixed;
+  top: $navbar-height;
+  left: 0;
+  height: calc(100vh - $navbar-height);
+  width: $sidebar-width;
+  max-width: 100%;
+  z-index: 1040;
+  overflow-y: auto;
+  overflow-x: hidden;
+  background-color: #f8f9fa;
+  transition: transform 0.3s ease;
+}
+
+// Links del sidebar: heredan base pero hover diferente
+#sidebar .nav-link {
+  @extend .nav-link-base;
+
+  font-size: 0.95rem;
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+
+  i {
+    font-size: 1rem;
+  }
+
+  &:hover,
+  &:focus {
+    background-color: lighten($primary, 35%);
+    color: darken($primary, 20%) !important;
+    text-decoration: none;
+  }
+}
+
+// Contenido con sidebar
+.main-content-with-sidebar {
+  margin-left: $sidebar-width;
+  padding-top: 1.5rem;
+  width: calc(100% - $sidebar-width);
+  overflow-x: hidden;
+}
+
+// Colapsado en escritorio
+@media (min-width: 992px) {
+  #sidebar.sidebar-collapsed {
+    transform: translateX(calc(-100% + 40px));
+  }
+}
+
+// Responsive móvil
+@media (max-width: 991.98px) {
+  #sidebar {
+    transform: translateX(-100%);
+    width: 80vw;
+    max-width: 280px;
+  }
+
+  #sidebar.sidebar-open {
+    transform: translateX(0);
+  }
+
+  .main-content-with-sidebar {
+    margin-left: 0;
+    width: 100%;
+  }
+}
+
+// Sidebar admin (si quieres toque distinto)
+.admin-sidebar .nav-link {
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.4rem;
+
+  &:hover,
+  &:focus {
+    background-color: lighten($primary, 35%);
+    color: darken($primary, 20%) !important;
+  }
+}
+
+// =====================
+// BOTONES, CARDS, FOOTER, LOGIN-PANEL
+// =====================
 .btn-primary,
 .btn-primary:focus,
 .btn-primary:hover {
@@ -191,37 +252,28 @@ h1.destacado {
   border: none;
   color: $white;
 }
-}
 
-//Márgenes personalizados(btn entrar)
-@media (max-width: 575.98px) {
-  .mb-sm-3 {
-    margin-bottom: 1rem !important; /* fuerza margen solo para móviles */
-  }
-}
-
-.btn-primary,
-.btn-primary:focus,
-.btn-primary:hover {
-  background-color: $primary;
+.btn-secondary {
+  background-color: $btn-secondary-bg;
+  color: $btn-secondary-color;
   border: none;
-  color: $white;
+
+  &:hover,
+  &:focus {
+    background-color: darken($secondary, 12%);
+  }
 }
 
 .btn-outline-primary {
   border-color: $primary;
   color: $primary;
   background: $white;
-}
-.btn-outline-primary:hover,
-.btn-outline-primary:focus {
-  background: $primary;
-  color: $white;
-}
 
-.dropdown-menu {
-  border-radius: 0.75rem;
-  box-shadow: 0 8px 20px rgba($primary, 0.06);
+  &:hover,
+  &:focus {
+    background: $primary;
+    color: $white;
+  }
 }
 
 .card {
@@ -233,52 +285,33 @@ h1.destacado {
 
 .card-pro {
   transition: transform .15s ease, box-shadow .15s ease;
-  &:hover { transform: translateY(-3px); box-shadow: 0 .5rem 1rem rgba(0,0,0,.08); }
+
+  &:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.08);
+  }
 }
 
-.btn-secondary {
-  background-color: $btn-secondary-bg;
-  color: $btn-secondary-color;
-  border: none;
-  &:hover, &:focus {
-    background-color: darken($secondary, 12%);
-  }
-  }
-
-  // Footer estilizado 
-  /* Tu clase para el footer */
 .footer-bg {
-      background-color: $primary;
+  background-color: $primary;
 }
+
 .footer-link {
-      color: #bec2cf;
-      text-decoration: none;
-}
-.footer-link:hover {
-      color: #fff;
-      text-decoration: underline;
+  color: #bec2cf;
+  text-decoration: none;
+
+  &:hover {
+    color: #fff;
+    text-decoration: underline;
+  }
 }
 
 .login-panel {
-    height: 100vh;      /* Ocupa toda la altura visible */
-    width: 100%;
-    object-fit: cover;  /* Escala y recorta para llenar el contenedor */
-    margin-left: 1rem;  /* Solo separación a izquierda */
-    margin-top: 0;
-    margin-bottom: 0;
-    padding: 0;
+  height: 100vh;
+  width: 100%;
+  object-fit: cover;
+  margin-left: 1rem;
+  margin-top: 0;
+  margin-bottom: 0;
+  padding: 0;
 }
-
-// SideBar Admin
-#sidebar {
-    transition: transform 0.3s ease;
-}
-
-/* Cuando está colapsado, lo movemos hacia la izquierda casi entero,
-   dejando ~40px visibles para que se vea el botón con la flecha */
-#sidebar.sidebar-collapsed {
-    transform: translateX(calc(-100% + 40px));
-}
-
-
-

@@ -8,11 +8,11 @@
     $isProfesional = $roles->contains('profesional');
 @endphp
 
-<div class="position-fixed d-flex flex-column p-3 bg-light"
-    style="height: 100vh; width: 200px; max-width: 100%; z-index: 1040; overflow-y: auto; overflow-x: hidden;"
-    id="sidebar">
+<div id="sidebar" class="position-fixed d-flex flex-column p-3 bg-light">
     {{-- Botón para plegar/desplegar --}}
-    <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
+    <button id="sidebar-toggle"
+        type="button"
+        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
         aria-label="Contraer/expandir menú">
         <i class="bi bi-chevron-left"></i>
     </button>
@@ -31,72 +31,62 @@
         </div>
     @else
         @if ($isUsuario)
-            <h4 class="m-2" style="color: #718355;">Usuario</h4>
+            <h4 class="m-2 fs-3" style="color: #718355;">Usuario</h4>
         @endif
         @if ($isProfesional)
-            <h4 class="m-2 text-secondary" style="color: #B5C99A;">Profesional</h4>
+            <h4 class="m-2 text-secondary fs-5" style="color: #B5C99A;">Profesional</h4>
         @endif
     @endif
 
-    {{-- Elementos --}}
     <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
         <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
-
             <li class="nav-item">
-                {{-- Listado Solicitudes --}}
                 <a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> Solicitudes</a>
             </li>
             <li class="nav-item">
-                {{-- Listado Presupuestos --}}
                 <a class="nav-link" href="#"><i class="bi bi-receipt"></i> Presupuestos</a>
             </li>
             <li class="nav-item">
-                {{-- Listado Trabajos --}}
                 <a class="nav-link" href="#"><i class="bi bi-briefcase-fill"></i> Trabajos</a>
             </li>
             <li class="nav-item">
-                {{-- Listado Comentarios --}}
                 <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i> Comentarios</a>
             </li>
-            <li>
 
-                {{-- Bloque acceso profesional desde el sidebar --}}
-                @if ($isProfesional)
-                    @php
-                        // Perfil profesional asociado (puede ser null)
-                        $perfilProfesional = $user->perfil_Profesional()->first();
-                    @endphp
+            {{-- Bloque acceso profesional --}}
+            @if ($isProfesional)
+                @php
+                    $perfilProfesional = $user->perfil_Profesional()->first();
+                @endphp
 
-            <li class="nav-item mt-2">
-                @if ($perfilProfesional)
-                    <div class="px-2 py-2 small border rounded bg-white">
-                        <div class="fw-semibold mb-1">
-                            Perfil profesional activo
+                <li class="nav-item mt-2">
+                    @if ($perfilProfesional)
+                        <div class="px-2 py-2 small border rounded bg-white">
+                            <div class="fw-semibold mb-1">Perfil profesional activo</div>
+                            <p class="mb-2 text-muted">
+                                Accede a tu panel como profesional para gestionar solicitudes y trabajos.
+                            </p>
+                            <a href="{{ route('profesional.dashboard') }}" class="btn btn-primary btn-sm w-100">
+                                Ir a panel profesional
+                            </a>
                         </div>
-                        <p class="mb-2 text-muted">
-                            Accede a tu panel como profesional para gestionar solicitudes y trabajos.
-                        </p>
-                        <a href="{{ route('profesional.dashboard') }}" class="btn btn-primary btn-sm w-100">
-                            Ir a panel profesional
-                        </a>
-                    </div>
-                @else
-                    <div class="px-2 py-2 small border rounded bg-white">
-                        <div class="fw-semibold mb-1 text-warning">
-                            Completa tu perfil profesional
+                    @else
+                        <div class="px-2 py-2 small border rounded bg-white">
+                            <div class="fw-semibold mb-1 text-warning">
+                                Completa tu perfil profesional
+                            </div>
+                            <p class="mb-2 text-muted">
+                                Tienes el rol de profesional, pero aún no has creado tu perfil de empresa.
+                            </p>
+                            <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm btn-warning w-100">
+                                Crear perfil profesional
+                            </a>
                         </div>
-                        <p class="mb-2 text-muted">
-                            Tienes el rol de profesional, pero aún no has creado tu perfil de empresa.
-                        </p>
-                        <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm btn-warning w-100">
-                            Crear perfil profesional
-                        </a>
-                    </div>
-                @endif
-            </li>
+                    @endif
+                </li>
             @endif
-            <hr>
-            </li> {{-- Separador visual --}}
+
+            <li><hr></li>
         </ul>
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
@@ -120,5 +110,6 @@
         </ul>
     </nav>
 </div>
-{{-- Funcionalidad boton toggle --}}
+
 <x-usuario.sidebar_usuario_toggle_script />
+

@@ -1,18 +1,22 @@
-{{-- Gestión roles para mostrar --}}
+{{-- resources/views/components/admin_sidebar.blade.php --}}
+
 @php
     $user = Auth::user();
     $roles = $user ? $user->getRoleNames() : collect();
 
-    $isAdmin = $roles->contains('admin');
-    $isUsuario = $roles->contains('usuario');
+    $isAdmin       = $roles->contains('admin');
+    $isUsuario     = $roles->contains('usuario');
     $isProfesional = $roles->contains('profesional');
 @endphp
 
-<div class="position-fixed d-flex flex-column p-3 bg-light"
-    style="height: 100vh; width: 200px; max-width: 100%; z-index: 1040; overflow: visible;" id="sidebar">
+<div id="sidebar" class="position-fixed d-flex flex-column p-3 bg-light">
     {{-- Botón para plegar/desplegar --}}
-    <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
-        aria-label="Contraer/expandir menú">
+    <button
+        id="sidebar-toggle"
+        type="button"
+        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
+        aria-label="Contraer/expandir menú"
+    >
         <i class="bi bi-chevron-left"></i>
     </button>
 
@@ -54,19 +58,27 @@
             </li>
             <li class="nav-item">
                 {{-- Listado Solicitudes --}}
-                <a class="nav-link" href="#"><i class="bi bi-file-earmark-text"></i> Solicitudes</a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-file-earmark-text"></i> Solicitudes
+                </a>
             </li>
             <li class="nav-item">
                 {{-- Listado Presupuestos --}}
-                <a class="nav-link" href="#"><i class="bi bi-receipt"></i> Presupuestos</a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-receipt"></i> Presupuestos
+                </a>
             </li>
             <li class="nav-item">
                 {{-- Listado Trabajos --}}
-                <a class="nav-link" href="#"><i class="bi bi-briefcase-fill"></i> Trabajos</a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-briefcase-fill"></i> Trabajos
+                </a>
             </li>
             <li class="nav-item">
                 {{-- Listado Comentarios --}}
-                <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i> Comentarios</a>
+                <a class="nav-link" href="#">
+                    <i class="bi bi-chat-left-text"></i> Comentarios
+                </a>
             </li>
             <li>
                 <hr>
@@ -76,7 +88,9 @@
         {{-- Inicio, Perfil y Cerrar sesión --}}
         <ul class="nav flex-column mt-auto admin-sidebar">
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('home') }}"><i class="bi bi-house-door"></i> Inicio</a>
+                <a class="nav-link" href="{{ route('home') }}">
+                    <i class="bi bi-house-door"></i> Inicio
+                </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('admin.perfil') }}">
@@ -94,30 +108,6 @@
         </ul>
     </nav>
 </div>
-{{-- Nota: El botón de plegar/desplegar sidebar requiere JavaScript adicional para funcionar --}}
-@push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const sidebar = document.getElementById('sidebar');
-            const toggleBtn = document.getElementById('sidebar-toggle');
 
-            if (!sidebar || !toggleBtn) return;
-
-            const icon = toggleBtn.querySelector('i');
-
-            toggleBtn.addEventListener('click', function() {
-                const collapsed = sidebar.classList.toggle('sidebar-collapsed');
-
-                if (collapsed) {
-                    // Sidebar recogido → flecha hacia la derecha (para indicar que se puede abrir)
-                    icon.classList.remove('bi-chevron-left');
-                    icon.classList.add('bi-chevron-right');
-                } else {
-                    // Sidebar abierto → flecha hacia la izquierda (para cerrarlo)
-                    icon.classList.remove('bi-chevron-right');
-                    icon.classList.add('bi-chevron-left');
-                }
-            });
-        });
-    </script>
-@endpush
+{{-- Script de toggle compartido con usuario/profesional --}}
+<x-usuario.sidebar_usuario_toggle_script />
