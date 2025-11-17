@@ -125,7 +125,6 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
             ->name('perfil.actualizar');
     });
 
-
 // --- PROFESIONAL ---
 Route::middleware(['auth', 'rol.redirigir:profesional'])
     ->prefix('profesional')->name('profesional.')

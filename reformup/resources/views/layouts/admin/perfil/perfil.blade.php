@@ -6,9 +6,13 @@
     <x-navbar />
 
     <div class="container my-5">
-        <a href="{{ route('admin.dashboard') }}" class="w-25 btn btn-secondary d-flex align-items-center gap-2">
-            <i class="bi bi-arrow-left"></i> Volver al panel principal
-        </a>
+        <div class="d-grid d-md-inline-block">
+            <a href="{{ route('admin.dashboard') }}"
+                class="btn btn-secondary d-inline-flex align-items-center justify-content-center gap-2">
+                <i class="bi bi-arrow-left"></i>
+                <span>Volver al panel principal</span>
+            </a>
+        </div>
         <div class="row g-0 shadow rounded overflow-hidden">
             <div class="col-lg-12 bg-white">
                 <div class="p-4 p-lg-5">
