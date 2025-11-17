@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
+use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Usuario\UsuarioSolicitudController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
@@ -139,6 +140,18 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
 
         Route::put('/perfil', [ProfesionalDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
+
+        // LISTADO SOLICITUDES que recibe el profesional
+        Route::get('/solicitudes', [ProfesionalSolicitudController::class, 'index'])
+            ->name('solicitudes.index');
+
+        // Detalle de una solicitud (para el modal Vue o vista normal)
+        Route::get('/solicitudes/{solicitud}', [ProfesionalSolicitudController::class, 'mostrar'])
+            ->name('solicitudes.mostrar');
+
+        // Cancelar solicitud (cambia estado a cancelada)
+        Route::patch('/solicitudes/{solicitud}/cancelar', [ProfesionalSolicitudController::class, 'cancelar'])
+            ->name('solicitudes.cancelar');
     });
 
 // --- USUARIO ---

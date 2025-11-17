@@ -91,7 +91,7 @@
     <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
         <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
             <li class="nav-item">
-                <a class="nav-link" href="#">
+                <a class="nav-link" href="{{ route('profesional.solicitudes.index') }}">
                     <i class="bi bi-file-earmark-text"></i> Solicitudes
                 </a>
             </li>
