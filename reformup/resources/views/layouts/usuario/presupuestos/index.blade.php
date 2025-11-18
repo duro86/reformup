@@ -7,6 +7,8 @@
     <x-navbar />
     <x-usuario.usuario_sidebar />
     <x-user_bienvenido />
+    {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
+    <x-usuario.nav_movil active="presupuestos" />
 
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-4">
@@ -28,10 +30,10 @@
 
             @php
                 $estados = [
-                    null => 'Todos',
-                    'enviado' => 'Pendientes',
+                    null       => 'Todos',
+                    'enviado'  => 'Pendientes',
                     'aceptado' => 'Aceptados',
-                    'rechazado' => 'Rechazados',
+                    'rechazado'=> 'Rechazados',
                     'caducado' => 'Caducados',
                 ];
             @endphp
@@ -64,23 +66,35 @@
                         <thead>
                             <tr>
                                 <th>Solicitud</th>
-                                <th>Profesional</th>
+                                <th class="d-none d-md-table-cell">Profesional</th>
                                 <th>Importe</th>
                                 <th>Estado</th>
-                                <th>Fecha</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="d-none d-md-table-cell">Fecha</th>
+                                <th class="text-start">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($presupuestos as $presu)
                                 <tr>
-                                    {{-- Título de la solicitud --}}
+                                    {{-- Solicitud + mini-card en móvil --}}
                                     <td>
-                                        {{ $presu->solicitud->titulo ?? '—' }}
+                                        <strong>{{ $presu->solicitud->titulo ?? '—' }}</strong>
+
+                                        {{-- Versión móvil: info compacta debajo --}}
+                                        <div class="small text-muted d-block d-md-none mt-1">
+                                            @if ($presu->solicitud && $presu->solicitud->profesional)
+                                                <div>Profesional: {{ $presu->solicitud->profesional->empresa }}</div>
+                                            @endif
+
+                                            <div>
+                                                Fecha:
+                                                {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
+                                            </div>
+                                        </div>
                                     </td>
 
-                                    {{-- Profesional / empresa --}}
-                                    <td>
+                                    {{-- Profesional solo en escritorio --}}
+                                    <td class="d-none d-md-table-cell">
                                         @if ($presu->solicitud && $presu->solicitud->profesional)
                                             {{ $presu->solicitud->profesional->empresa }}
                                         @else
@@ -97,11 +111,11 @@
                                     <td>
                                         @php
                                             $badgeClass = match ($presu->estado) {
-                                                'enviado' => 'bg-primary',
+                                                'enviado'  => 'bg-primary',
                                                 'aceptado' => 'bg-success',
-                                                'rechazado' => 'bg-danger',
+                                                'rechazado'=> 'bg-danger',
                                                 'caducado' => 'bg-secondary',
-                                                default => 'bg-light text-dark',
+                                                default    => 'bg-light text-dark',
                                             };
                                         @endphp
                                         <span class="badge {{ $badgeClass }}">
@@ -109,27 +123,30 @@
                                         </span>
                                     </td>
 
-                                    {{-- Fecha --}}
-                                    <td>
+                                    {{-- Fecha solo en escritorio --}}
+                                    <td class="d-none d-md-table-cell">
                                         {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
                                     {{-- Acciones --}}
                                     <td class="text-end">
-
                                         {{-- Ver PDF si existe --}}
                                         @if ($presu->docu_pdf)
-                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}" target="_blank"
-                                                class="btn btn-outline-secondary btn-sm me-1 mb-1">
+                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}"
+                                               target="_blank"
+                                               class="btn btn-outline-secondary btn-sm me-1 mb-1">
                                                 Ver presupuesto
                                             </a>
                                         @else
                                             <span class="text-muted small me-2">Sin documento</span>
                                         @endif
 
-                                        {{-- Aceptar / Rechazar solo si está ENVIADO (control direccion obra--}}
+                                        {{-- Aceptar / Rechazar solo si está ENVIADO --}}
                                         @if ($presu->estado === 'enviado')
-                                            <x-usuario.presupuestos.btn_aceptar :presupuesto="$presu" :tiene-direccion="(bool) optional($presu->solicitud)->dir_cliente" />
+                                            <x-usuario.presupuestos.btn_aceptar
+                                                :presupuesto="$presu"
+                                                :tiene-direccion="(bool) optional($presu->solicitud)->dir_cliente"
+                                            />
                                             <x-usuario.presupuestos.btn_rechazar :presupuesto="$presu" />
                                         @endif
                                     </td>

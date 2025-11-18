@@ -6,10 +6,14 @@
 
     <x-navbar />
 
+    {{-- SIDEBAR FIJO (escritorio) --}}
     <x-usuario.usuario_sidebar />
+    {{-- BIENVENIDA (se ve igual en todos los tamaños) --}}
     <x-user_bienvenido />
+    
 
     <div class="container-fluid main-content-with-sidebar">
+        <x-usuario.nav_movil active="solicitudes" />
         <div class="container py-4">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -70,31 +74,65 @@
                         <thead>
                             <tr>
                                 <th>Título</th>
-                                <th>Empresa</th>
+                                <th class="d-none d-md-table-cell">Empresa</th>
                                 <th class="d-none d-md-table-cell">Ciudad / Provincia</th>
                                 <th>Estado</th>
                                 <th class="d-none d-md-table-cell">Presupuesto máx.</th>
-                                <th>Fecha</th>
-                                <th class="text-start">Acciones</th> {{-- SIEMPRE la columna --}}
+                                <th class="d-none d-md-table-cell">Fecha</th>
+                                <th class="text-start">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($solicitudes as $solicitud)
                                 <tr>
+                                    {{-- Título + bloque "card" en móvil --}}
                                     <td>
                                         <strong>{{ $solicitud->titulo }}</strong>
 
-                                        {{-- En móvil, bajo el título mostramos empresa y ciudad --}}
+                                        {{-- Versión móvil: detalles debajo --}}
                                         <div class="small text-muted d-block d-md-none mt-1">
+                                            {{-- Empresa (si la hay) --}}
                                             @if ($solicitud->profesional)
-                                                {{ $solicitud->profesional->empresa }}<br>
+                                                <span class="d-block">
+                                                    <span class="fw-semibold">Empresa:</span>
+                                                    {{ $solicitud->profesional->empresa }}
+                                                </span>
                                             @endif
-                                            {{ $solicitud->ciudad }}
-                                            {{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
+
+                                            {{-- Ciudad / provincia --}}
+                                            <span class="d-block">
+                                                <span class="fw-semibold">Ubicación:</span>
+                                                {{ $solicitud->ciudad }}
+                                                {{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
+                                            </span>
+
+                                            {{-- Dirección (asumo dir_empresa; cambia si tu campo se llama distinto) --}}
+                                            @if ($solicitud->dir_empresa)
+                                                <span class="d-block">
+                                                    <span class="fw-semibold">Dirección:</span>
+                                                    {{ $solicitud->dir_empresa }}
+                                                </span>
+                                            @endif
+
+                                            {{-- Presupuesto máx. --}}
+                                            <span class="d-block">
+                                                <span class="fw-semibold">Presupuesto máx.:</span>
+                                                @if ($solicitud->presupuesto_max)
+                                                    {{ number_format($solicitud->presupuesto_max, 2, ',', '.') }} €
+                                                @else
+                                                    No indicado
+                                                @endif
+                                            </span>
+
+                                            {{-- Fecha --}}
+                                            <span class="d-block">
+                                                <span class="fw-semibold">Fecha:</span>
+                                                {{ $solicitud->fecha?->format('d/m/Y H:i') ?? $solicitud->created_at?->format('d/m/Y H:i') }}
+                                            </span>
                                         </div>
                                     </td>
 
-                                    {{-- PROFESIONAL / EMPRESA en escritorio --}}
+                                    {{-- Empresa (solo escritorio) --}}
                                     <td class="d-none d-md-table-cell">
                                         @if ($solicitud->profesional)
                                             {{ $solicitud->profesional->empresa }}
@@ -103,10 +141,13 @@
                                         @endif
                                     </td>
 
+                                    {{-- Ciudad / provincia (solo escritorio) --}}
                                     <td class="d-none d-md-table-cell">
-                                        {{ $solicitud->ciudad }}{{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
+                                        {{ $solicitud->ciudad }}
+                                        {{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
                                     </td>
 
+                                    {{-- Estado --}}
                                     <td>
                                         @php
                                             $badgeClass = match ($solicitud->estado) {
@@ -122,6 +163,7 @@
                                         </span>
                                     </td>
 
+                                    {{-- Presupuesto máx. (solo escritorio) --}}
                                     <td class="d-none d-md-table-cell">
                                         @if ($solicitud->presupuesto_max)
                                             {{ number_format($solicitud->presupuesto_max, 2, ',', '.') }} €
@@ -130,7 +172,8 @@
                                         @endif
                                     </td>
 
-                                    <td>
+                                    {{-- Fecha (solo escritorio) --}}
+                                    <td class="d-none d-md-table-cell">
                                         {{ $solicitud->fecha?->format('d/m/Y H:i') ?? $solicitud->created_at?->format('d/m/Y H:i') }}
                                     </td>
 

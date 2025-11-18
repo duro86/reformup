@@ -8,11 +8,10 @@
     $isProfesional = $roles->contains('profesional');
 @endphp
 
-<div id="sidebar" class="position-fixed d-flex flex-column p-3 bg-light">
+<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
+
     {{-- Botón para plegar/desplegar --}}
-    <button id="sidebar-toggle"
-        type="button"
-        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
+    <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
         aria-label="Contraer/expandir menú">
         <i class="bi bi-chevron-left"></i>
     </button>
@@ -42,11 +41,13 @@
         <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
             <li class="nav-item">
                 {{-- Listado Solicitudes --}}
-                <a class="nav-link" href="{{ route('usuario.solicitudes.index') }}"><i class="bi bi-file-earmark-text"></i> Solicitudes</a>
+                <a class="nav-link" href="{{ route('usuario.solicitudes.index') }}"><i
+                        class="bi bi-file-earmark-text"></i> Solicitudes</a>
             </li>
             <li class="nav-item">
                 {{-- Listado Presupuestos --}}
-                <a class="nav-link" href="{{ route('usuario.presupuestos.index') }}"><i class="bi bi-receipt"></i> Presupuestos</a>
+                <a class="nav-link" href="{{ route('usuario.presupuestos.index') }}"><i class="bi bi-receipt"></i>
+                    Presupuestos</a>
             </li>
             <li class="nav-item">
                 {{-- Listado Trabajos --}}
@@ -82,7 +83,8 @@
                             <p class="mb-2 text-muted">
                                 Tienes el rol de profesional, pero aún no has creado tu perfil de empresa.
                             </p>
-                            <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm btn-warning w-100">
+                            <a href="{{ route('registrar.profesional.opciones') }}"
+                                class="btn btn-sm btn-warning w-100">
                                 Crear perfil profesional
                             </a>
                         </div>
@@ -90,7 +92,9 @@
                 </li>
             @endif
 
-            <li><hr></li>
+            <li>
+                <hr>
+            </li>
         </ul>
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
@@ -116,4 +120,3 @@
 </div>
 
 <x-usuario.sidebar_usuario_toggle_script />
-

@@ -5,7 +5,8 @@
 
     {{-- Navbar común --}}
     <x-navbar />
-
+    {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
+    <x-usuario.nav_movil active="perfil" />
     {{-- CONTENIDO PRINCIPAL (desplazado a la derecha del sidebar) --}}
     <div class="container my-2">
         <div class="d-grid d-md-inline-block">

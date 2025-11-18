@@ -12,7 +12,7 @@
     $perfilProfesional = $user?->perfil_Profesional()->first();
 @endphp
 
-<div id="sidebar" class="position-fixed d-flex flex-column p-3 bg-light">
+<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
     {{-- Botón para plegar/desplegar --}}
     <button
         id="sidebar-toggle"

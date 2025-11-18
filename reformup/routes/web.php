@@ -5,6 +5,10 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminSolicitudController;  
+use App\Http\Controllers\Admin\AdminPresupuestoController;
+use App\Http\Controllers\Admin\AdminTrabajoController;
+use App\Http\Controllers\Admin\AdminComentarioController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
 use App\Http\Controllers\Profesional\ProfesionalPresupuestoController;
@@ -127,6 +131,21 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
 
         Route::put('/perfil', [AdminDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
+        // LISTADO SOLICITUDES (ADMIN)
+        Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])
+            ->name('solicitudes');
+
+        // LISTADO PRESUPUESTOS (ADMIN)
+        Route::get('/presupuestos', [AdminPresupuestoController::class, 'index'])
+            ->name('presupuestos');
+
+        // LISTADO TRABAJOS (ADMIN)
+        Route::get('/trabajos', [AdminTrabajoController::class, 'index'])
+            ->name('trabajos');
+
+        // LISTADO COMENTARIOS (ADMIN)
+        Route::get('/comentarios', [AdminComentarioController::class, 'index'])
+            ->name('comentarios');
     });
 
 // --- PROFESIONAL ---
