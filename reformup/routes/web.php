@@ -165,6 +165,12 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         // GUARDAR presupuesto para una solicitud concreta
         Route::post('/presupuestos/solicitud/{solicitud}', [ProfesionalPresupuestoController::class, 'guardarFromSolicitud'])
             ->name('presupuestos.guardar_desde_solicitud');
+
+        // PROFESIONAL - PRESUPUESTOS
+        Route::patch('/presupuestos/{presupuesto}/cancelar', [
+            ProfesionalPresupuestoController::class,
+            'cancelar'
+        ])->name('presupuestos.cancelar');
     });
 
 // --- USUARIO ---
@@ -195,6 +201,7 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         // Guardar solicitud
         Route::post('/solicitudes', [UsuarioSolicitudController::class, 'guardar'])
             ->name('solicitudes.guardar');
+
         // ELIMINAR una solicitud del cliente
         Route::delete('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'eliminar'])
             ->name('solicitudes.eliminar');

@@ -236,4 +236,54 @@ class ProfesionalPresupuestoController extends Controller
                 ->with('error', 'Ha ocurrido un error al guardar el presupuesto.');
         }
     }
+
+    /**
+     * El profesional cancela (rechaza) un presupuesto que está ENVIADO.
+     */
+    public function cancelar(Request $request, Presupuesto $presupuesto)
+    {
+        $user   = Auth::user();
+        $perfil = $user->perfil_Profesional;
+
+        if (! $perfil) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'Debes tener un perfil profesional para acceder a esta sección.');
+        }
+
+        // Seguridad: el presupuesto tiene que ser suyo
+        if ($presupuesto->pro_id !== $perfil->id) {
+            return redirect()
+                ->route('profesional.presupuestos.index')
+                ->with('error', 'No puedes modificar presupuestos de otros profesionales.');
+        }
+
+        // Solo permitimos cancelar si está ENVIADO
+        if ($presupuesto->estado !== 'enviado') {
+            return back()->with('error', 'Solo puedes cancelar presupuestos en estado ENVIADO.');
+        }
+
+        // Marcamos el presupuesto como RECHAZADO
+        $presupuesto->estado = 'rechazado';
+        $presupuesto->save();
+
+        // Opcional: revisar la solicitud asociada
+        $solicitud = $presupuesto->solicitud;
+
+        if ($solicitud && $solicitud->estado === 'en_revision') {
+            // ¿Hay algún otro presupuesto aún enviado o aceptado?
+            $hayOtroActivo = $solicitud->presupuestos()
+                ->whereIn('estado', ['enviado', 'aceptado'])
+                ->where('id', '!=', $presupuesto->id)
+                ->exists();
+
+            // Si no, devolvemos la solicitud a "abierta"
+            if (! $hayOtroActivo) {
+                $solicitud->estado = 'abierta';
+                $solicitud->save();
+            }
+        }
+
+        return back()->with('success', 'Presupuesto cancelado (marcado como rechazado) correctamente.');
+    }
 }

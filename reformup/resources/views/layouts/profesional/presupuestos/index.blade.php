@@ -26,19 +26,19 @@
 
             @php
                 $estados = [
-                    null          => 'Todos',
-                    'enviado'     => 'Enviados',
-                    'aceptado'    => 'Aceptados',
-                    'rechazado'   => 'Rechazados',
-                    'caducado'    => 'Caducados',
+                    null => 'Todos',
+                    'enviado' => 'Enviados',
+                    'aceptado' => 'Aceptados',
+                    'rechazado' => 'Rechazados',
+                    'caducado' => 'Caducados',
                 ];
             @endphp
 
             <ul class="nav nav-pills mb-3">
                 @foreach ($estados as $valor => $texto)
                     @php
-                        $isActive = ($estado === $valor) || (is_null($estado) && is_null($valor));
-                        $url      = $valor
+                        $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
+                        $url = $valor
                             ? route('profesional.presupuestos.index', ['estado' => $valor])
                             : route('profesional.presupuestos.index');
                     @endphp
@@ -52,7 +52,7 @@
 
             @if ($presupuestos->isEmpty())
                 <div class="alert alert-info">
-                    No tienes presupuestos {{ $estado ? 'con estado '.str_replace('_',' ',$estado) : 'todavía' }}.
+                    No tienes presupuestos {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
                 </div>
             @else
                 <div class="table-responsive">
@@ -64,57 +64,75 @@
                                 <th>Importe</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
-                        @foreach ($presupuestos as $presu)
-                            <tr>
-                                <td>
-                                    {{ $presu->solicitud->titulo ?? '—' }}
-                                </td>
-                                <td>
-                                    @if ($presu->solicitud && $presu->solicitud->cliente)
-                                        {{ $presu->solicitud->cliente->nombre }}
-                                        {{ $presu->solicitud->cliente->apellidos }}
-                                    @else
-                                        <span class="text-muted small">Sin datos</span>
-                                    @endif
-                                </td>
-                                <td>
-                                    {{ number_format($presu->total, 2, ',', '.') }} €
-                                </td>
-                                <td>
-                                    @php
-                                        $badgeClass = match ($presu->estado) {
-                                            'enviado'   => 'bg-primary',
-                                            'aceptado'  => 'bg-success',
-                                            'rechazado' => 'bg-danger',
-                                            'caducado'  => 'bg-secondary',
-                                            default     => 'bg-light text-dark',
-                                        };
-                                    @endphp
-                                    <span class="badge {{ $badgeClass }}">
-                                        {{ ucfirst($presu->estado) }}
-                                    </span>
-                                </td>
-                                <td>
-                                    {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
-                                </td>
-                                <td class="text-end">
-                                    {{-- Aquí luego puedes poner: Ver detalle, Descargar PDF, Cancelar, etc. --}}
-                                    @if ($presu->docu_pdf)
-                                        <a href="{{ asset('storage/'.$presu->docu_pdf) }}"
-                                           target="_blank"
-                                           class="btn btn-outline-secondary btn-sm">
-                                            Ver PDF
-                                        </a>
-                                    @else
-                                        <span class="text-muted small">Sin PDF</span>
-                                    @endif
-                                </td>
-                            </tr>
-                        @endforeach
+                            @foreach ($presupuestos as $presu)
+                                <tr>
+                                    <td>
+                                        {{ $presu->solicitud->titulo ?? '—' }}
+                                    </td>
+                                    <td>
+                                        @if ($presu->solicitud && $presu->solicitud->cliente)
+                                            {{ $presu->solicitud->cliente->nombre }}
+                                            {{ $presu->solicitud->cliente->apellidos }}
+                                        @else
+                                            <span class="text-muted small">Sin datos</span>
+                                        @endif
+                                    </td>
+                                    <td>
+                                        {{ number_format($presu->total, 2, ',', '.') }} €
+                                    </td>
+                                    <td>
+                                        @php
+                                            $badgeClass = match ($presu->estado) {
+                                                'enviado' => 'bg-primary',
+                                                'aceptado' => 'bg-success',
+                                                'rechazado' => 'bg-danger',
+                                                'caducado' => 'bg-secondary',
+                                                default => 'bg-light text-dark',
+                                            };
+                                        @endphp
+                                        <span class="badge {{ $badgeClass }}">
+                                            {{ ucfirst($presu->estado) }}
+                                        </span>
+                                    </td>
+                                    <td>
+                                        {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
+                                    </td>
+                                    <td class="text-end">
+
+                                        {{-- Ver PDF si existe --}}
+                                        @if ($presu->docu_pdf)
+                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}" target="_blank"
+                                                class="btn btn-outline-secondary btn-sm me-1 mb-1">
+                                                Ver PDF
+                                            </a>
+                                        @else
+                                            <span class="text-muted small me-2">Sin PDF</span>
+                                        @endif
+
+                                        {{-- Cancelar presupuesto (solo si está ENVIADO) --}}
+                                        @if ($presu->estado === 'enviado')
+                                            <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
+                                        @endif
+
+                                        {{-- Volver a enviar / crear nuevo presupuesto
+         solo si está RECHAZADO y la solicitud no está cerrada/cancelada --}}
+                                        @if (
+                                            $presu->estado === 'rechazado' &&
+                                                $presu->solicitud &&
+                                                in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
+                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
+                                                class="btn btn-primary btn-sm ms-1 mb-1">
+                                                Nuevo presupuesto
+                                            </a>
+                                        @endif
+
+                                    </td>
+                                </tr>
+                            @endforeach
                         </tbody>
                     </table>
                 </div>

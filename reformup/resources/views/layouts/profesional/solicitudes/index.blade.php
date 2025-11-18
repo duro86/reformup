@@ -20,7 +20,7 @@
 
                 <div class="text-muted small">
                     @if ($perfil)
-                        {{ $perfil->empresa }} (ID perfil: {{ $perfil->id }})
+                        {{ $perfil->empresa }}
                     @endif
                 </div>
             </div>
@@ -76,7 +76,7 @@
                                 <th>Estado</th>
                                 <th class="d-none d-md-table-cell">Presupuesto máx.</th>
                                 <th>Fecha</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -151,7 +151,7 @@
                                         </button>
 
                                         {{-- Sólo si se puede actuar sobre la solicitud --}}
-                                        @if (in_array($solicitud->estado, ['abierta', 'en_revision']))
+                                        @if (in_array($solicitud->estado, ['abierta']))
                                             {{-- PRESUPUESTO - VERDE --}}
                                             <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud->id) }}"
                                                 class="btn btn-success btn-sm px-2 py-1 mx-1">
@@ -160,6 +160,11 @@
 
                                             {{-- CANCELAR - ROJO (SweetAlert desde el componente) --}}
                                             <x-profesional.solicitudes.btn_cancelar :solicitud="$solicitud" />
+                                        @else
+                                            <span class="btn btn-success btn-sm px-2 py-1 mx-1 disabled" role="button"
+                                                aria-disabled="true">
+                                                Presupuesto enviado
+                                            </span>
                                         @endif
 
                                     </td>
