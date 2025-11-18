@@ -5,7 +5,7 @@
 @section('content')
 
     <x-navbar />
-    <x-profesional.profesional_sidebar />
+    <x-usuario.usuario_sidebar />
     <x-user_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
@@ -13,10 +13,11 @@
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
-                    Mis presupuestos
+                    <i class="bi bi-receipt"></i> Mis presupuestos
                 </h1>
             </div>
 
+            {{-- Mensajes flash --}}
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -28,20 +29,21 @@
             @php
                 $estados = [
                     null => 'Todos',
-                    'enviado' => 'Enviados',
+                    'enviado' => 'Pendientes',
                     'aceptado' => 'Aceptados',
                     'rechazado' => 'Rechazados',
                     'caducado' => 'Caducados',
                 ];
             @endphp
 
+            {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
                 @foreach ($estados as $valor => $texto)
                     @php
                         $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
                         $url = $valor
-                            ? route('profesional.presupuestos.index', ['estado' => $valor])
-                            : route('profesional.presupuestos.index');
+                            ? route('usuario.presupuestos.index', ['estado' => $valor])
+                            : route('usuario.presupuestos.index');
                     @endphp
                     <li class="nav-item">
                         <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
@@ -53,7 +55,8 @@
 
             @if ($presupuestos->isEmpty())
                 <div class="alert alert-info">
-                    No tienes presupuestos {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
+                    No tienes presupuestos
+                    {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
                 </div>
             @else
                 <div class="table-responsive">
@@ -61,30 +64,36 @@
                         <thead>
                             <tr>
                                 <th>Solicitud</th>
-                                <th>Cliente</th>
+                                <th>Profesional</th>
                                 <th>Importe</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
-                                <th class="text-center">Acciones</th>
+                                <th class="text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($presupuestos as $presu)
                                 <tr>
+                                    {{-- Título de la solicitud --}}
                                     <td>
                                         {{ $presu->solicitud->titulo ?? '—' }}
                                     </td>
+
+                                    {{-- Profesional / empresa --}}
                                     <td>
-                                        @if ($presu->solicitud && $presu->solicitud->cliente)
-                                            {{ $presu->solicitud->cliente->nombre }}
-                                            {{ $presu->solicitud->cliente->apellidos }}
+                                        @if ($presu->solicitud && $presu->solicitud->profesional)
+                                            {{ $presu->solicitud->profesional->empresa }}
                                         @else
                                             <span class="text-muted small">Sin datos</span>
                                         @endif
                                     </td>
+
+                                    {{-- Importe --}}
                                     <td>
                                         {{ number_format($presu->total, 2, ',', '.') }} €
                                     </td>
+
+                                    {{-- Estado --}}
                                     <td>
                                         @php
                                             $badgeClass = match ($presu->estado) {
@@ -99,38 +108,30 @@
                                             {{ ucfirst($presu->estado) }}
                                         </span>
                                     </td>
+
+                                    {{-- Fecha --}}
                                     <td>
                                         {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
                                     </td>
+
+                                    {{-- Acciones --}}
                                     <td class="text-end">
 
                                         {{-- Ver PDF si existe --}}
                                         @if ($presu->docu_pdf)
                                             <a href="{{ asset('storage/' . $presu->docu_pdf) }}" target="_blank"
                                                 class="btn btn-outline-secondary btn-sm me-1 mb-1">
-                                                Ver PDF
+                                                Ver presupuesto
                                             </a>
                                         @else
-                                            <span class="text-muted small me-2">Sin PDF</span>
+                                            <span class="text-muted small me-2">Sin documento</span>
                                         @endif
 
-                                        {{-- Cancelar presupuesto (solo si está ENVIADO) --}}
+                                        {{-- Aceptar / Rechazar solo si está ENVIADO (control direccion obra--}}
                                         @if ($presu->estado === 'enviado')
-                                            <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
+                                            <x-usuario.presupuestos.btn_aceptar :presupuesto="$presu" :tiene-direccion="(bool) optional($presu->solicitud)->dir_cliente" />
+                                            <x-usuario.presupuestos.btn_rechazar :presupuesto="$presu" />
                                         @endif
-
-                                        {{-- Volver a enviar / crear nuevo presupuesto
-         solo si está RECHAZADO y la solicitud no está cerrada/cancelada --}}
-                                        @if (
-                                            $presu->estado === 'rechazado' &&
-                                                $presu->solicitud &&
-                                                in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
-                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
-                                                class="btn btn-primary btn-sm ms-1 mb-1">
-                                                Nuevo presupuesto
-                                            </a>
-                                        @endif
-
                                     </td>
                                 </tr>
                             @endforeach

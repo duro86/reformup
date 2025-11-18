@@ -46,7 +46,7 @@
             </li>
             <li class="nav-item">
                 {{-- Listado Presupuestos --}}
-                <a class="nav-link" href="#"><i class="bi bi-receipt"></i> Presupuestos</a>
+                <a class="nav-link" href="{{ route('usuario.presupuestos.index') }}"><i class="bi bi-receipt"></i> Presupuestos</a>
             </li>
             <li class="nav-item">
                 {{-- Listado Trabajos --}}

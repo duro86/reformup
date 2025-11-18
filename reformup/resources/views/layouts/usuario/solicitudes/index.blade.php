@@ -7,6 +7,7 @@
     <x-navbar />
 
     <x-usuario.usuario_sidebar />
+    <x-user_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-4">

@@ -10,6 +10,7 @@ use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
 use App\Http\Controllers\Profesional\ProfesionalPresupuestoController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Usuario\UsuarioSolicitudController;
+use App\Http\Controllers\Usuario\UsuarioPresupuestoController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
 use App\Http\Controllers\Auth\OlvidarPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
@@ -184,16 +185,16 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         Route::get('/perfil', [UsuarioDashboardController::class, 'mostrarPerfil'])->name('perfil');
         Route::put('/perfil', [UsuarioDashboardController::class, 'actualizarPerfil'])->name('perfil.actualizar');
 
-        // SOLICITUDES DE PRESUPUESTOS
+        // ----- SOLICITUDES -----
         // LISTADO de solicitudes del cliente
         Route::get('/solicitudes', [UsuarioSolicitudController::class, 'index'])
             ->name('solicitudes.index');
 
-        // FORMULARIO nueva solicitud
+        // Formulario nueva solicitud
         Route::get('/solicitudes/crear', [UsuarioSolicitudController::class, 'seleccionarProfesional'])
             ->name('solicitudes.crear');
 
-        // GUARDAR nueva solicitud
+        // Guardar nueva solicitud
         // PASO 2: formulario de solicitud con un profesional concreto
         Route::get('/solicitudes/crear/profesional/{pro}', [UsuarioSolicitudController::class, 'crearConProfesional'])
             ->name('solicitudes.crear_con_profesional');
@@ -202,9 +203,22 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         Route::post('/solicitudes', [UsuarioSolicitudController::class, 'guardar'])
             ->name('solicitudes.guardar');
 
-        // ELIMINAR una solicitud del cliente
+        // Eliminar una solicitud del cliente
         Route::delete('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'eliminar'])
             ->name('solicitudes.eliminar');
+
+        // ----- PRESUPUESTOS -----
+        // LISTADO de PRESUPUESTOS del cliente
+        Route::get('/presupuestos', [UsuarioPresupuestoController::class, 'index'])
+            ->name('presupuestos.index');
+
+        // Aceptar presupuesto
+        Route::patch('/presupuestos/{presupuesto}/aceptar', [UsuarioPresupuestoController::class, 'aceptar'])
+            ->name('presupuestos.aceptar');
+
+        // Rechazar presupuesto
+        Route::patch('/presupuestos/{presupuesto}/rechazar', [UsuarioPresupuestoController::class, 'rechazar'])
+            ->name('presupuestos.rechazar');
     });
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
