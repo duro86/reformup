@@ -5,6 +5,7 @@
 
     {{-- Navbar común --}}
     <x-navbar />
+    <x-usuario.user_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
     <x-usuario.nav_movil active="perfil" />
     {{-- CONTENIDO PRINCIPAL (desplazado a la derecha del sidebar) --}}

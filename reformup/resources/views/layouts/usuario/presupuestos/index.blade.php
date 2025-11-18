@@ -6,7 +6,7 @@
 
     <x-navbar />
     <x-usuario.usuario_sidebar />
-    <x-user_bienvenido />
+    <x-usuario.user_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
     <x-usuario.nav_movil active="presupuestos" />
 

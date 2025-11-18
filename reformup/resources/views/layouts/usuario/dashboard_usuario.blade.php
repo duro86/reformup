@@ -10,7 +10,7 @@
     {{-- Sidebar usuario --}}
     <x-usuario.usuario_sidebar />
     {{-- Bienvenida --}}
-    <x-user_bienvenido />
+    <x-usuario.user_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
     <x-usuario.nav_movil active="panel" />
 

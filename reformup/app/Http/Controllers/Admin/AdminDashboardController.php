@@ -30,7 +30,7 @@ class AdminDashboardController extends Controller
     public function listarUsuarios()
     {
         $usuarios = User::paginate(5); // todos los campos paginados
-        return view('layouts.admin.usuarios', compact('usuarios'));
+        return view('layouts.admin.usuarios.usuarios', compact('usuarios'));
     }
 
     //  Mostrar formulario para crear nuevo usuario desde el panel admin
@@ -156,7 +156,7 @@ class AdminDashboardController extends Controller
 
         $currentRoles = $usuario->getRoleNames()->toArray();
 
-        return view('layouts.admin.editar_usuario', compact('usuario', 'allRoles', 'currentRoles'));
+        return view('layouts.admin.usuarios.editar_usuario', compact('usuario', 'allRoles', 'currentRoles'));
     }
 
     // Actualizar usuario

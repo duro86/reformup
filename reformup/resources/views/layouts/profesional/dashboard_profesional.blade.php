@@ -10,7 +10,7 @@
     {{-- Sidebar profesional --}}
     <x-profesional.profesional_sidebar />
     {{-- Bienvenida --}}
-    <x-user_bienvenido />
+    <x-profesional.profesional_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
     <x-profesional.nav_movil active="panel" />
 

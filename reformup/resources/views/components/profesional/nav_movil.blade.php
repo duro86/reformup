@@ -3,7 +3,7 @@
     'active' => 'panel',
 ])
 
-<div class="d-lg-none border-bottom bg-light mb-3">
+<div class="d-lg-none border-bottom mb-3">
     <div class="container py-2">
         <div class="d-flex flex-wrap gap-2 justify-content-center">
 

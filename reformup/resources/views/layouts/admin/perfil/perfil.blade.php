@@ -4,7 +4,7 @@
 @section('content')
 
     <x-navbar />
-
+    {{-- Contenedor Principal --}}
     <div class="container my-5">
         <div class="d-grid d-md-inline-block">
             <a href="{{ route('admin.dashboard') }}"
@@ -59,7 +59,7 @@
                             <h5>Roles del usuario</h5>
 
                             @php
-                                // $allRoles y $currentRoles vienen del controlador
+                            // $allRoles y $currentRoles vienen del controlador
                             @endphp
 
                             @foreach ($allRoles as $roleName)

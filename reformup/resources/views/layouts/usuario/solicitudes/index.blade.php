@@ -9,7 +9,7 @@
     {{-- SIDEBAR FIJO (escritorio) --}}
     <x-usuario.usuario_sidebar />
     {{-- BIENVENIDA (se ve igual en todos los tamaños) --}}
-    <x-user_bienvenido />
+    <x-usuario.user_bienvenido />
     
 
     <div class="container-fluid main-content-with-sidebar">

@@ -9,8 +9,11 @@
 
     {{-- Sidebar ADMIN (escritorio + móvil con overlay) --}}
     <x-admin.admin_sidebar />
-    <x-user_bienvenido />
-    {{-- Listado usuarios --}}
+
+    {{-- Bienvenida --}}
+    <x-admin.admin_bienvenido />
+
+    {{-- Menú superior móvil --}}
     <x-admin.nav_movil active="usuarios" />
 
     {{-- Contenido principal que ya respeta el sidebar --}}
@@ -38,40 +41,72 @@
                     </h1>
 
                     <div class="table-responsive">
-                        <table class="table table-sm">
+                        <table class="table table-sm align-middle">
                             <thead>
                                 <tr style="font-size: 0.875rem;">
-                                    <th>Avatar</th>
-                                    <th>Nombre</th>
-                                    <th>Apellidos</th>
-                                    <th>Email</th>
-                                    <th>Teléfono</th>
-                                    <th>Acciones</th>
-                                    <th>Rol</th>
+                                    <th>Usuario</th>
+                                    <th class="d-none d-md-table-cell">Email</th>
+                                    <th class="d-none d-md-table-cell">Teléfono</th>
+                                    <th class="d-none d-md-table-cell">Rol</th>
+                                    <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
                             <tbody style="font-size: 0.875rem;">
                                 @foreach ($usuarios as $usuario)
                                     <tr>
+                                        {{-- Columna USUARIO: avatar + nombre + info extra en móvil --}}
                                         <td>
-                                            @if ($usuario->avatar)
-                                                <img src="{{ Storage::url($usuario->avatar) }}" alt="avatar"
-                                                    class="rounded-circle" style="width:30px;height:30px;object-fit:cover">
-                                            @else
-                                                <i class="bi bi-person-circle" style="font-size: 1rem;"></i>
-                                            @endif
+                                            <div class="d-flex align-items-center gap-2">
+                                                {{-- Avatar --}}
+                                                @if ($usuario->avatar)
+                                                    <img src="{{ Storage::url($usuario->avatar) }}" alt="avatar"
+                                                        class="rounded-circle"
+                                                        style="width:30px;height:30px;object-fit:cover">
+                                                @else
+                                                    <i class="bi bi-person-circle" style="font-size: 1.4rem;"></i>
+                                                @endif
+
+                                                <div>
+                                                    <div class="fw-semibold">
+                                                        {{ $usuario->nombre }} {{ $usuario->apellidos }}
+                                                    </div>
+
+                                                    {{-- En móvil mostramos aquí email / teléfono / rol --}}
+                                                    <div class="small text-muted d-md-none mt-1">
+                                                        {{ $usuario->email }} <br>
+                                                        @if ($usuario->telefono)
+                                                            Tel: {{ $usuario->telefono }} <br>
+                                                        @endif
+                                                        Rol: {{ $usuario->getRoleNames()->implode(', ') ?: '—' }}
+                                                    </div>
+                                                </div>
+                                            </div>
                                         </td>
-                                        <td>{{ $usuario->nombre }}</td>
-                                        <td>{{ $usuario->apellidos }}</td>
-                                        <td>{{ $usuario->email }}</td>
-                                        <td>{{ $usuario->telefono }}</td>
-                                        <td>
+
+                                        {{-- Email SOLO en escritorio --}}
+                                        <td class="d-none d-md-table-cell">
+                                            {{ $usuario->email }}
+                                        </td>
+
+                                        {{-- Teléfono SOLO en escritorio --}}
+                                        <td class="d-none d-md-table-cell">
+                                            {{ $usuario->telefono ?: '—' }}
+                                        </td>
+
+                                        {{-- Rol SOLO en escritorio --}}
+                                        <td class="d-none d-md-table-cell">
+                                            {{ $usuario->getRoleNames()->implode(', ') ?: '—' }}
+                                        </td>
+
+                                        {{-- Acciones --}}
+                                        <td class="text-center">
                                             {{-- Ver modal usuario --}}
                                             <button class="btn btn-info btn-sm px-2 py-1 mb-1 mb-md-0"
                                                 @click="openUserModal({{ $usuario->id }})">
                                                 Ver
                                             </button>
 
+                                            {{-- Editar --}}
                                             <a href="{{ route('admin.usuarios.editar', $usuario->id) }}"
                                                 class="btn btn-warning btn-sm px-2 py-1 mb-1 mb-md-0">
                                                 Editar
@@ -91,7 +126,6 @@
                                                 </delete-user-button>
                                             </form>
                                         </td>
-                                        <td>{{ $usuario->getRoleNames()->implode(', ') }}</td>
                                     </tr>
                                 @endforeach
                             </tbody>

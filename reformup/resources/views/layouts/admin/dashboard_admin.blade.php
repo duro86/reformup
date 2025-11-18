@@ -9,15 +9,13 @@
 
     {{-- Sidebar admin --}}
     <x-admin.admin_sidebar />
+    <x-admin.admin_bienvenido />
     {{-- Dashboard admin --}}
     <x-admin.nav_movil active="panel" />
 
     {{-- Contenido principal respetando el sidebar --}}
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-4">
-
-            {{-- Bloque bienvenida --}}
-            <x-user_bienvenido />
 
             <div class="row mt-4">
                 <div class="col-12">

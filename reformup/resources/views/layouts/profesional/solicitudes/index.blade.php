@@ -7,9 +7,12 @@
     <x-navbar />
 
     <x-profesional.profesional_sidebar />
+    <x-profesional.profesional_bienvenido />
 
+    {{-- Contenedor Principal --}}
     <div class="container-fluid main-content-with-sidebar">
-        <x-user_bienvenido />
+        <x-profesional.nav_movil active="solicitudes" />
+
         <div class="container py-4" id="app">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -66,6 +69,7 @@
                     {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
                 </div>
             @else
+                {{-- Tabla Cliente --}}
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead>
@@ -173,7 +177,7 @@
                         </tbody>
                     </table>
                 </div>
-
+                {{-- Paginación --}}
                 <div class="mt-3">
                     {{ $solicitudes->links() }}
                 </div>

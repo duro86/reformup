@@ -6,9 +6,11 @@
 
     <x-navbar />
     <x-profesional.profesional_sidebar />
-    <x-user_bienvenido />
+    <x-profesional.profesional_bienvenido />
 
+    {{-- Contenedor Principal --}}
     <div class="container-fluid main-content-with-sidebar">
+        <x-profesional.nav_movil active="presupuestos" />
         <div class="container py-4">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -17,6 +19,7 @@
                 </h1>
             </div>
 
+            {{-- Mensajes flash --}}
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -35,6 +38,7 @@
                 ];
             @endphp
 
+            {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
                 @foreach ($estados as $valor => $texto)
                     @php
@@ -51,6 +55,7 @@
                 @endforeach
             </ul>
 
+            {{-- Lista de presupuestos --}}
             @if ($presupuestos->isEmpty())
                 <div class="alert alert-info">
                     No tienes presupuestos {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
