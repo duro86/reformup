@@ -21,7 +21,7 @@
                     <i class="bi bi-file-earmark-text"></i> Mis solicitudes
                 </h1>
 
-                <a href="{{ route('usuario.solicitudes.crear') }}"
+                <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}"
                     class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
                     <i class="bi bi-plus-circle"></i>
                     Nueva solicitud

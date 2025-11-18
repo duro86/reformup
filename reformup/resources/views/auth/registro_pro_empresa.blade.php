@@ -172,18 +172,6 @@
         </form>
     </div>
 
-    {{-- Prueba muestra id --}}
-    @if (isset($userId))
-        <div>
-            <strong>User ID desde sesión:</strong> {{ $userId }}
-        </div>
-    @else
-        <div>
-            No hay User ID disponible
-        </div>
-    @endif
-
-
     {{-- Footer  --}}
     <x-footer />
 

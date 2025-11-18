@@ -5,7 +5,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\Admin\AdminDashboardController;
-use App\Http\Controllers\Admin\AdminSolicitudController;  
+use App\Http\Controllers\Admin\AdminSolicitudController;
 use App\Http\Controllers\Admin\AdminPresupuestoController;
 use App\Http\Controllers\Admin\AdminTrabajoController;
 use App\Http\Controllers\Admin\AdminComentarioController;
@@ -146,6 +146,10 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // LISTADO COMENTARIOS (ADMIN)
         Route::get('/comentarios', [AdminComentarioController::class, 'index'])
             ->name('comentarios');
+
+        // Vlalorar profesional (visible/no visible)
+        Route::post('/profesionales/{id}/toggle-visible', [AdminDashboardController::class, 'toggleVisible'])
+            ->name('profesionales.toggleVisible');
     });
 
 // --- PROFESIONAL ---
@@ -204,14 +208,19 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         Route::get('/perfil', [UsuarioDashboardController::class, 'mostrarPerfil'])->name('perfil');
         Route::put('/perfil', [UsuarioDashboardController::class, 'actualizarPerfil'])->name('perfil.actualizar');
 
+        // REGISTRA EMPRESA (usuario normal a profesional empresa)
+        Route::get('/registrar/profesional/opciones', [AuthProController::class, 'mostrarFormProEmpresa'])
+            ->name('registrar.profesional.opciones');
+
+
         // ----- SOLICITUDES -----
         // LISTADO de solicitudes del cliente
         Route::get('/solicitudes', [UsuarioSolicitudController::class, 'index'])
             ->name('solicitudes.index');
 
         // Formulario nueva solicitud
-        Route::get('/solicitudes/crear', [UsuarioSolicitudController::class, 'seleccionarProfesional'])
-            ->name('solicitudes.crear');
+        Route::get('/solicitudes/seleccionar_profesional', [UsuarioSolicitudController::class, 'seleccionarProfesional'])
+            ->name('solicitudes.seleccionar_profesional');
 
         // Guardar nueva solicitud
         // PASO 2: formulario de solicitud con un profesional concreto
@@ -225,6 +234,7 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         // Eliminar una solicitud del cliente
         Route::delete('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'eliminar'])
             ->name('solicitudes.eliminar');
+
 
         // ----- PRESUPUESTOS -----
         // LISTADO de PRESUPUESTOS del cliente

@@ -99,6 +99,14 @@
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
         <ul class="nav flex-column mt-auto admin-sidebar">
+            {{-- Si es usuario y no tiene perfil profesional --}}
+            @if ($isUsuario && !$isProfesional)
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ route('registrar.profesional.opciones') }}">
+                        <i class="bi bi-building"></i> Registrar mi empresa
+                    </a>
+                </li>
+            @endif
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('home') }}"><i class="bi bi-house-door"></i> Inicio</a>
             </li>

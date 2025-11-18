@@ -6,6 +6,9 @@ use App\Models\User;
 use App\Models\Oficio;
 use App\Models\Perfil_Profesional;
 use Spatie\Permission\Traits\HasRoles;
+use App\Mail\ProfesionalValidado;
+use App\Mail\ProfesionalSuspendido;
+use Illuminate\Support\Facades\Mail;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Auth;
@@ -132,6 +135,34 @@ class AdminDashboardController extends Controller
 
         // Volver a la página de inicio con un mensaje de éxito
         return redirect()->route('admin.usuarios')->with('success', 'Usuario: ' . $user->nombre . ' ' . $user->apellidos . '  creado correctamente');
+    }
+
+    //Boton para activar/desactivar la visibilidad de un profesional
+    public function toggleVisible($id)
+    {
+        $perfil = Perfil_Profesional::findOrFail($id);
+        $user   = $perfil->user;
+
+        // Volteamos el estado
+        $perfil->visible = !$perfil->visible;
+        $perfil->save();
+
+        // Enviar email según el nuevo estado
+        if ($perfil->visible) {
+            // Ahora es VISIBLE → validar profesional
+            if ($user) {
+                Mail::to($user->email)->send(new ProfesionalValidado($perfil, $user));
+            }
+
+            return back()->with('success', 'El profesional ha sido validado y ahora es visible.');
+        } else {
+            // Ahora NO es visible → suspensión
+            if ($user) {
+                Mail::to($user->email)->send(new ProfesionalSuspendido($perfil, $user));
+            }
+
+            return back()->with('warning', 'El profesional ha sido ocultado y su cuenta suspendida.');
+        }
     }
 
     // Ver detalles de un usuario
@@ -407,7 +438,7 @@ class AdminDashboardController extends Controller
         ];
 
         // Si tiene rol profesional Y perfil profesional, añadimos reglas de profesional
-        if ($rolesActuales ->contains('profesional') && $perfilProfesional) {
+        if ($rolesActuales->contains('profesional') && $perfilProfesional) {
             $rules = array_merge($rules, [
                 'empresa' => ['required', 'string', 'max:255'],
                 'cif' => [
@@ -520,7 +551,7 @@ class AdminDashboardController extends Controller
             $usuario->save();
 
             // ---------- 4) ACTUALIZAR PROFESIONAL (si aplica) ----------
-            if ($rolesActuales ->contains('profesional') && $perfilProfesional) {
+            if ($rolesActuales->contains('profesional') && $perfilProfesional) {
 
                 // Avatar profesional
                 if ($request->hasFile('avatar_profesional') && $request->file('avatar_profesional')->isValid()) {
@@ -562,29 +593,29 @@ class AdminDashboardController extends Controller
                 $perfilProfesional->oficios()->sync($request->oficios ?? []);
             }
 
-             // ---------- 5) Sincronizar ROLES (si el formulario los envía) ----------
-        if ($request->has('roles')) {
-            $nuevosRoles = $request->input('roles', []);
+            // ---------- 5) Sincronizar ROLES (si el formulario los envía) ----------
+            if ($request->has('roles')) {
+                $nuevosRoles = $request->input('roles', []);
 
-            // Seguridad: NO permitir que un admin se quite su propio rol admin
-            if ($rolesActuales->contains('admin') && !in_array('admin', $nuevosRoles)) {
-                return back()
-                    ->withInput()
-                    ->withErrors([
-                        'roles' => 'No puedes quitarte tu propio rol de administrador.',
-                    ]);
+                // Seguridad: NO permitir que un admin se quite su propio rol admin
+                if ($rolesActuales->contains('admin') && !in_array('admin', $nuevosRoles)) {
+                    return back()
+                        ->withInput()
+                        ->withErrors([
+                            'roles' => 'No puedes quitarte tu propio rol de administrador.',
+                        ]);
+                }
+
+                // Sempre tenga al menos 'usuario'
+                if (!in_array('usuario', $nuevosRoles)) {
+                    $nuevosRoles[] = 'usuario';
+                }
+
+                // Guardar los nuevos roles
+                $usuario->syncRoles($nuevosRoles);
             }
 
-            // Sempre tenga al menos 'usuario'
-            if (!in_array('usuario', $nuevosRoles)) {
-                $nuevosRoles[] = 'usuario';
-            }
-
-            // Guardar los nuevos roles
-            $usuario->syncRoles($nuevosRoles);
-        }
-
-        // Si vamos bien, redirigimos con éxito
+            // Si vamos bien, redirigimos con éxito
             return redirect()
                 ->route('admin.dashboard')
                 ->with('success', 'Tu perfil se ha actualizado correctamente.');

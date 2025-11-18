@@ -9,6 +9,9 @@ use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+// === ENVIAR EMAIL A ADMIN ===
+use App\Mail\NuevoProfesionalRegistrado;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait
 
@@ -58,7 +61,7 @@ class AuthProController extends Controller
         return view('auth.registro_pro_empresa', compact('userId', 'oficios'));
     }
 
-
+    /**Registro por medio del ADMIN */
     public function registrarClientePro(Request $request)
     {
 
@@ -276,7 +279,16 @@ class AuthProController extends Controller
         if ($user) {
             $user->assignRole('profesional'); // Asignas el rol profesional al usuario
         }
-        return redirect()->route('home')->with('success', 'Registro profesional completado correctamente. Ya puedes iniciar sesión.');
+
+        // Enviar mainl al admin notificando nuevo profesional pendiente de revisión
+        $admins = User::role('admin')->get();
+
+        foreach ($admins as $admin) {
+            Mail::to($admin->email)->send(new NuevoProfesionalRegistrado($user, $perfil));
+        }
+
+
+        return redirect()->route('home')->with('success', 'Registro profesional completado correctamente. Se verificará la información y le enviaremos un correo cuando ya este disponible en la plataforma.');
     }
 
     public function mostrarValidarUsuario()

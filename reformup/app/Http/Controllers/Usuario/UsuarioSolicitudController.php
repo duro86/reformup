@@ -68,10 +68,11 @@ class UsuarioSolicitudController extends Controller
             $query->where('provincia', 'like', '%' . $provincia . '%');
         }
 
-        // Filtro oficios (uno o varios)
+        // Filtro oficios (uno o varios, tipo OR)
         if (!empty($oficiosSeleccionados)) {
-            $query->whereHas('oficios', function ($q) use ($oficiosSeleccionados) {
-                $q->whereIn('oficio_id', (array)$oficiosSeleccionados);
+            $ids = array_filter($oficiosSeleccionados);
+            $query->whereHas('oficios', function ($q) use ($ids) {
+                $q->whereIn('oficios.id', $ids);
             });
         }
 
@@ -174,6 +175,6 @@ class UsuarioSolicitudController extends Controller
 
         return redirect()
             ->route('usuario.solicitudes.index', $estado ? ['estado' => $estado] : [])
-            ->with('success', 'La solicitud '.$solicitud->titulo.' se ha eliminado correctamente.');
+            ->with('success', 'La solicitud ' . $solicitud->titulo . ' se ha eliminado correctamente.');
     }
 }

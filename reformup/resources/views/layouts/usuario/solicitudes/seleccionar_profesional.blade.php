@@ -23,7 +23,7 @@
             </div>
 
             {{-- FILTROS --}}
-            <form method="GET" action="{{ route('usuario.solicitudes.crear') }}" class="card mb-4">
+            <form method="GET" action="{{ route('usuario.solicitudes.seleccionar_profesional') }}" class="card mb-4">
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -65,7 +65,7 @@
                             <i class="bi bi-search"></i> Buscar
                         </button>
 
-                        <a href="{{ route('usuario.solicitudes.crear') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}" class="btn btn-outline-secondary">
                             <i class="bi bi-file-x"></i>Limpiar filtros
                         </a>
                     </div>
