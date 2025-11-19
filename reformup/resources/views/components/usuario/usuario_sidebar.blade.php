@@ -58,7 +58,7 @@
             </li>
             <li class="nav-item">
                 {{-- Listado Comentarios --}}
-                <a class="nav-link" href="#"><i class="bi bi-chat-left-text"></i> Comentarios</a>
+                <a class="nav-link" href="{{ route('usuario.comentarios.index') }}"><i class="bi bi-chat-left-text"></i> Comentarios</a>
             </li>
 
             {{-- Bloque acceso profesional --}}

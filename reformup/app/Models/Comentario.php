@@ -26,11 +26,23 @@ class Comentario extends Model
      * - opinion: texto con la opinión o reseña del cliente.
      * - visible: indica si la reseña está publicada (booleano).
      * - fecha: fecha en que se realiza la valoración.
-    */
+     */
     protected $fillable = [
-        'trabajo_id', 'cliente_id', 'puntuacion', 'estado',
-        'opinion', 'visible', 'fecha'
+        'trabajo_id',
+        'cliente_id',
+        'puntuacion',
+        'estado',
+        'opinion',
+        'visible',
+        'fecha'
     ];
+
+    protected $casts = [
+        'visible' => 'boolean',
+        'fecha'   => 'datetime',
+    ];
+
+    
 
     /**
      * Relación inversa con el trabajo asociado.
@@ -40,7 +52,7 @@ class Comentario extends Model
      * 
      * Ejemplo de uso:
      * $trabajo = $comentario->trabajo;
-    */
+     */
     public function trabajo()
     {
         return $this->belongsTo(Trabajo::class, 'trabajo_id');
@@ -53,7 +65,7 @@ class Comentario extends Model
      * 
      * Ejemplo de uso:
      * $cliente = $comentario->cliente;
-    */
+     */
     public function cliente()
     {
         return $this->belongsTo(User::class, 'cliente_id');
@@ -67,8 +79,9 @@ class Comentario extends Model
      * 
      * Los campos `model_type` y `model_id` de la tabla `medios` indican a qué
      * modelo pertenece cada archivo.
-    */
-    public function medios() {
+     */
+    public function medios()
+    {
         return $this->morphMany(Medio::class, 'model');
     }
 }

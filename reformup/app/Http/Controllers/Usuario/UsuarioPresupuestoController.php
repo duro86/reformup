@@ -33,6 +33,7 @@ class UsuarioPresupuestoController extends Controller
         return view('layouts.usuario.presupuestos.index', [
             'presupuestos' => $presupuestos,
             'estado'       => $estado,
+            'estados'      => Presupuesto::ESTADOS,
         ]);
     }
 

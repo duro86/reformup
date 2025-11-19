@@ -33,6 +33,13 @@ class Presupuesto extends Model
         'fecha' => 'datetime',
     ];
 
+    public const ESTADOS = [
+        'enviado'   => 'Enviados',
+        'aceptado'  => 'Aceptados',
+        'rechazado' => 'Rechazados',
+        'caducado'  => 'Caducados',
+    ];
+
     /**
      * Relación inversa con el perfil profesional.
      * 

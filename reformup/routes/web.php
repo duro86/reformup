@@ -1,18 +1,20 @@
 <?php
-
+// ---- RUTAS WEB ----
 use Illuminate\Support\Facades\Route;
 //Autenticación
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
+
 //Admin
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSolicitudController;
 use App\Http\Controllers\Admin\AdminPresupuestoController;
 use App\Http\Controllers\Admin\AdminTrabajoController;
 use App\Http\Controllers\Admin\AdminComentarioController;
-//Profesional
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
+
+//Profesional
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
 use App\Http\Controllers\Profesional\ProfesionalPresupuestoController;
@@ -22,12 +24,13 @@ use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Usuario\UsuarioSolicitudController;
 use App\Http\Controllers\Usuario\UsuarioPresupuestoController;
 use App\Http\Controllers\Usuario\UsuarioTrabajoController;
+use App\Http\Controllers\Usuario\UsuarioComentarioController;
 //Password
 use App\Http\Controllers\Auth\OlvidarPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
 
-// ----- Página de inicio -----
+// ----- PAGINA INICIO (LANDING PAGE)-----
 Route::get('/', function () {
     return view('home');
 })->name('home');
@@ -97,7 +100,7 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
     ->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); //Mostrar dashboard
 
-        // Eventos usuarios
+        // ----- EVENTOS USUARIOS CON ADMIN -----
         Route::get('/usuarios', [AdminDashboardController::class, 'listarUsuarios'])
             ->name('usuarios');
         Route::get('/usuarios/{usuario}', [AdminDashboardController::class, 'show'])
@@ -113,7 +116,7 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::get('/registrar/cliente', [AdminDashboardController::class, 'mostrarFormAdminUsuarioNuevo'])->name('admin.form.registrar.cliente');
         Route::post('/registrar/cliente', [AdminDashboardController::class, 'crearUsuarioNuevo'])->name('admin.registrar.cliente');
 
-        // Eventos usuarios profesionales
+        // ----- EVENTOS PROFESIONALES CON ADMIN -----
         Route::get('/profesionales/profesionales', [ProfesionalPerfilController::class, 'listarProfesionales'])
             ->name('profesionales');
 
@@ -129,36 +132,44 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::delete('/profesionales/{id}', [ProfesionalPerfilController::class, 'eliminarProfesional'])
             ->name('profesionales.eliminar');
 
-        // Registrar un profesional siendo Admin
+        // ----- REGISTRAR PROFESIONAL SIENDO ADMIN -----
         Route::get('/registrar/profesional', [ProfesionalPerfilController::class, 'mostrarFormAdminProNuevo'])->name('admin.form.registrar.profesional');
         Route::post('/registrar/profesional', [ProfesionalPerfilController::class, 'crearProNuevo'])->name('admin.registrar.profesional');
 
-        // PERFIL
+        // ----- PERFIL -----
         Route::get('/perfil', [AdminDashboardController::class, 'mostrarPerfil'])
             ->name('perfil');
 
         Route::put('/perfil', [AdminDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
-        // LISTADO SOLICITUDES (ADMIN)
+
+        // ----- LISTADO SOLICITUDES (ADMIN) -----
         Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])
             ->name('solicitudes');
 
-        // LISTADO PRESUPUESTOS (ADMIN)
+        // ----- LISTADO PRESUPUESTOS (ADMIN) -----
         Route::get('/presupuestos', [AdminPresupuestoController::class, 'index'])
             ->name('presupuestos');
 
-        // LISTADO TRABAJOS (ADMIN)
+        // ----- LISTADO TRABAJOS (ADMIN) -----
         Route::get('/trabajos', [AdminTrabajoController::class, 'index'])
             ->name('trabajos');
 
-        // LISTADO COMENTARIOS (ADMIN)
+        // ----- LISTADO COMENTARIOS (ADMIN) -----
         Route::get('/comentarios', [AdminComentarioController::class, 'index'])
-            ->name('comentarios');
+            ->name('comentarios.index');
 
-        // Vlalorar profesional (visible/no visible)
+        Route::patch('/comentarios/{comentario}/publicar', [AdminComentarioController::class, 'publicar'])
+            ->name('comentarios.publicar');
+
+        Route::patch('/comentarios/{comentario}/rechazar', [AdminComentarioController::class, 'rechazar'])
+            ->name('comentarios.rechazar');
+
+        // Valorar profesional (visible/no visible)
         Route::post('/profesionales/{id}/toggle-visible', [AdminDashboardController::class, 'toggleVisible'])
             ->name('profesionales.toggleVisible');
     });
+
 
 // --- PROFESIONAL ---
 Route::middleware(['auth', 'rol.redirigir:profesional'])
@@ -228,6 +239,7 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
             ->name('trabajos.finalizar');
     });
 
+
 // --- USUARIO ---
 Route::middleware(['auth', 'rol.redirigir:usuario'])
     ->prefix('usuario')->name('usuario.')
@@ -292,6 +304,28 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         // Cancelar trabajo por parte del cliente(usuario)
         Route::patch('trabajos/{trabajo}/cancelar', [UsuarioTrabajoController::class, 'cancelar'])
             ->name('trabajos.cancelar');
+
+
+        // ----- COMENTARIOS -----
+        // LISTADO de comentarios del cliente
+        Route::get('/comentario', [UsuarioComentarioController::class, 'index'])
+            ->name('comentarios.index');
+
+        // FORMULARIO nuevo comentario sobre un trabajo
+        Route::get('/comentarios/trabajo/{trabajo}', [UsuarioComentarioController::class, 'crear'])
+            ->name('comentarios.crear');
+
+        // GUARDAR nuevo comentario
+        Route::post('/comentarios/trabajo/{trabajo}', [UsuarioComentarioController::class, 'guardar'])
+            ->name('comentarios.guardar');
+
+        // EDITAR comentario propio
+        Route::get('/{comentario}/editar', [UsuarioComentarioController::class, 'editar'])
+            ->name('comentarios.editar');
+
+        // ACTUALIZAR comentario propio
+        Route::put('/{comentario}', [UsuarioComentarioController::class, 'actualizar'])
+            ->name('comentarios.actualizar');
     });
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])

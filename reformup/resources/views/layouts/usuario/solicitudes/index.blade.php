@@ -10,7 +10,7 @@
     <x-usuario.usuario_sidebar />
     {{-- BIENVENIDA (se ve igual en todos los tamaños) --}}
     <x-usuario.user_bienvenido />
-    
+
 
     <div class="container-fluid main-content-with-sidebar">
         <x-usuario.nav_movil active="solicitudes" />
@@ -38,26 +38,20 @@
             @endif
 
             {{-- Filtros por estado --}}
-            @php
-                $estados = [
-                    null => 'Todas',
-                    'abierta' => 'Abiertas',
-                    'en_revision' => 'En revisión',
-                    'cerrada' => 'Cerradas',
-                    'cancelada' => 'Canceladas',
-                ];
-            @endphp
-
             <ul class="nav nav-pills mb-3">
+                {{-- Opción "Todas" --}}
+                <li class="nav-item">
+                    <a class="nav-link {{ $estado === null ? 'active' : '' }}"
+                        href="{{ route('usuario.solicitudes.index') }}">
+                        Todas
+                    </a>
+                </li>
+
+                {{-- ESTADOS DEL MODELO --}}
                 @foreach ($estados as $valor => $texto)
-                    @php
-                        $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-                        $url = $valor
-                            ? route('usuario.solicitudes.index', ['estado' => $valor])
-                            : route('usuario.solicitudes.index');
-                    @endphp
                     <li class="nav-item">
-                        <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}"
+                            href="{{ route('usuario.solicitudes.index', ['estado' => $valor]) }}">
                             {{ $texto }}
                         </a>
                     </li>
@@ -72,14 +66,14 @@
                 <div class="table-responsive">
                     <table class="table align-middle">
                         <thead>
-                            <tr>
-                                <th>Título</th>
-                                <th class="d-none d-md-table-cell">Empresa</th>
-                                <th class="d-none d-md-table-cell">Ciudad / Provincia</th>
-                                <th>Estado</th>
-                                <th class="d-none d-md-table-cell">Presupuesto máx.</th>
-                                <th class="d-none d-md-table-cell">Fecha</th>
-                                <th class="text-start">Acciones</th>
+                            <tr >
+                                <th class="bg-secondary">Título</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Empresa</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Ciudad / Provincia</th>
+                                <th class="bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Presupuesto máx.</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="text-start bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -178,7 +172,7 @@
                                     </td>
 
                                     {{-- Acciones --}}
-                                    <td class="text-end">
+                                    <td class="text-center">
                                         <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />
                                     </td>
                                 </tr>

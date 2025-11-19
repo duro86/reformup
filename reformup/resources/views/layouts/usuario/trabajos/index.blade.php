@@ -33,10 +33,31 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
+            {{-- Filtros por estado --}}
+            <ul class="nav nav-pills mb-3">
+                {{-- Todos --}}
+                <li class="nav-item">
+                    <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ route('usuario.trabajos.index') }}">
+                        Todos
+                    </a>
+                </li>
+
+                {{-- ESTADOS DEL MODELO --}}
+                @foreach ($estados as $valor => $texto)
+                    <li class="nav-item">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}"
+                            href="{{ route('usuario.trabajos.index', ['estado' => $valor]) }}">
+                            {{ $texto }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+
             {{-- Si no hay trabajos --}}
             @if ($trabajos->isEmpty())
                 <div class="alert alert-info">
-                    No tienes trabajos todavía.
+                    No tienes trabajos
+                    {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
                 </div>
             @else
                 {{-- Tabla listado Trabajos --}}
@@ -45,12 +66,13 @@
                         <thead>
                             <tr>
                                 <th>Trabajo / Referencia</th>
-                                <th class="d-none d-md-table-cell">Empresa</th>
-                                <th>Estado</th>
-                                <th class="d-none d-md-table-cell">Fecha inicio</th>
-                                <th class="d-none d-md-table-cell">Fecha fin</th>
-                                <th class="d-none d-md-table-cell">Dirección obra</th>
-                                <th class="d-none d-md-table-cell text-center">Total presupuesto</th>
+                                <th class="d-none d-lg-table-cell">Empresa</th>
+                                <th class="d-none d-lg-table-cell">Estado</th>
+                                <th class="d-none d-lg-table-cell">Fecha inicio</th>
+                                <th class="d-none d-lg-table-cell">Fecha fin</th>
+                                <th class="d-none d-lg-table-cell">Dirección obra</th>
+                                <th class="d-none d-lg-table-cell text-center">Total presupuesto</th>
+
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -59,8 +81,13 @@
                                 @php
                                     $presupuesto = $trabajo->presupuesto;
                                     $solicitud = $presupuesto?->solicitud;
-                                    $profesionalPresu = $presupuesto?->profesional; // profesional del presupuesto
-                                    $profesionalSol = $solicitud?->profesional; // por si en solicitud también hay empresa
+                                    $profesionalPresu = $presupuesto?->profesional;
+                                    $profesionalSol = $solicitud?->profesional;
+
+                                    // ¿el usuario ya ha comentado este trabajo?
+                                    $yaComentado = $trabajo->comentarios
+                                        ->where('cliente_id', $usuario->id)
+                                        ->isNotEmpty();
                                 @endphp
 
                                 <tr>
@@ -75,7 +102,7 @@
                                         </strong>
 
                                         {{-- Versión móvil: detalles debajo --}}
-                                        <div class="small text-muted d-block d-md-none mt-1">
+                                        <div class="small text-muted d-block d-lg-none mt-1">
 
                                             {{-- Empresa (presupuesto / solicitud) --}}
                                             <span class="d-block">
@@ -127,6 +154,7 @@
                                                 <span class="fw-semibold">Dir. obra:</span>
                                                 {{ Str::limit($trabajo->dir_obra ?? 'No indicada', 20, '...') }}
                                             </span>
+
                                             {{-- Total presupuesto --}}
                                             <span class="d-block">
                                                 <span class="fw-semibold">Total:</span>
@@ -140,7 +168,7 @@
                                     </td>
 
                                     {{-- Empresa (solo escritorio) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-lg-table-cell">
                                         @if ($profesionalPresu?->empresa || $profesionalSol?->empresa || $solicitud?->empresa)
                                             @if ($profesionalPresu?->empresa)
                                                 {{ $profesionalPresu->empresa }}
@@ -156,8 +184,8 @@
                                         @endif
                                     </td>
 
-                                    {{-- Estado --}}
-                                    <td>
+                                    {{-- Estado (solo escritorio grande) --}}
+                                    <td class="d-none d-lg-table-cell">
                                         @php
                                             $badgeClass = match ($trabajo->estado) {
                                                 'previsto' => 'bg-primary',
@@ -173,22 +201,22 @@
                                     </td>
 
                                     {{-- Fecha inicio (solo escritorio) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-lg-table-cell">
                                         {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
                                     </td>
 
                                     {{-- Fecha fin (solo escritorio) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-lg-table-cell">
                                         {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
                                     </td>
 
                                     {{-- Dirección obra (solo escritorio) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-lg-table-cell">
                                         {{ Str::limit($trabajo->dir_obra ?? 'No indicada', 20, '...') }}
                                     </td>
 
                                     {{-- Total presupuesto (solo escritorio) --}}
-                                    <td class="d-none d-md-table-cell text-center">
+                                    <td class="d-none d-lg-table-cell justify-center text-center">
                                         @if ($presupuesto?->total)
                                             {{ number_format($presupuesto->total, 2, ',', '.') }} €
                                         @else
@@ -203,6 +231,7 @@
                                             @click="openTrabajoModal({{ $trabajo->id }})">
                                             Ver
                                         </button>
+
                                         {{-- Ver presupuesto PDF --}}
                                         @if ($presupuesto?->docu_pdf)
                                             <a href="{{ asset('storage/' . $presupuesto->docu_pdf) }}"
@@ -218,6 +247,14 @@
                                             <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" />
                                         @endif
 
+                                        {{-- Botón comentar (solo si finalizado y sin comentario del cliente) --}}
+                                        @if ($trabajo->estado === 'finalizado' && !$yaComentado)
+                                            <a href="{{ route('usuario.comentarios.crear', $trabajo) }}"
+                                                class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1 mb-1">
+                                                <i class="bi bi-star"></i>
+                                                Valorar
+                                            </a>
+                                        @endif
                                     </td>
                                 </tr>
                             @endforeach
@@ -229,8 +266,8 @@
                     {{ $trabajos->links() }}
                 </div>
             @endif
+
             {{-- Modal Vue --}}
-            {{-- Al final del contenido, el modal Vue --}}
             <trabajo-modal ref="trabajoModal"></trabajo-modal>
         </div>
     </div>

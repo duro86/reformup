@@ -14,23 +14,33 @@ class UsuarioTrabajoController extends Controller
     /**
      * Listado de trabajos del usuario (cliente).
      */
-    public function index()
+    public function index(Request $request)
     {
         $usuario = Auth::user();
+        $estado  = $request->query('estado'); // previsto, en_curso, finalizado, cancelado o null
 
         $trabajos = Trabajo::with([
-            'presupuesto.solicitud',        // para poder acceder a la solicitud
-            'presupuesto.solicitud.cliente' ?? null, // Esta relación
-            'presupuesto.profesional' ?? null,       // si la tienes
+            'presupuesto.solicitud',
+            'presupuesto.solicitud.cliente',
+            'presupuesto.profesional',
+            'comentarios', // ya que lo usas en la vista
         ])
             ->whereHas('presupuesto.solicitud', function ($q) use ($usuario) {
-                // la solicitud tiene el cliente en cliente_id
                 $q->where('cliente_id', $usuario->id);
             })
+            ->when($estado, function ($q) use ($estado) {
+                $q->where('estado', $estado);
+            })
             ->orderByDesc('created_at')
-            ->paginate(5);
+            ->paginate(5)
+            ->withQueryString();
 
-        return view('layouts.usuario.trabajos.index', compact('trabajos', 'usuario'));
+        return view('layouts.usuario.trabajos.index', [
+            'trabajos' => $trabajos,
+            'usuario'  => $usuario,
+            'estado'   => $estado,
+            'estados'  => Trabajo::ESTADOS,
+        ]);
     }
 
 

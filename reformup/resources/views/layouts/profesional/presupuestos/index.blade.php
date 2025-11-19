@@ -30,11 +30,11 @@
 
             @php
                 $estados = [
-                    null => 'Todos',
-                    'enviado' => 'Enviados',
-                    'aceptado' => 'Aceptados',
+                    null        => 'Todos',
+                    'enviado'   => 'Enviados',
+                    'aceptado'  => 'Aceptados',
                     'rechazado' => 'Rechazados',
-                    'caducado' => 'Caducados',
+                    'caducado'  => 'Caducados',
                 ];
             @endphp
 
@@ -61,81 +61,154 @@
                     No tienes presupuestos {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
                 </div>
             @else
-                <div class="table-responsive">
+                <div class="table-responsive-md">
                     <table class="table align-middle">
                         <thead>
                             <tr>
                                 <th>Solicitud</th>
-                                <th>Cliente</th>
-                                <th>Importe</th>
-                                <th>Estado</th>
-                                <th>Fecha</th>
-                                <th class="text-center">Acciones</th>
+                                <th class="d-none d-md-table-cell">Cliente</th>
+                                <th class="d-none d-md-table-cell">Importe</th>
+                                <th class="d-none d-md-table-cell">Estado</th>
+                                <th class="d-none d-md-table-cell">Fecha</th>
+                                <th class="text-start d-none d-md-table-cell">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
+                            {{-- Estados y estilos --}}
                             @foreach ($presupuestos as $presu)
+                                @php
+                                    $cliente = $presu->solicitud?->cliente;
+                                    $badgeClass = match ($presu->estado) {
+                                        'enviado'   => 'bg-primary',
+                                        'aceptado'  => 'bg-success',
+                                        'rechazado' => 'bg-danger',
+                                        'caducado'  => 'bg-secondary',
+                                        default     => 'bg-light text-dark',
+                                    };
+                                @endphp
                                 <tr>
+                                    {{-- Columna principal: Solicitud + bloque móvil --}}
                                     <td>
-                                        {{ $presu->solicitud->titulo ?? '—' }}
+                                        <strong>
+                                            {{ $presu->solicitud->titulo ?? '—' }}
+                                        </strong>
+
+                                        {{-- Versión móvil: detalles debajo --}}
+                                        <div class="small text-muted d-block d-md-none mt-1">
+
+                                            {{-- Cliente --}}
+                                            <div class="mb-1">
+                                                <span class="fw-semibold">Cliente:</span>
+                                                @if ($cliente)
+                                                    {{ $cliente->nombre }} {{ $cliente->apellidos }}
+                                                @else
+                                                    <span class="text-muted">Sin datos</span>
+                                                @endif
+                                            </div>
+
+                                            {{-- Importe --}}
+                                            <div class="mb-1">
+                                                <span class="fw-semibold">Importe:</span>
+                                                {{ number_format($presu->total, 2, ',', '.') }} €
+                                            </div>
+
+                                            {{-- Estado --}}
+                                            <div class="mb-1">
+                                                <span class="fw-semibold">Estado:</span>
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ ucfirst($presu->estado) }}
+                                                </span>
+                                            </div>
+
+                                            {{-- Fecha --}}
+                                            <div class="mb-2">
+                                                <span class="fw-semibold">Fecha:</span>
+                                                {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
+                                            </div>
+
+                                            {{-- Acciones (solo móvil) --}}
+                                            <div class="d-flex flex-wrap gap-1 mt-1">
+                                                @if ($presu->docu_pdf)
+                                                    <a href="{{ asset('storage/' . $presu->docu_pdf) }}" target="_blank"
+                                                        class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
+                                                        Ver PDF
+                                                    </a>
+                                                @else
+                                                    <span class="text-muted small me-2">Sin PDF</span>
+                                                @endif
+                                                
+                                                {{-- Botón Cancelar presupuesto --}}
+                                                @if ($presu->estado === 'enviado')
+                                                    <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
+                                                @endif
+
+                                                @if (
+                                                    $presu->estado === 'rechazado' &&
+                                                        $presu->solicitud &&
+                                                        in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
+                                                    <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
+                                                        class="btn btn-primary btn-sm">
+                                                        Nuevo presupuesto
+                                                    </a>
+                                                @endif
+                                            </div>
+                                        </div>
                                     </td>
-                                    <td>
-                                        @if ($presu->solicitud && $presu->solicitud->cliente)
-                                            {{ $presu->solicitud->cliente->nombre }}
-                                            {{ $presu->solicitud->cliente->apellidos }}
+
+                                    {{-- Cliente (solo escritorio/tablet) --}}
+                                    <td class="d-none d-md-table-cell">
+                                        @if ($cliente)
+                                            {{ $cliente->nombre }} {{ $cliente->apellidos }}
                                         @else
                                             <span class="text-muted small">Sin datos</span>
                                         @endif
                                     </td>
-                                    <td>
+
+                                    {{-- Importe (solo escritorio/tablet) --}}
+                                    <td class="d-none d-md-table-cell">
                                         {{ number_format($presu->total, 2, ',', '.') }} €
                                     </td>
-                                    <td>
-                                        @php
-                                            $badgeClass = match ($presu->estado) {
-                                                'enviado' => 'bg-primary',
-                                                'aceptado' => 'bg-success',
-                                                'rechazado' => 'bg-danger',
-                                                'caducado' => 'bg-secondary',
-                                                default => 'bg-light text-dark',
-                                            };
-                                        @endphp
+
+                                    {{-- Estado (solo escritorio/tablet) --}}
+                                    <td class="d-none d-md-table-cell">
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst($presu->estado) }}
                                         </span>
                                     </td>
-                                    <td>
+
+                                    {{-- Fecha (solo escritorio/tablet) --}}
+                                    <td class="d-none d-md-table-cell">
                                         {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
                                     </td>
-                                    <td class="text-end">
 
-                                        {{-- Ver PDF si existe --}}
+                                    {{-- Acciones (solo escritorio/tablet) --}}
+                                    <td class="text-start d-none d-md-table-cell">
                                         @if ($presu->docu_pdf)
-                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}" target="_blank"
-                                                class="btn btn-outline-secondary btn-sm me-1 mb-1">
+                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}" 
+                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
+                                                    target="_blank"><i class="bi bi-file-earmark-pdf"></i>
                                                 Ver PDF
                                             </a>
                                         @else
                                             <span class="text-muted small me-2">Sin PDF</span>
                                         @endif
 
-                                        {{-- Cancelar presupuesto (solo si está ENVIADO) --}}
+                                        {{-- Botón Cancelar presupuesto --}}
                                         @if ($presu->estado === 'enviado')
                                             <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
                                         @endif
-
-                                        {{-- Volver a enviar / crear nuevo presupuesto
-         solo si está RECHAZADO y la solicitud no está cerrada/cancelada --}}
+                                        
+                                        {{-- Botón Nuevo presupuesto desde solicitud --}}
                                         @if (
                                             $presu->estado === 'rechazado' &&
                                                 $presu->solicitud &&
                                                 in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
                                             <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
-                                                class="btn btn-primary btn-sm ms-1 mb-1">
+                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
+                                                    target="_blank"><i class="bi bi-file-earmark-pdf"></i>
                                                 Nuevo presupuesto
                                             </a>
                                         @endif
-
                                     </td>
                                 </tr>
                             @endforeach

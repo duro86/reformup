@@ -12,29 +12,44 @@ class Solicitud extends Model
 
     protected $table = 'solicitudes';
     /**
-         * Atributos que se pueden asignar de forma masiva (mas asignable).
-         * 
-         * Define los campos permitidos al crear o actualizar una solicitud de presupuesto.
-         * Laravel solo permitirá la asignación de los atributos listados aquí, protegiendo
-         * contra modificaciones accidentales o no autorizadas.
-         * Campos:
-         * - pro_id: ID del profesional destinatario (si la solicitud es dirigida).
-         * - cliente_id: ID del usuario que realiza la solicitud.
-         * - titulo: resumen breve de la solicitud.
-         * - descripcion: detalle de la necesidad o reforma solicitada.
-         * - ciudad,provincia: ubicación donde se realizará el trabajo.
-         * - dir_empresa: dirección exacta del inmueble o lugar de la obra.
-         * - estado: estado actual de la solicitud (‘abierta’, ‘cerrada’, etc.).
-         * - presupuesto_max: límite económico indicado por el cliente.
-         * - fecha: fecha en la que se genera o actualiza la solicitud.
-    */
+     * Atributos que se pueden asignar de forma masiva (mas asignable).
+     * 
+     * Define los campos permitidos al crear o actualizar una solicitud de presupuesto.
+     * Laravel solo permitirá la asignación de los atributos listados aquí, protegiendo
+     * contra modificaciones accidentales o no autorizadas.
+     * Campos:
+     * - pro_id: ID del profesional destinatario (si la solicitud es dirigida).
+     * - cliente_id: ID del usuario que realiza la solicitud.
+     * - titulo: resumen breve de la solicitud.
+     * - descripcion: detalle de la necesidad o reforma solicitada.
+     * - ciudad,provincia: ubicación donde se realizará el trabajo.
+     * - dir_empresa: dirección exacta del inmueble o lugar de la obra.
+     * - estado: estado actual de la solicitud (‘abierta’, ‘cerrada’, etc.).
+     * - presupuesto_max: límite económico indicado por el cliente.
+     * - fecha: fecha en la que se genera o actualiza la solicitud.
+     */
     protected $fillable = [
-        'pro_id', 'cliente_id', 'titulo', 'descripcion',
-        'ciudad', 'provincia', 'dir_cliente', 'estado', 'presupuesto_max', 'fecha'
+        'pro_id',
+        'cliente_id',
+        'titulo',
+        'descripcion',
+        'ciudad',
+        'provincia',
+        'dir_cliente',
+        'estado',
+        'presupuesto_max',
+        'fecha'
     ];
 
     protected $casts = [
         'fecha' => 'datetime',
+    ];
+
+    public const ESTADOS = [
+        'abierta' => 'Abiertas',
+        'en_revision' => 'En revisión',
+        'cerrada' => 'Cerradas',
+        'cancelada' => 'Canceladas',
     ];
 
     /**
@@ -45,7 +60,7 @@ class Solicitud extends Model
      * 
      * Ejemplo de uso:
      * $profesional = $solicitud->profesional;
-    */
+     */
     public function profesional()
     {
         return $this->belongsTo(Perfil_Profesional::class, 'pro_id');
@@ -59,7 +74,7 @@ class Solicitud extends Model
      * 
      * Ejemplo de uso:
      * $cliente = $solicitud->cliente;
-    */
+     */
     public function cliente()
     {
         return $this->belongsTo(User::class, 'cliente_id');
@@ -74,7 +89,7 @@ class Solicitud extends Model
      * 
      * Ejemplo de uso:
      * $presupuestos = $solicitud->presupuestos;
-    */
+     */
     public function presupuestos()
     {
         return $this->hasMany(Presupuesto::class, 'solicitud_id');
@@ -88,8 +103,9 @@ class Solicitud extends Model
      * 
      * Los campos `model_type` y `model_id` de la tabla `medios` indican a qué
      * modelo pertenece cada archivo.
-    */
-    public function medios() {
+     */
+    public function medios()
+    {
         return $this->morphMany(Medio::class, 'model');
     }
 }

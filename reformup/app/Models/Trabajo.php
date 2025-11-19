@@ -34,6 +34,13 @@ class Trabajo extends Model
         'fecha_fin' => 'datetime'
     ];
 
+    public const ESTADOS = [
+        'previsto' => 'Previstos',
+        'en_curso' => 'En cursos',
+        'finalizado' => 'Finalizados',
+        'cancelado' => 'Cancelados',
+    ];
+
     /**
      * Relación inversa con el presupuesto asociado.
      * 

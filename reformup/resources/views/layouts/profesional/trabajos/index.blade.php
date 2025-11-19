@@ -6,17 +6,18 @@
 
     <x-navbar />
 
-    {{-- Sidebar profesional, si lo tienes --}}
+    {{-- Sidebar profesional --}}
     <x-profesional.profesional_sidebar />
+    <x-profesional.profesional_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
         <x-profesional.nav_movil active="trabajos" />
 
         <div class="container py-4" id="app">
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+            <div class="d-flex flex-column flex-md-row align-items-md-center mb-3 gap-2 justify-content-center">
+                <h3 class="mb-1 d-flex align-items-center gap-2 justify-content-center">
                     <i class="bi bi-hammer"></i> Mis trabajos
-                </h1>
+                </h3>
             </div>
 
             @if (session('success'))
@@ -36,13 +37,13 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Trabajo / Solicitud</th>
-                                <th class="d-none d-md-table-cell">Cliente</th>
-                                <th>Estado</th>
-                                <th class="d-none d-md-table-cell">Fecha inicio</th>
-                                <th class="d-none d-md-table-cell">Fecha fin</th>
-                                <th class="d-none d-md-table-cell">Dirección obra</th>
-                                <th class="d-none d-md-table-cell">Total presupuesto</th>
+                                <th>Trabajo</th>
+                                <th class="d-none d-lg-table-cell">Cliente</th>
+                                <th class="d-none d-lg-table-cell">Estado</th>
+                                <th class="d-none d-lg-table-cell">Fecha inicio</th>
+                                <th class="d-none d-lg-table-cell">Fecha fin</th>
+                                <th class="d-none d-lg-table-cell">Dirección obra</th>
+                                <th class="d-none d-lg-table-cell">Total presupuesto</th>
                                 <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
@@ -55,6 +56,7 @@
                                 @endphp
 
                                 <tr>
+                                    {{-- Trabajo / referencia + bloque móvil/tablet --}}
                                     <td>
                                         <strong>
                                             @if ($solicitud?->titulo)
@@ -64,22 +66,41 @@
                                             @endif
                                         </strong>
 
-                                        <div class="small text-muted d-block d-md-none mt-1">
+                                        {{-- Versión móvil / tablet (hasta < lg): detalles tipo card --}}
+                                        <div class="small text-muted d-block d-lg-none mt-1">
+
+                                            {{-- Cliente --}}
                                             <span class="d-block">
                                                 <span class="fw-semibold">Cliente:</span>
                                                 @if ($cliente)
                                                     {{ $cliente->nombre ?? $cliente->name }}
                                                     {{ $cliente->apellidos ?? '' }}
+                                                    @if ($cliente->email)
+                                                        <br><small class="text-muted">{{ $cliente->email }}</small>
+                                                    @endif
                                                 @else
                                                     <span class="text-muted">Sin cliente</span>
                                                 @endif
                                             </span>
 
-                                            <span class="d-block">
+                                            {{-- Estado --}}
+                                            @php
+                                                $badgeClass = match ($trabajo->estado) {
+                                                    'previsto' => 'bg-primary',
+                                                    'en_curso' => 'bg-warning text-dark',
+                                                    'finalizado' => 'bg-success',
+                                                    'cancelado' => 'bg-secondary',
+                                                    default => 'bg-light text-dark',
+                                                };
+                                            @endphp
+                                            <span class="d-block mt-1">
                                                 <span class="fw-semibold">Estado:</span>
-                                                {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
+                                                <span class="badge {{ $badgeClass }}">
+                                                    {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
+                                                </span>
                                             </span>
 
+                                            {{-- Fechas --}}
                                             <span class="d-block">
                                                 <span class="fw-semibold">Inicio:</span>
                                                 {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
@@ -90,11 +111,13 @@
                                                 {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
                                             </span>
 
+                                            {{-- Dirección obra --}}
                                             <span class="d-block">
                                                 <span class="fw-semibold">Dir. obra:</span>
                                                 {{ $trabajo->dir_obra ?? 'No indicada' }}
                                             </span>
 
+                                            {{-- Total presupuesto --}}
                                             <span class="d-block">
                                                 <span class="fw-semibold">Total:</span>
                                                 @if ($presupuesto?->total)
@@ -106,8 +129,8 @@
                                         </div>
                                     </td>
 
-                                    {{-- Cliente (escritorio) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Cliente (solo escritorio lg+) --}}
+                                    <td class="d-none d-lg-table-cell">
                                         @if ($cliente)
                                             {{ $cliente->nombre ?? $cliente->name }}
                                             {{ $cliente->apellidos ?? '' }}<br>
@@ -117,8 +140,8 @@
                                         @endif
                                     </td>
 
-                                    {{-- Estado --}}
-                                    <td>
+                                    {{-- Estado (solo escritorio lg+) --}}
+                                    <td class="d-none d-lg-table-cell">
                                         @php
                                             $badgeClass = match ($trabajo->estado) {
                                                 'previsto' => 'bg-primary',
@@ -133,21 +156,21 @@
                                         </span>
                                     </td>
 
-                                    {{-- Fechas --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Fechas (solo escritorio lg+) --}}
+                                    <td class="d-none d-lg-table-cell">
                                         {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
                                     </td>
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-lg-table-cell">
                                         {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
                                     </td>
 
-                                    {{-- Dirección --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Dirección (solo escritorio lg+) --}}
+                                    <td class="d-none d-lg-table-cell">
                                         {{ \Illuminate\Support\Str::limit($trabajo->dir_obra ?? 'No indicada', 30, '...') }}
                                     </td>
 
-                                    {{-- Total --}}
-                                    <td class="d-none d-md-table-cell text-center">
+                                    {{-- Total presupuesto (solo escritorio lg+) --}}
+                                    <td class="d-none d-lg-table-cell text-center">
                                         @if ($presupuesto?->total)
                                             {{ number_format($presupuesto->total, 2, ',', '.') }} €
                                         @else
@@ -156,10 +179,19 @@
                                     </td>
 
                                     {{-- Acciones --}}
-                                    <td>
+                                    <td class="text-center">
                                         <div
                                             class="d-flex flex-column flex-md-row flex-wrap justify-content-center align-items-center gap-2">
-                                            {{-- Estado PREVISTO: Empezar / Cancelar --}}
+
+                                            {{-- VER MODAL TRABAJO (Profesional) --}}
+                                            <button type="button"
+                                                class="btn btn-info btn-sm px-2 py-1 mx-1 d-inline-flex align-items-center gap-1"
+                                                @click="openTrabajoProModal({{ $trabajo->id }})">
+                                                <i class="bi bi-eye"></i>
+                                                Ver
+                                            </button>
+
+                                            {{-- PREVISTO: Empezar / Cancelar --}}
                                             @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
                                                 {{-- Empezar trabajo --}}
                                                 <form action="{{ route('profesional.trabajos.empezar', $trabajo) }}"
@@ -171,10 +203,10 @@
                                                     </button>
                                                 </form>
 
-                                                {{-- Cancelar trabajo (con motivo, SweetAlert) --}}
+                                                {{-- Cancelar trabajo (con motivo) --}}
                                                 <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" />
 
-                                                {{-- Estado EN CURSO: Finalizar --}}
+                                                {{-- EN CURSO: Finalizar --}}
                                             @elseif ($trabajo->estado === 'en_curso')
                                                 <form action="{{ route('profesional.trabajos.finalizar', $trabajo) }}"
                                                     method="POST" class="d-inline">
@@ -189,7 +221,7 @@
                                             {{-- Ver presupuesto PDF --}}
                                             @if ($presupuesto?->docu_pdf)
                                                 <a href="{{ asset('storage/' . $presupuesto->docu_pdf) }}"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1"
+                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
                                                     target="_blank">
                                                     <i class="bi bi-file-earmark-pdf"></i>
                                                     Ver presupuesto
@@ -197,7 +229,6 @@
                                             @endif
                                         </div>
                                     </td>
-
                                 </tr>
                             @endforeach
                         </tbody>

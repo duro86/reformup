@@ -28,27 +28,21 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
-            @php
-                $estados = [
-                    null       => 'Todos',
-                    'enviado'  => 'Pendientes',
-                    'aceptado' => 'Aceptados',
-                    'rechazado'=> 'Rechazados',
-                    'caducado' => 'Caducados',
-                ];
-            @endphp
-
             {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
+                {{-- Opción "Todas" --}}
+                <li class="nav-item">
+                    <a class="nav-link {{ $estado === null ? 'active' : '' }}"
+                        href="{{ route('usuario.presupuestos.index') }}">
+                        Todas
+                    </a>
+                </li>
+
+                {{-- ESTADOS DEL MODELO --}}
                 @foreach ($estados as $valor => $texto)
-                    @php
-                        $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-                        $url = $valor
-                            ? route('usuario.presupuestos.index', ['estado' => $valor])
-                            : route('usuario.presupuestos.index');
-                    @endphp
                     <li class="nav-item">
-                        <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}"
+                            href="{{ route('usuario.presupuestos.index', ['estado' => $valor]) }}">
                             {{ $texto }}
                         </a>
                     </li>
@@ -65,12 +59,12 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Solicitud</th>
-                                <th class="d-none d-md-table-cell">Profesional</th>
-                                <th>Importe</th>
-                                <th>Estado</th>
-                                <th class="d-none d-md-table-cell">Fecha</th>
-                                <th class="text-start">Acciones</th>
+                                <th class="bg-secondary">Solicitud</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Profesional</th>
+                                <th class="bg-secondary">Importe</th>
+                                <th class="bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="text-start bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -111,11 +105,11 @@
                                     <td>
                                         @php
                                             $badgeClass = match ($presu->estado) {
-                                                'enviado'  => 'bg-primary',
+                                                'enviado' => 'bg-primary',
                                                 'aceptado' => 'bg-success',
-                                                'rechazado'=> 'bg-danger',
+                                                'rechazado' => 'bg-danger',
                                                 'caducado' => 'bg-secondary',
-                                                default    => 'bg-light text-dark',
+                                                default => 'bg-light text-dark',
                                             };
                                         @endphp
                                         <span class="badge {{ $badgeClass }}">
@@ -129,12 +123,13 @@
                                     </td>
 
                                     {{-- Acciones --}}
-                                    <td class="text-center">
+                                    <td class="text-center justify-center">
                                         {{-- Ver PDF si existe --}}
                                         @if ($presu->docu_pdf)
-                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}"
-                                               target="_blank"
-                                               class="btn btn-outline-secondary btn-sm me-1 mb-1">
+                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}" target="_blank"
+                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                                target="_blank">
+                                                <i class="bi bi-file-earmark-pdf"></i>
                                                 Ver presupuesto
                                             </a>
                                         @else
@@ -143,10 +138,7 @@
 
                                         {{-- Aceptar / Rechazar solo si está ENVIADO --}}
                                         @if ($presu->estado === 'enviado')
-                                            <x-usuario.presupuestos.btn_aceptar
-                                                :presupuesto="$presu"
-                                                :tiene-direccion="(bool) optional($presu->solicitud)->dir_cliente"
-                                            />
+                                            <x-usuario.presupuestos.btn_aceptar :presupuesto="$presu" :tiene-direccion="(bool) optional($presu->solicitud)->dir_cliente" />
                                             <x-usuario.presupuestos.btn_rechazar :presupuesto="$presu" />
                                         @endif
                                     </td>

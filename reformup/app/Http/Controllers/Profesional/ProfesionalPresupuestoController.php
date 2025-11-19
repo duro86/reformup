@@ -23,7 +23,9 @@ class ProfesionalPresupuestoController extends Controller
         $perfil = $user->perfil_Profesional;
 
         if (! $perfil) {
-            abort(403, 'No tienes perfil profesional.');
+            return redirect()
+                ->route('home')
+                ->with('error', 'No tienes permiso para acceder a esta zona.');
         }
 
         $estado = $request->query('estado'); // enviado, aceptado, rechazado, caducado, null
@@ -52,12 +54,16 @@ class ProfesionalPresupuestoController extends Controller
         $perfil = $user->perfil_Profesional;
 
         if (! $perfil) {
-            abort(403, 'No tienes perfil profesional.');
+            return redirect()
+                ->route('home')
+                ->with('error', 'No tienes perfil de profesional.');
         }
 
         // Seguridad: la solicitud debe pertenecer a este profesional
         if ($solicitud->pro_id !== $perfil->id) {
-            abort(403, 'No puedes presupuestar solicitudes de otros profesionales.');
+            return redirect()
+                ->back()
+                ->with('error', 'No puedes presupuestar solicitudes de otros profesionales.');
         }
 
         // Podrías limitar sólo a estado abierta/en_revision si quieres
