@@ -1,25 +1,24 @@
 {{-- resources/views/components/profesional/profesional_sidebar.blade.php --}}
 
 @php
-    $user   = Auth::user();
-    $roles  = $user ? $user->getRoleNames() : collect();
+    $user = Auth::user();
+    $roles = $user ? $user->getRoleNames() : collect();
 
-    $isAdmin       = $roles->contains('admin');
-    $isUsuario     = $roles->contains('usuario');
+    // Verifica si el usuario tiene el roles
+    $isAdmin = $roles->contains('admin');
+    $isUsuario = $roles->contains('usuario');
     $isProfesional = $roles->contains('profesional');
 
-    // Perfil profesional asociado (puede ser null)
+    // Define una variable booleana que será true si el usuario tiene rol profesional,
+    // posee perfil profesional existente y el campo 'visible' de ese perfil es true (1)
     $perfilProfesional = $user?->perfil_Profesional()->first();
+    $perfilVisible = $isProfesional && $user->perfilProfesional && $user->perfilProfesional->visible;
 @endphp
 
 <div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
     {{-- Botón para plegar/desplegar --}}
-    <button
-        id="sidebar-toggle"
-        type="button"
-        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
-        aria-label="Contraer/expandir menú"
-    >
+    <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
+        aria-label="Contraer/expandir menú">
         <i class="bi bi-chevron-left"></i>
     </button>
 
@@ -28,12 +27,8 @@
         <div class="text-center mb-3 p-3 rounded" style="background-color: #E9F5DB;">
             <div class="mb-2 d-flex justify-content-center">
                 @if ($perfilProfesional->avatar)
-                    <img
-                        src="{{ asset('storage/' . $perfilProfesional->avatar) }}"
-                        alt="Logo empresa"
-                        class="rounded-circle"
-                        style="width:60px;height:60px;object-fit:cover;"
-                    >
+                    <img src="{{ asset('storage/' . $perfilProfesional->avatar) }}" alt="Logo empresa"
+                        class="rounded-circle" style="width:60px;height:60px;object-fit:cover;">
                 @else
                     <i class="bi bi-building rounded-circle" style="font-size: 2.5rem;"></i>
                 @endif
@@ -52,6 +47,7 @@
             @endif
         </div>
     @else
+        {{-- Añadir Perfil Profesional --}}
         <div class="text-center mb-3 p-3 rounded" style="background-color:#FFF3CD;">
             <div class="mb-2">
                 <i class="bi bi-exclamation-triangle" style="font-size:1.8rem;"></i>
@@ -59,8 +55,7 @@
             <div class="small fw-semibold text-warning">
                 Aún no has creado tu perfil profesional
             </div>
-            <a href="{{ route('registrar.profesional.opciones') }}"
-               class="btn btn-sm btn-warning mt-2 w-100">
+            <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm btn-warning mt-2 w-100">
                 Crear perfil
             </a>
         </div>
@@ -80,7 +75,7 @@
     @if ($isUsuario)
         <div class="mt-2 px-1">
             <a href="{{ route('usuario.dashboard') }}"
-               class="btn btn-sm btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-1">
+                class="btn btn-sm btn-outline-primary w-100 d-flex align-items-center justify-content-center gap-1">
                 <i class="bi bi-arrow-left"></i>
                 <span>Panel usuario</span>
             </a>
@@ -111,7 +106,17 @@
                 </a>
             </li>
 
-            <li><hr></li>
+            <li>
+                <hr>
+            </li>
+            @if ($perfilProfesional->visible)
+                <i class="bi bi-hourglass-split text-success" aria-label="Perfil profesional activo"
+                    title="Perfil profesional activo"></i> Perfil profesional activo
+            @else
+                <i class="bi bi-hourglass-split text-warning" aria-label="Perfil profesional inactivo"
+                    title="Perfil profesional inactivo"></i> Perfil profesional Inactivo
+            @endif
+
         </ul>
 
         {{-- Zona inferior --}}
@@ -141,4 +146,3 @@
 </div>
 
 <x-usuario.sidebar_usuario_toggle_script />
-

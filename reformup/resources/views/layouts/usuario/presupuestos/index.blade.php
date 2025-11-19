@@ -129,7 +129,7 @@
                                     </td>
 
                                     {{-- Acciones --}}
-                                    <td class="text-end">
+                                    <td class="text-center">
                                         {{-- Ver PDF si existe --}}
                                         @if ($presu->docu_pdf)
                                             <a href="{{ asset('storage/' . $presu->docu_pdf) }}"

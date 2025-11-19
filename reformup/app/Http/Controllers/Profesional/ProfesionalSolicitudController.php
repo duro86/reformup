@@ -88,7 +88,7 @@ class ProfesionalSolicitudController extends Controller
         $perfil = $user->perfil_Profesional;
 
         if (! $perfil || $solicitud->pro_id !== $perfil->id) {
-            abort(403, 'No tienes acceso a esta solicitud.');
+            return back()->with('error', 'No tienes permisos para acceder a esta sección.');
         }
 
         if (! in_array($solicitud->estado, ['abierta', 'en_revision'])) {

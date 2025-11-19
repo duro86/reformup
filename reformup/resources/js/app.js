@@ -7,6 +7,7 @@ import DeleteUserButton from "./components/DeleteUserButton.vue";
 import DeleteProfessionalButton from "./components/DeleteProfessionalButton.vue";
 import ProfessionalModal from "./components/ProfessionalModal.vue";
 import SolicitudModal from "./components/SolicitudModal.vue";
+import TrabajoModal from "./components/TrabajoModalUser.vue";
 
 const app = createApp({
     methods: {
@@ -20,6 +21,9 @@ const app = createApp({
         openSolicitudModal(id) {
             this.$refs.solicitudModal.openModal(id);
         },
+        openTrabajoModal(id) {
+            this.$refs.trabajoModal.openModal(id);
+        },
     },
 });
 
@@ -28,6 +32,7 @@ app.component("delete-user-button", DeleteUserButton);
 app.component("professional-modal", ProfessionalModal);
 app.component("delete-professional-button", DeleteProfessionalButton);
 app.component("solicitud-modal", SolicitudModal);
+app.component("trabajo-modal", TrabajoModal);
 
 const el = document.getElementById("app");
 if (el) {

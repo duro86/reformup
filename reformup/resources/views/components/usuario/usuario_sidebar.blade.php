@@ -6,6 +6,8 @@
     $isAdmin = $roles->contains('admin');
     $isUsuario = $roles->contains('usuario');
     $isProfesional = $roles->contains('profesional');
+    // Vemos si esta visible
+    $perfilVisible = $isProfesional && $user->perfilProfesional && $user->perfilProfesional->visible;
 @endphp
 
 <div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
@@ -51,7 +53,8 @@
             </li>
             <li class="nav-item">
                 {{-- Listado Trabajos --}}
-                <a class="nav-link" href="#"><i class="bi bi-briefcase-fill"></i> Trabajos</a>
+                <a class="nav-link" href="{{ route('usuario.trabajos.index') }}"><i class="bi bi-briefcase-fill"></i>
+                    Trabajos</a>
             </li>
             <li class="nav-item">
                 {{-- Listado Comentarios --}}
@@ -67,7 +70,13 @@
                 <li class="nav-item mt-2">
                     @if ($perfilProfesional)
                         <div class="px-2 py-2 small border rounded bg-white">
-                            <div class="fw-semibold mb-1">Perfil profesional activo</div>
+                            @if ($perfilProfesional->visible)
+                                <i class="bi bi-hourglass-split text-success" aria-label="Perfil profesional activo"
+                                    title="Perfil profesional activo"></i> Perfil profesional activo
+                            @else
+                                <i class="bi bi-hourglass-split text-warning" aria-label="Perfil profesional inactivo"
+                                    title="Perfil profesional inactivo"></i> Perfil profesional Inactivo
+                            @endif
                             <p class="mb-2 text-muted">
                                 Accede a tu panel como profesional para gestionar solicitudes y trabajos.
                             </p>

@@ -114,7 +114,7 @@ class UsuarioSolicitudController extends Controller
                 'pro_id'          => ['required', 'integer', 'exists:perfiles_profesionales,id'],
                 'titulo'          => ['required', 'string', 'max:160'],
                 'descripcion'     => ['required', 'string'],
-                'ciudad'          => ['required', 'nullable', 'string', 'max:120'],
+                'ciudad'          => ['required', 'string', 'max:120'],
                 'provincia'       => ['nullable', 'string', 'max:120'],
                 'dir_cliente'     => ['nullable', 'string', 'max:255'],
                 'presupuesto_max' => ['nullable', 'numeric', 'min:0'],

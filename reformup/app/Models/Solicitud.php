@@ -30,7 +30,7 @@ class Solicitud extends Model
     */
     protected $fillable = [
         'pro_id', 'cliente_id', 'titulo', 'descripcion',
-        'ciudad', 'provincia', 'dir_empresa', 'estado', 'presupuesto_max', 'fecha'
+        'ciudad', 'provincia', 'dir_cliente', 'estado', 'presupuesto_max', 'fecha'
     ];
 
     protected $casts = [

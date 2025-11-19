@@ -19,7 +19,7 @@
                     'panel' => ['label' => 'Panel', 'route' => route('usuario.dashboard')],
                     'solicitudes' => ['label' => 'Solicitudes', 'route' => route('usuario.solicitudes.index')],
                     'presupuestos' => ['label' => 'Presupuestos', 'route' => route('usuario.presupuestos.index')],
-                    'trabajos' => ['label' => 'Trabajos', 'route' => '#'],
+                    'trabajos' => ['label' => 'Trabajos', 'route' => route('usuario.trabajos.index')],
                     'comentarios' => ['label' => 'Comentarios', 'route' => '#'],
                     'perfil' => ['label' => 'Mi perfil', 'route' => route('usuario.perfil')],
                 ];

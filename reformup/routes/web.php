@@ -14,6 +14,7 @@ use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
 use App\Http\Controllers\Profesional\ProfesionalPresupuestoController;
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Usuario\UsuarioSolicitudController;
+use App\Http\Controllers\Usuario\UsuarioTrabajoController;
 use App\Http\Controllers\Usuario\UsuarioPresupuestoController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
 use App\Http\Controllers\Auth\OlvidarPasswordController;
@@ -248,6 +249,15 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         // Rechazar presupuesto
         Route::patch('/presupuestos/{presupuesto}/rechazar', [UsuarioPresupuestoController::class, 'rechazar'])
             ->name('presupuestos.rechazar');
+
+        Route::get('/trabajos',  [UsuarioTrabajoController::class, 'index'])
+            ->name('trabajos.index');
+
+        Route::get('trabajos/{trabajo}', [UsuarioTrabajoController::class, 'mostrar'])->name('trabajos.mostrar');
+
+        // Cancelar trabajo
+        Route::patch('trabajos/{trabajo}/cancelar', [UsuarioTrabajoController::class, 'cancelar'])
+            ->name('trabajos.cancelar');
     });
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])

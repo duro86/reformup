@@ -105,9 +105,9 @@ class UsuarioPresupuestoController extends Controller
                 Trabajo::create([
                     'presu_id'   => $presupuesto->id,
                     'dir_obra'   => $dirObra,
-                    'fecha_ini'  => now(),
+                    'fecha_ini'  => null,
                     'fecha_fin'  => null,
-                    'estado'     => 'previsto', // estado inicial
+                    'estado'     => 'previsto', // estado inicial a la espera del profesional
                 ]);
             });
 

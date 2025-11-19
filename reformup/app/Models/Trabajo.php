@@ -29,6 +29,11 @@ class Trabajo extends Model
     */
     protected $fillable = ['presu_id', 'fecha_ini', 'fecha_fin', 'estado', 'dir_obra'];
 
+    protected $casts = [
+        'fecha_ini' => 'datetime',
+        'fecha_fin' => 'datetime'
+    ];
+
     /**
      * Relación inversa con el presupuesto asociado.
      * 
