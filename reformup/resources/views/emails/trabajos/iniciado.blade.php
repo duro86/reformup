@@ -1,49 +1,37 @@
 @component('mail::message')
+    # Tu trabajo está en curso
     @php
         $fechaIni = $trabajo->fecha_ini ? $trabajo->fecha_ini->format('d/m/Y H:i') : 'Sin inicio registrado';
         $fechaFin = $trabajo->fecha_fin ? $trabajo->fecha_fin->format('d/m/Y H:i') : 'Sin fin registrado';
     @endphp
 
-    # Trabajo cancelado por el profesional
+    Hola, {{ $cliente->nombre ?? ($cliente->name ?? $cliente->email) }},
 
-    Hola {{ $cliente->nombre ?? ($cliente->name ?? $cliente->email) }},
-
-    El profesional ha cancelado el trabajo asociado a tu solicitud.
+    El profesional ha marcado tu trabajo como **en curso**.
 
     @isset($presupuesto)
-        - Presupuesto: **#{{ $presupuesto->id }}**
+        - Presupuesto asociado: **#{{ $presupuesto->id }}**
     @endisset
 
     - ID del trabajo: **{{ $trabajo->id }}**
-    - Fecha de inicio: **{{ $fechaIni }}**
-    - Fecha de fin: **{{ $fechaFin }}**
     @isset($trabajo->dir_obra)
         - Dirección de la obra: {{ $trabajo->dir_obra }}
     @endisset
 
-    @isset($motivo)
-        **Motivo indicado por el profesional:**
+    En las próximas horas el profesional se pondrá en contacto contigo por teléfono
+    para concretar la hora de comienzo del trabajo y los últimos detalles.
 
-        > {{ $motivo }}
-    @endisset
+    -----
 
-    Si necesitas continuar con la reforma, puedes crear una nueva solicitud en la plataforma
-    y seleccionar otros profesionales.
-
-    ---
-
-    **Profesional que ha cancelado**
+    **Profesional**
 
     @if ($perfilPro)
     {{ $perfilPro->empresa }}
-
     {{ $perfilPro->email_empresa }}
-
     @isset($perfilPro->telefono_empresa)
     <b>Teléfono:</b> {{ $perfilPro->telefono_empresa }}
     @endisset
     @endif
 
-    Gracias,
-    {{ config('app.name') }}
+    Gracias por utilizar {{ config('app.name') }}.
 @endcomponent

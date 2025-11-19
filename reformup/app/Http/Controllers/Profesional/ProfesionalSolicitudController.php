@@ -18,7 +18,8 @@ class ProfesionalSolicitudController extends Controller
         $perfil = $user->perfil_Profesional; // relación 1:1
 
         if (! $perfil) {
-            abort(403, 'No tienes perfil profesional asociado.');
+            return redirect()->route('home')
+                ->with('error', 'No puedes acceder a esta sección.');
         }
 
         $estado = $request->query('estado'); // null | abierta | en_revision | cerrada | cancelada

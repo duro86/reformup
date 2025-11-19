@@ -4,14 +4,14 @@
         $fechaFin = $trabajo->fecha_fin ? $trabajo->fecha_fin->format('d/m/Y H:i') : 'Sin fin registrado';
     @endphp
 
-    # Trabajo cancelado por el profesional
+    # Tu trabajo ha finalizado
 
     Hola {{ $cliente->nombre ?? ($cliente->name ?? $cliente->email) }},
 
-    El profesional ha cancelado el trabajo asociado a tu solicitud.
+    El profesional ha marcado tu trabajo como **finalizado**.
 
     @isset($presupuesto)
-        - Presupuesto: **#{{ $presupuesto->id }}**
+        - Presupuesto asociado: **#{{ $presupuesto->id }}**
     @endisset
 
     - ID del trabajo: **{{ $trabajo->id }}**
@@ -21,18 +21,13 @@
         - Dirección de la obra: {{ $trabajo->dir_obra }}
     @endisset
 
-    @isset($motivo)
-        **Motivo indicado por el profesional:**
 
-        > {{ $motivo }}
-    @endisset
-
-    Si necesitas continuar con la reforma, puedes crear una nueva solicitud en la plataforma
-    y seleccionar otros profesionales.
+    Si estás satisfecho con el resultado, te invitamos a dejar una valoración del profesional
+    en la plataforma. Tu opinión ayuda a otros usuarios.
 
     ---
 
-    **Profesional que ha cancelado**
+    **Profesional**
 
     @if ($perfilPro)
     {{ $perfilPro->empresa }}
@@ -40,10 +35,9 @@
     {{ $perfilPro->email_empresa }}
 
     @isset($perfilPro->telefono_empresa)
-    <b>Teléfono:</b> {{ $perfilPro->telefono_empresa }}
+    <b>Teléfono:</b>{{ $perfilPro->telefono_empresa }}
     @endisset
     @endif
 
-    Gracias,
-    {{ config('app.name') }}
+    Gracias por utilizar {{ config('app.name') }}.
 @endcomponent

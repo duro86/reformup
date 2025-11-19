@@ -144,7 +144,7 @@ class UsuarioTrabajoController extends Controller
                     new TrabajoCanceladoMailable($trabajo, $presupuesto, $perfil, $user, $motivo)
                 );
             } catch (\Throwable $e) {
-                return back()->with('success', 'No se ha podido cancelar el trabajo.');
+                return back()->with('error', 'No se ha podido cancelar el trabajo.');
             }
         }
 

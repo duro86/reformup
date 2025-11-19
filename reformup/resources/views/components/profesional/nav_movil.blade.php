@@ -12,7 +12,7 @@
                     'panel' => ['label' => 'Panel', 'route' => route('profesional.dashboard')],
                     'solicitudes' => ['label' => 'Solicitudes', 'route' => route('profesional.solicitudes.index')],
                     'presupuestos' => ['label' => 'Presupuestos', 'route' => route('profesional.presupuestos.index')],
-                    'trabajos' => ['label' => 'Trabajos', 'route' => '#'],
+                    'trabajos' => ['label' => 'Trabajos', 'route' => route('profesional.trabajos.index')],
                     'comentarios' => ['label' => 'Comentarios', 'route' => '#'],
                     'perfil' => ['label' => 'Mi perfil', 'route' => route('profesional.perfil')],
                 ];

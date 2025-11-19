@@ -1,0 +1,35 @@
+<?php
+
+namespace App\Mail;
+
+use App\Models\Trabajo;
+use App\Models\Presupuesto;
+use App\Models\User;
+use App\Models\Perfil_Profesional;
+use Illuminate\Bus\Queueable;
+use Illuminate\Mail\Mailable;
+use Illuminate\Queue\SerializesModels;
+
+class TrabajoIniciadoMailable extends Mailable
+{
+    use Queueable, SerializesModels;
+
+    public $trabajo;
+    public $presupuesto;
+    public $cliente;
+    public $perfilPro;
+
+    public function __construct(Trabajo $trabajo, ?Presupuesto $presupuesto, User $cliente, Perfil_Profesional $perfilPro)
+    {
+        $this->trabajo     = $trabajo;
+        $this->presupuesto = $presupuesto;
+        $this->cliente     = $cliente;
+        $this->perfilPro   = $perfilPro;
+    }
+
+    public function build()
+    {
+        return $this->subject('Tu profesional ha comenzado tu trabajo')
+            ->markdown('emails.trabajos.iniciado');
+    }
+}

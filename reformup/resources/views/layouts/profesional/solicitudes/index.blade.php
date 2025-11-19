@@ -70,112 +70,141 @@
                 </div>
             @else
                 {{-- Tabla Cliente --}}
-                <div class="table-responsive">
+                <div class="table-responsive-md">
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Cliente</th>
-                                <th>Título</th>
-                                <th class="d-none d-md-table-cell">Ciudad / Provincia</th>
-                                <th>Estado</th>
-                                <th class="d-none d-md-table-cell">Presupuesto máx.</th>
-                                <th>Fecha</th>
-                                <th class="text-center">Acciones</th>
+                                {{-- Solo móvil: un único encabezado --}}
+                                <th class="d-md-none">Solicitud</th>
+
+                                {{-- Escritorio / tablet: columnas normales --}}
+                                <th class="d-none d-md-table-cell">Cliente</th>
+                                <th class="d-none d-md-table-cell">Título</th>
+                                <th class="d-none d-md-table-cell">Fecha</th>
+                                <th class="d-none d-md-table-cell">Estado</th>
+                                <th class="d-none d-md-table-cell text-end">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($solicitudes as $solicitud)
+                                @php
+                                    $cliente = $solicitud->cliente;
+                                @endphp
                                 <tr>
-                                    {{-- Cliente --}}
-                                    <td>
-                                        @if ($solicitud->cliente)
-                                            <strong>{{ $solicitud->cliente->nombre }}
-                                                {{ $solicitud->cliente->apellidos }}</strong>
-                                            <div class="small text-muted">
-                                                {{ $solicitud->cliente->email }}<br>
-                                                {{ $solicitud->cliente->telefono }}
-                                            </div>
-                                        @else
-                                            <span class="text-muted small">Sin datos cliente</span>
-                                        @endif
-                                    </td>
+                                    {{-- ✅ VISTA MÓVIL: CARD EN UNA SOLA CELDA --}}
+                                    <td class="d-md-none">
+                                        <div class="d-flex justify-content-between align-items-start gap-2">
+                                            {{-- Columna izquierda: datos --}}
+                                            <div>
+                                                {{-- Cliente --}}
+                                                @if ($cliente)
+                                                    <div class="fw-semibold">
+                                                        {{ $cliente->nombre }} {{ $cliente->apellidos }}
+                                                    </div>
+                                                    <div class="small text-muted">
+                                                        {{ $cliente->email }}
+                                                    </div>
+                                                    @if ($cliente->telefono)
+                                                        <div class="small text-muted">
+                                                            {{ $cliente->telefono }}
+                                                        </div>
+                                                    @endif
+                                                @else
+                                                    <div class="text-muted small">Cliente no disponible</div>
+                                                @endif
 
-                                    {{-- Título + info extra en móvil --}}
-                                    <td>
-                                        <strong>{{ $solicitud->titulo }}</strong>
-                                        <div class="small text-muted d-block d-md-none mt-1">
-                                            {{ $solicitud->ciudad }}
-                                            {{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
+                                                {{-- Título --}}
+                                                <div class="mt-2">
+                                                    <span class="fw-semibold">Título:</span>
+                                                    <span>{{ $solicitud->titulo }}</span>
+                                                </div>
+
+                                                {{-- Fecha --}}
+                                                <div>
+                                                    <span class="fw-semibold">Fecha:</span>
+                                                    <span>
+                                                        {{ optional($solicitud->fecha ?? $solicitud->created_at)->format('d/m/Y H:i') }}
+                                                    </span>
+                                                </div>
+
+                                                {{-- Estado --}}
+                                                <div>
+                                                    <span class="fw-semibold">Estado:</span>
+                                                    @php
+                                                        $badgeClass = match ($solicitud->estado) {
+                                                            'abierta' => 'bg-primary',
+                                                            'en_revision' => 'bg-warning text-dark',
+                                                            'cerrada' => 'bg-success',
+                                                            'cancelada' => 'bg-secondary',
+                                                            default => 'bg-light text-dark',
+                                                        };
+                                                    @endphp
+                                                    <span class="badge {{ $badgeClass }}">
+                                                        {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}
+                                                    </span>
+                                                </div>
+                                            </div>
+
+                                            {{-- Columna derecha: acciones --}}
+                                            <div class="text-end">
+                                                {{-- Aquí tus botones --}}
+                                                <button type="button" class="btn btn-sm btn-info mb-1"
+                                                    @click="openSolicitudModal({{ $solicitud->id }})">
+                                                    Ver
+                                                </button>
+
+                                                {{-- Ejemplo de otro botón --}}
+                                                {{-- <x-profesional.solicitudes.btn_cancelar :solicitud="$solicitud" /> --}}
+                                            </div>
                                         </div>
                                     </td>
 
-                                    {{-- Ciudad / provincia en escritorio --}}
+                                    {{-- ✅ VISTA TABLET/ESCRITORIO: CELDAS NORMALES --}}
                                     <td class="d-none d-md-table-cell">
-                                        {{ $solicitud->ciudad }}
-                                        {{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
+                                        @if ($cliente)
+                                            <div class="fw-semibold">
+                                                {{ $cliente->nombre }} {{ $cliente->apellidos }}
+                                            </div>
+                                            <div class="small text-muted">
+                                                {{ $cliente->email }}
+                                            </div>
+                                            @if ($cliente->telefono)
+                                                <div class="small text-muted">
+                                                    {{ $cliente->telefono }}
+                                                </div>
+                                            @endif
+                                        @else
+                                            <span class="text-muted small">Cliente no disponible</span>
+                                        @endif
                                     </td>
 
-                                    {{-- Estado --}}
-                                    <td>
-                                        @php
-                                            $badgeClass = match ($solicitud->estado) {
-                                                'abierta' => 'bg-primary',
-                                                'en_revision' => 'bg-warning text-dark',
-                                                'cerrada' => 'bg-success',
-                                                'cancelada' => 'bg-secondary',
-                                                default => 'bg-light text-dark',
-                                            };
-                                        @endphp
+                                    <td class="d-none d-md-table-cell">
+                                        {{ $solicitud->titulo }}
+                                    </td>
+
+                                    <td class="d-none d-md-table-cell">
+                                        {{ optional($solicitud->fecha ?? $solicitud->created_at)->format('d/m/Y H:i') }}
+                                    </td>
+
+                                    <td class="d-none d-md-table-cell">
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}
                                         </span>
                                     </td>
 
-                                    {{-- Presupuesto max --}}
-                                    <td class="d-none d-md-table-cell">
-                                        @if ($solicitud->presupuesto_max)
-                                            {{ number_format($solicitud->presupuesto_max, 2, ',', '.') }} €
-                                        @else
-                                            <span class="text-muted small">No indicado</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Fecha --}}
-                                    <td>
-                                        {{ $solicitud->fecha?->format('d/m/Y H:i') ?? $solicitud->created_at?->format('d/m/Y H:i') }}
-                                    </td>
-
-                                    {{-- Acciones --}}
-                                    <td class="text-end">
-
-                                        {{-- VER (modal Vue) - AZUL --}}
-                                        <button class="btn btn-info btn-sm px-2 py-1 mx-1"
+                                    <td class="d-none d-md-table-cell text-end">
+                                        <button type="button" class="btn btn-sm btn-info me-1 mb-1"
                                             @click="openSolicitudModal({{ $solicitud->id }})">
                                             Ver
                                         </button>
 
-                                        {{-- Sólo si se puede actuar sobre la solicitud --}}
-                                        @if (in_array($solicitud->estado, ['abierta']))
-                                            {{-- PRESUPUESTO - VERDE --}}
-                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud->id) }}"
-                                                class="btn btn-success btn-sm px-2 py-1 mx-1">
-                                                Enviar presupuesto
-                                            </a>
-
-                                            {{-- CANCELAR - ROJO (SweetAlert desde el componente) --}}
-                                            <x-profesional.solicitudes.btn_cancelar :solicitud="$solicitud" />
-                                        @else
-                                            <span class="btn btn-success btn-sm px-2 py-1 mx-1 disabled" role="button"
-                                                aria-disabled="true">
-                                                Presupuesto enviado
-                                            </span>
-                                        @endif
-
+                                        {{-- Más acciones aquí --}}
                                     </td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+
                 </div>
                 {{-- Paginación --}}
                 <div class="mt-3">

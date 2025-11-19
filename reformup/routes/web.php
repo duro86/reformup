@@ -1,31 +1,38 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+//Autenticación
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
+//Admin
 use App\Http\Controllers\Admin\AdminDashboardController;
 use App\Http\Controllers\Admin\AdminSolicitudController;
 use App\Http\Controllers\Admin\AdminPresupuestoController;
 use App\Http\Controllers\Admin\AdminTrabajoController;
 use App\Http\Controllers\Admin\AdminComentarioController;
+//Profesional
+use App\Http\Controllers\Admin\ProfesionalPerfilController;
 use App\Http\Controllers\Profesional\ProfesionalDashboardController;
 use App\Http\Controllers\Profesional\ProfesionalSolicitudController;
 use App\Http\Controllers\Profesional\ProfesionalPresupuestoController;
+use App\Http\Controllers\Profesional\ProfesionalTrabajoController;
+//Usuario
 use App\Http\Controllers\Usuario\UsuarioDashboardController;
 use App\Http\Controllers\Usuario\UsuarioSolicitudController;
-use App\Http\Controllers\Usuario\UsuarioTrabajoController;
 use App\Http\Controllers\Usuario\UsuarioPresupuestoController;
-use App\Http\Controllers\Admin\ProfesionalPerfilController;
+use App\Http\Controllers\Usuario\UsuarioTrabajoController;
+//Password
 use App\Http\Controllers\Auth\OlvidarPasswordController;
 use App\Http\Controllers\Auth\ResetPasswordController;
 
-// Página de inicio
+
+// ----- Página de inicio -----
 Route::get('/', function () {
     return view('home');
 })->name('home');
 
-// ----  REGISTROS  ---
+// ----  REGISTROS/invitados  ---
 // Registro de clientes (usuario normal)
 Route::get('/registrar/cliente', [AuthController::class, 'mostrarFormCliente'])->name('registrar.cliente');
 Route::post('/registrar/cliente', [AuthController::class, 'registrarCliente'])->name('registrar.cliente.enviar');
@@ -167,6 +174,8 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         Route::put('/perfil', [ProfesionalDashboardController::class, 'actualizarPerfil'])
             ->name('perfil.actualizar');
 
+
+        // ----- SOLICITUDES -----
         // --LISTADO SOLICITUDES que recibe el profesional--
         Route::get('/solicitudes', [ProfesionalSolicitudController::class, 'index'])
             ->name('solicitudes.index');
@@ -179,6 +188,8 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         Route::patch('/solicitudes/{solicitud}/cancelar', [ProfesionalSolicitudController::class, 'cancelar'])
             ->name('solicitudes.cancelar');
 
+
+        // ----- PRESUPUESTOS -----
         // --LISTADO de PRESUPUESTOS del profesional--
         Route::get('/presupuestos', [ProfesionalPresupuestoController::class, 'index'])
             ->name('presupuestos.index');
@@ -191,11 +202,30 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         Route::post('/presupuestos/solicitud/{solicitud}', [ProfesionalPresupuestoController::class, 'guardarFromSolicitud'])
             ->name('presupuestos.guardar_desde_solicitud');
 
-        // PROFESIONAL - PRESUPUESTOS
+        // Cancelar presupuesto
         Route::patch('/presupuestos/{presupuesto}/cancelar', [
             ProfesionalPresupuestoController::class,
             'cancelar'
         ])->name('presupuestos.cancelar');
+
+
+        // ----- TRABAJOS -----
+        // LISTADO de TRABAJOS del profesional
+        Route::get('/trabajos',  [ProfesionalTrabajoController::class, 'index'])
+            ->name('trabajos.index');
+
+        // Datos del trabajo (JSON para modal o vista normal)
+        Route::get('trabajos/{trabajo}', [ProfesionalTrabajoController::class, 'mostrar'])->name('trabajos.mostrar');
+
+        // Cancelar trabajo por parte del profesional
+        Route::patch('trabajos/{trabajo}/cancelar', [ProfesionalTrabajoController::class, 'cancelar'])
+            ->name('trabajos.cancelar');
+        // Empezar trabajo por parte del profesional
+        Route::patch('trabajos/{trabajo}/empezar', [ProfesionalTrabajoController::class, 'empezar'])
+            ->name('trabajos.empezar');
+        // Finalizar trabajo por parte del profesional
+        Route::patch('trabajos/{trabajo}/finalizar', [ProfesionalTrabajoController::class, 'finalizar'])
+            ->name('trabajos.finalizar');
     });
 
 // --- USUARIO ---
@@ -250,12 +280,16 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         Route::patch('/presupuestos/{presupuesto}/rechazar', [UsuarioPresupuestoController::class, 'rechazar'])
             ->name('presupuestos.rechazar');
 
+
+        // ----- TRABAJOS -----
+        // LISTADO de TRABAJOS del cliente
         Route::get('/trabajos',  [UsuarioTrabajoController::class, 'index'])
             ->name('trabajos.index');
 
+        // Datos del trabajo (JSON para modal o vista normal)
         Route::get('trabajos/{trabajo}', [UsuarioTrabajoController::class, 'mostrar'])->name('trabajos.mostrar');
 
-        // Cancelar trabajo
+        // Cancelar trabajo por parte del cliente(usuario)
         Route::patch('trabajos/{trabajo}/cancelar', [UsuarioTrabajoController::class, 'cancelar'])
             ->name('trabajos.cancelar');
     });

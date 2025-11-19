@@ -8,6 +8,7 @@ import DeleteProfessionalButton from "./components/DeleteProfessionalButton.vue"
 import ProfessionalModal from "./components/ProfessionalModal.vue";
 import SolicitudModal from "./components/SolicitudModal.vue";
 import TrabajoModal from "./components/TrabajoModalUser.vue";
+import TrabajoModalPro from "./components/TrabajoModalPro.vue";
 
 const app = createApp({
     methods: {
@@ -24,6 +25,9 @@ const app = createApp({
         openTrabajoModal(id) {
             this.$refs.trabajoModal.openModal(id);
         },
+        openTrabajoProModal(id) { // profesional
+            this.$refs.trabajoProModal.openModal(id);
+        },
     },
 });
 
@@ -33,6 +37,7 @@ app.component("professional-modal", ProfessionalModal);
 app.component("delete-professional-button", DeleteProfessionalButton);
 app.component("solicitud-modal", SolicitudModal);
 app.component("trabajo-modal", TrabajoModal);
+app.component("trabajo-pro-modal", TrabajoModalPro);
 
 const el = document.getElementById("app");
 if (el) {
