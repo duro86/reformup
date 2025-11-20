@@ -13,7 +13,7 @@
                     'solicitudes' => ['label' => 'Solicitudes', 'route' => route('profesional.solicitudes.index')],
                     'presupuestos' => ['label' => 'Presupuestos', 'route' => route('profesional.presupuestos.index')],
                     'trabajos' => ['label' => 'Trabajos', 'route' => route('profesional.trabajos.index')],
-                    'comentarios' => ['label' => 'Comentarios', 'route' => '#'],
+                    'comentarios' => ['label' => 'Comentarios', 'route' => route('profesional.comentarios.index')],
                     'perfil' => ['label' => 'Mi perfil', 'route' => route('profesional.perfil')],
                 ];
             @endphp

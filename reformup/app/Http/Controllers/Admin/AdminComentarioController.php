@@ -11,60 +11,118 @@ use App\Mail\Admin\ComentarioPublicadoMailable;
 use App\Mail\Admin\ComentarioRechazadoMailable;
 
 class AdminComentarioController extends Controller
-{   
+{
     /**
-     * Listado de comentarios con filtro por estado.
+     * Listado de TODOS los comentarios (sin filtro)
      */
-    public function index(Request $request)
-    {
-        // Filtro por estado
-        $estado = $request->query('estado');
-
-        // Consulta con filtros
+    public function index()
+    {   
+        // Lista Comentarios
         $comentarios = Comentario::with([
-            'cliente',
+            'trabajo.presupuesto.solicitud.cliente',
             'trabajo.presupuesto.profesional',
-            'trabajo.presupuesto.solicitud',
         ])
-            ->when($estado, function ($q) use ($estado) {
-                $q->where('estado', $estado);
-            })
             ->orderByDesc('fecha')
-            ->paginate(10);
+            ->paginate(5);
 
-        //Retorna la vista con los comentarios y el estado seleccionado
-        return view('layouts.admin.comentarios.index', compact('comentarios', 'estado'));
+        return view('layouts.admin.comentarios.index', compact('comentarios'));
+    }
+
+
+    /**
+     * Detalle de un comentario para el modal Vue (JSON) o vista normal.
+     */
+    public function mostrar(Comentario $comentario)
+    {
+        // Cargamos relaciones
+        $comentario->load([
+            'trabajo.presupuesto.solicitud.cliente',
+            'trabajo.presupuesto.profesional',
+        ]);
+
+        // Guardamos en variables
+        $trabajo     = $comentario->trabajo;
+        $presupuesto = $trabajo?->presupuesto;
+        $solicitud   = $presupuesto?->solicitud;
+        $cliente     = $solicitud?->cliente;
+        $perfilPro   = $presupuesto?->profesional;
+
+        // Ventana Modal
+        if (request()->wantsJson()) {
+            return response()->json([
+                'id'         => $comentario->id,
+                'trabajo_id' => $trabajo?->id,
+                'titulo'     => $solicitud?->titulo,
+                'ciudad'     => $solicitud?->ciudad,
+                'profesional' => $perfilPro ? [
+                    'empresa'  => $perfilPro->empresa,
+                    'ciudad'   => $perfilPro->ciudad,
+                    'provincia' => $perfilPro->provincia,
+                ] : null,
+
+                'total'      => $presupuesto?->total,
+                'fecha_ini'  => $trabajo?->fecha_ini
+                    ? $trabajo->fecha_ini->format('d/m/Y H:i')
+                    : null,
+                'fecha_fin'  => $trabajo?->fecha_fin
+                    ? $trabajo->fecha_fin->format('d/m/Y H:i')
+                    : null,
+                'dir_obra'   => $trabajo?->dir_obra,
+
+                'puntuacion'   => $comentario->puntuacion,
+                'opinion'      => $comentario->opinion,
+                'visible'      => (bool) $comentario->visible,
+                'estado'       => $comentario->estado,
+                'estado_label' => ucfirst($comentario->estado),
+                'fecha'        => $comentario->fecha
+                    ? $comentario->fecha->format('d/m/Y H:i')
+                    : null,
+
+                'cliente' => $cliente ? [
+                    'nombre'    => $cliente->nombre ?? $cliente->name ?? null,
+                    'apellidos' => $cliente->apellidos ?? null,
+                    'email'     => $cliente->email,
+                ] : null,
+            ]);
+        }
+
+        return view('layouts.admin.comentarios.mostrar', compact('comentario'));
     }
 
     /**
-     * Publicar comentario por parte del Admin.
+     * Toggle publicar / despublicar desde el switch.
      */
-    public function publicar(Comentario $comentario)
+    public function togglePublicado(Request $request, Comentario $comentario)
     {
-        // Solo comentarios en estado pendiente
-        if ($comentario->estado !== 'pendiente') {
-            return back()->with('error', 'Solo puedes publicar comentarios en estado pendiente.');
+
+        // Cragamos relaciones
+        $comentario->load('cliente', 'trabajo.presupuesto.solicitud');
+
+        // Si ya está publicado+visible → lo pasamos a pendiente y no visible
+        if ($comentario->estado === 'publicado' && $comentario->visible) {
+            $comentario->estado  = 'pendiente';
+            $comentario->visible = false;
+            $comentario->save();
+
+            return back()->with('success', 'Comentario despublicado.');
         }
 
-        // Actualiza el estado y la visibilidad
+        // Si no lo está → lo publicamos y marcamos visible
         $comentario->estado  = 'publicado';
         $comentario->visible = true;
         $comentario->save();
 
-        // Enviar notificación al cliente
         $cliente   = $comentario->cliente;
         $trabajo   = $comentario->trabajo;
-        $presupuesto = $trabajo?->presupuesto;
-        $perfilPro = $presupuesto?->profesional;
+        $perfilPro = $trabajo?->presupuesto?->profesional;
 
-        // Si el cliente tiene email, enviar notificación
         if ($cliente && $cliente->email) {
             try {
                 Mail::to($cliente->email)->send(
                     new ComentarioPublicadoMailable($comentario, $cliente, $trabajo, $perfilPro)
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'Fallo al publicar comentario.');
+                return back()->with('error', 'No se pudo enviar el mail al cliente.');
             }
         }
 
@@ -72,13 +130,13 @@ class AdminComentarioController extends Controller
     }
 
     /**
-     * Rechazar comentario por parte del Admin.
+     * Rechazar / banear comentario: estado=rechazado, visible=false + email al cliente.
      */
-    public function rechazar(Comentario $comentario)
+    public function rechazar(Request $request, Comentario $comentario)
     {
-        if ($comentario->estado !== 'pendiente') {
-            return back()->with('error', 'Solo puedes rechazar comentarios en estado pendiente.');
-        }
+        $this->authorize('admin');
+
+        $comentario->load('cliente', 'trabajo.presupuesto.solicitud');
 
         $comentario->estado  = 'rechazado';
         $comentario->visible = false;
@@ -86,8 +144,7 @@ class AdminComentarioController extends Controller
 
         $cliente   = $comentario->cliente;
         $trabajo   = $comentario->trabajo;
-        $presupuesto = $trabajo?->presupuesto;
-        $perfilPro = $presupuesto?->profesional;
+        $perfilPro = $trabajo?->presupuesto?->profesional;
 
         if ($cliente && $cliente->email) {
             try {
@@ -95,10 +152,40 @@ class AdminComentarioController extends Controller
                     new ComentarioRechazadoMailable($comentario, $cliente, $trabajo, $perfilPro)
                 );
             } catch (\Throwable $e) {
-                // log opcional
+                // Log si quieres
             }
         }
 
-        return back()->with('success', 'Comentario rechazado correctamente.');
+        return back()->with('success', 'Comentario rechazado y usuario notificado.');
+    }
+
+    /**
+     * Editar comentario (formulario).
+     */
+    public function editar(Comentario $comentario)
+    {
+        return view('layouts.admin.comentarios.edit', compact('comentario'));
+    }
+
+    /**
+     * Guardar edición de comentario.
+     */
+    public function actualizar(Request $request, Comentario $comentario)
+    {
+        $this->authorize('admin');
+
+        $validated = $request->validate([
+            'puntuacion' => 'required|integer|min:1|max:5',
+            'opinion'    => 'nullable|string|max:2000',
+        ]);
+
+        $comentario->puntuacion = $validated['puntuacion'];
+        $comentario->opinion    = $validated['opinion'] ?? null;
+        // no tocamos estado/visible aquí; eso va con switch / rechazar
+        $comentario->save();
+
+        return redirect()
+            ->route('admin.comentarios.index')
+            ->with('success', 'Comentario actualizado correctamente.');
     }
 }

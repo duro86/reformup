@@ -31,11 +31,11 @@
                         <thead>
                             <tr>
                                 <th>Trabajo</th>
-                                <th class="d-none d-md-table-cell">Profesional</th>
-                                <th>Puntuación</th>
-                                <th class="d-none d-md-table-cell">Estado</th>
-                                <th class="d-none d-md-table-cell">Fecha</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Profesional</th>
+                                <th class="bg-secondary">Puntuación</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="text-end bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

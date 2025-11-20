@@ -66,12 +66,12 @@
                         <thead>
                             <tr>
                                 <th>Trabajo / Referencia</th>
-                                <th class="d-none d-lg-table-cell">Empresa</th>
-                                <th class="d-none d-lg-table-cell">Estado</th>
-                                <th class="d-none d-lg-table-cell">Fecha inicio</th>
-                                <th class="d-none d-lg-table-cell">Fecha fin</th>
-                                <th class="d-none d-lg-table-cell">Dirección obra</th>
-                                <th class="d-none d-lg-table-cell text-center">Total presupuesto</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Empresa</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Estado</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Fecha inicio</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Fecha fin</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Dirección obra</th>
+                                <th class="d-none d-lg-table-cell text-center bg-secondary">Total presupuesto</th>
 
                                 <th class="text-center">Acciones</th>
                             </tr>

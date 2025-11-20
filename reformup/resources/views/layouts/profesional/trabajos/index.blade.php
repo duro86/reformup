@@ -37,14 +37,14 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Trabajo</th>
-                                <th class="d-none d-lg-table-cell">Cliente</th>
-                                <th class="d-none d-lg-table-cell">Estado</th>
-                                <th class="d-none d-lg-table-cell">Fecha inicio</th>
-                                <th class="d-none d-lg-table-cell">Fecha fin</th>
-                                <th class="d-none d-lg-table-cell">Dirección obra</th>
-                                <th class="d-none d-lg-table-cell">Total presupuesto</th>
-                                <th class="text-center">Acciones</th>
+                                <th class="bg-secondary">Trabajo</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Cliente</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Estado</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Fecha inicio</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Fecha fin</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Dirección obra</th>
+                                <th class="d-none d-lg-table-cell text-center bg-secondary">Total presupuesto</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -187,7 +187,6 @@
                                             <button type="button"
                                                 class="btn btn-info btn-sm px-2 py-1 mx-1 d-inline-flex align-items-center gap-1"
                                                 @click="openTrabajoProModal({{ $trabajo->id }})">
-                                                <i class="bi bi-eye"></i>
                                                 Ver
                                             </button>
 

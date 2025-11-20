@@ -66,11 +66,11 @@
                         <thead>
                             <tr>
                                 <th>Solicitud</th>
-                                <th class="d-none d-md-table-cell">Cliente</th>
-                                <th class="d-none d-md-table-cell">Importe</th>
-                                <th class="d-none d-md-table-cell">Estado</th>
-                                <th class="d-none d-md-table-cell">Fecha</th>
-                                <th class="text-start d-none d-md-table-cell">Acciones</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Cliente</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Importe</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="text-start d-none d-md-table-cell bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

@@ -1,22 +1,25 @@
 @extends('layouts.main')
 
-@section('title', 'Gestión de comentarios - Admin - ReformUp')
+@section('title', 'Comentarios de mis clientes - ReformUp')
 
 @section('content')
 
     <x-navbar />
-    {{-- Aquí tu sidebar admin --}}
-    <x-admin.admin_sidebar />
+    <x-profesional.profesional_sidebar />
+    <x-profesional.profesional_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
+        <x-profesional.nav_movil active="comentarios" />
+
         <div class="container py-4" id="app">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-chat-left-text"></i> Comentarios de usuarios
+                    <i class="bi bi-chat-left-quote"></i> Comentarios de mis clientes
                 </h1>
             </div>
 
+            {{-- Flash messages --}}
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -25,45 +28,57 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
+            {{-- Filtros por estado --}}
+            <ul class="nav nav-pills mb-3">
+                {{-- Todos --}}
+                <li class="nav-item">
+                    <a class="nav-link {{ $estado === null ? 'active' : '' }}"
+                        href="{{ route('profesional.comentarios.index') }}">
+                        Todos
+                    </a>
+                </li>
+
+                {{-- Estados del modelo --}}
+                @foreach ($estados as $valor => $texto)
+                    <li class="nav-item">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}"
+                            href="{{ route('profesional.comentarios.index', ['estado' => $valor]) }}">
+                            {{ $texto }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+
             @if ($comentarios->isEmpty())
                 <div class="alert alert-info">
-                    No hay comentarios registrados todavía.
+                    No tienes comentarios
+                    {{ $estado ? 'con estado ' . $estados[$estado] : 'todavía' }}.
                 </div>
             @else
-                <style>
-                    /* Para que el switch al publicarse sea verde */
-                    .form-switch .form-check-input:checked {
-                        background-color: #198754;
-                        border-color: #198754;
-                    }
-                </style>
-
                 <div class="table-responsive">
                     <table class="table align-middle">
-                        <thead>
+                        <thead class="table-light">
                             <tr>
-                                <th class="bg-secondary text-white">Trabajo / Solicitud</th>
-                                <th class="d-none d-lg-table-cell bg-secondary text-white">Profesional</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Cliente</th>
-                                <th class="bg-secondary text-white">Puntuación</th>
-                                <th class="bg-secondary text-white">Estado</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Fecha</th>
-                                <th class="d-none d-lg-table-cell bg-secondary text-white">Opinión</th>
-                                <th class="text-center bg-secondary text-white">Acciones</th>
+                                <th class="bg-secondary">Trabajo / Solicitud</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Cliente</th>
+                                <th class="bg-secondary">Puntuación</th>
+                                <th class="bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="d-none d-lg-table-cell bg-secondary">Opinión</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($comentarios as $comentario)
                                 @php
-                                    $trabajo     = $comentario->trabajo;
+                                    $trabajo = $comentario->trabajo;
                                     $presupuesto = $trabajo?->presupuesto;
-                                    $solicitud   = $presupuesto?->solicitud;
-                                    $cliente     = $solicitud?->cliente;
-                                    $perfilPro   = $presupuesto?->profesional;
+                                    $solicitud = $presupuesto?->solicitud;
+                                    $cliente = $solicitud?->cliente;
                                 @endphp
 
                                 <tr>
-                                    {{-- Trabajo / Solicitud + vista móvil --}}
+                                    {{-- Trabajo / Solicitud + bloque móvil --}}
                                     <td>
                                         <strong>
                                             @if ($solicitud?->titulo)
@@ -73,15 +88,8 @@
                                             @endif
                                         </strong>
 
+                                        {{-- Versión móvil: detalles debajo --}}
                                         <div class="small text-muted d-block d-md-none mt-1">
-                                            {{-- Profesional --}}
-                                            @if ($perfilPro)
-                                                <span class="d-block">
-                                                    <span class="fw-semibold">Profesional:</span>
-                                                    {{ $perfilPro->empresa }}
-                                                </span>
-                                            @endif
-
                                             {{-- Cliente --}}
                                             <span class="d-block">
                                                 <span class="fw-semibold">Cliente:</span>
@@ -120,22 +128,18 @@
                                                 <span class="fw-semibold">Fecha:</span>
                                                 {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                             </span>
+
+                                            {{-- Opinión (resumen) --}}
+                                            @if ($comentario->opinion)
+                                                <span class="d-block">
+                                                    <span class="fw-semibold">Opinión:</span>
+                                                    {{ \Illuminate\Support\Str::limit($comentario->opinion, 80, '...') }}
+                                                </span>
+                                            @endif
                                         </div>
                                     </td>
 
-                                    {{-- Profesional (escritorio lg) --}}
-                                    <td class="d-none d-lg-table-cell">
-                                        @if ($perfilPro)
-                                            {{ $perfilPro->empresa }}<br>
-                                            <small class="text-muted">
-                                                {{ $perfilPro->ciudad }}{{ $perfilPro->provincia ? ' - ' . $perfilPro->provincia : '' }}
-                                            </small>
-                                        @else
-                                            <span class="text-muted small">Sin profesional</span>
-                                        @endif
-                                    </td>
-
-                                    {{-- Cliente (md+) --}}
+                                    {{-- Cliente (solo escritorio md+) --}}
                                     <td class="d-none d-md-table-cell">
                                         @if ($cliente)
                                             {{ $cliente->nombre ?? $cliente->name }}
@@ -166,67 +170,27 @@
                                         </span>
                                     </td>
 
-                                    {{-- Fecha (md+) --}}
+                                    {{-- Fecha (solo escritorio md+) --}}
                                     <td class="d-none d-md-table-cell">
                                         {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
-                                    {{-- Opinión (lg+) --}}
+                                    {{-- Opinión (solo escritorio lg+) --}}
                                     <td class="d-none d-lg-table-cell">
                                         @if ($comentario->opinion)
-                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 60, '...') }}
+                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 30, '...') }}
                                         @else
                                             <span class="text-muted small">Sin opinión</span>
                                         @endif
                                     </td>
 
-                                    {{-- Acciones --}}
+                                    {{-- Boton Mostrar --}}
                                     <td class="text-center">
-                                        <div class="d-flex flex-column flex-md-row flex-wrap justify-content-center gap-2">
-
-                                            {{-- Ver (modal Vue) --}}
-                                            <button type="button"
-                                                    class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                                                    @click="openComentarioAdminModal({{ $comentario->id }})">
-                                                <i class="bi bi-eye"></i> Ver
-                                            </button>
-
-                                            {{-- Editar --}}
-                                            <a href="{{ route('admin.comentarios.edit', $comentario) }}"
-                                               class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                                                <i class="bi bi-pencil"></i> Editar
-                                            </a>
-
-                                            {{-- Switch publicar / despublicar --}}
-                                            <form action="{{ route('admin.comentarios.toggle_publicado', $comentario) }}"
-                                                  method="POST"
-                                                  class="d-inline">
-                                                @csrf
-                                                @method('PATCH')
-                                                <div class="form-check form-switch d-flex align-items-center justify-content-center">
-                                                    <input class="form-check-input"
-                                                           type="checkbox"
-                                                           onChange="this.form.submit()"
-                                                           {{ $comentario->estado === 'publicado' && $comentario->visible ? 'checked' : '' }}>
-                                                </div>
-                                            </form>
-
-                                            {{-- Rechazar / banear --}}
-                                            @if ($comentario->estado !== 'rechazado')
-                                                <form action="{{ route('admin.comentarios.rechazar', $comentario) }}"
-                                                      method="POST"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('¿Seguro que quieres rechazar este comentario?');">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
-                                                        <i class="bi bi-slash-circle"></i> Rechazar
-                                                    </button>
-                                                </form>
-                                            @endif
-
-                                        </div>
+                                        {{-- Botón ver (abre modal Vue) --}}
+                                        <button type="button" class="btn btn-sm btn-outline-primary d-block mt-2"
+                                            @click="openComentarioModalPro({{ $comentario->id }})">
+                                            Ver detalle
+                                        </button>
                                     </td>
                                 </tr>
                             @endforeach
@@ -240,7 +204,11 @@
             @endif
 
             {{-- Modal Vue para ver comentario --}}
-            <comentario-admin-modal ref="comentarioAdminModal"></comentario-admin-modal>
+            <comentario-pro-modal ref="ComentarioModalPro"></comentario-pro-modal>
         </div>
+
     </div>
 @endsection
+
+
+<x-alertas_sweet />

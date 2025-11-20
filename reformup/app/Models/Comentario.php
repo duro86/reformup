@@ -42,7 +42,11 @@ class Comentario extends Model
         'fecha'   => 'datetime',
     ];
 
-    
+    public const ESTADOS = [
+        'pendiente' => 'Pendientes',
+        'publicado' => 'Publicados',
+        'rechazado' => 'Rechazados',
+    ];
 
     /**
      * Relación inversa con el trabajo asociado.

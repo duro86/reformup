@@ -78,11 +78,11 @@
                                 <th class="d-md-none">Solicitud</th>
 
                                 {{-- Escritorio / tablet: columnas normales --}}
-                                <th class="d-none d-md-table-cell">Cliente</th>
-                                <th class="d-none d-md-table-cell">Título</th>
-                                <th class="d-none d-md-table-cell">Fecha</th>
-                                <th class="d-none d-md-table-cell">Estado</th>
-                                <th class="d-none d-md-table-cell text-end">Acciones</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Cliente</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Título</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell text-end bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
