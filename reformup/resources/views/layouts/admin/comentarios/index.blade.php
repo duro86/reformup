@@ -5,10 +5,14 @@
 @section('content')
 
     <x-navbar />
-    {{-- Aquí tu sidebar admin --}}
+    {{-- Sidebar admin fija --}}
     <x-admin.admin_sidebar />
 
     <div class="container-fluid main-content-with-sidebar">
+
+        {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
+        <x-admin.nav_movil active="comentarios" />
+
         <div class="container py-4" id="app">
 
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -55,11 +59,11 @@
                         <tbody>
                             @foreach ($comentarios as $comentario)
                                 @php
-                                    $trabajo     = $comentario->trabajo;
+                                    $trabajo = $comentario->trabajo;
                                     $presupuesto = $trabajo?->presupuesto;
-                                    $solicitud   = $presupuesto?->solicitud;
-                                    $cliente     = $solicitud?->cliente;
-                                    $perfilPro   = $presupuesto?->profesional;
+                                    $solicitud = $presupuesto?->solicitud;
+                                    $cliente = $solicitud?->cliente;
+                                    $perfilPro = $presupuesto?->profesional;
                                 @endphp
 
                                 <tr>
@@ -186,48 +190,49 @@
 
                                             {{-- Ver (modal Vue) --}}
                                             <button type="button"
-                                                    class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
-                                                    @click="openComentarioAdminModal({{ $comentario->id }})">
+                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                                @click="openComentarioAdminModal({{ $comentario->id }})">
                                                 <i class="bi bi-eye"></i> Ver
                                             </button>
 
                                             {{-- Editar --}}
-                                            <a href="{{ route('admin.comentarios.edit', $comentario) }}"
-                                               class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                            <a href="{{ route('admin.comentarios.editar', $comentario) }}"
+                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
                                                 <i class="bi bi-pencil"></i> Editar
                                             </a>
 
                                             {{-- Switch publicar / despublicar --}}
                                             <form action="{{ route('admin.comentarios.toggle_publicado', $comentario) }}"
-                                                  method="POST"
-                                                  class="d-inline">
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
-                                                <div class="form-check form-switch d-flex align-items-center justify-content-center">
-                                                    <input class="form-check-input"
-                                                           type="checkbox"
-                                                           onChange="this.form.submit()"
-                                                           {{ $comentario->estado === 'publicado' && $comentario->visible ? 'checked' : '' }}>
+
+                                                <div class="d-flex flex-column align-items-center">
+                                                    {{-- Etiqueta encima en pantallas grandes --}}
+                                                    <small class="text-muted d-none d-md-block mb-1">
+                                                        Publicación
+                                                    </small>
+
+                                                    <div class="form-check form-switch d-flex align-items-center gap-1">
+                                                        <input class="form-check-input" type="checkbox"
+                                                            onChange="this.form.submit()"
+                                                            {{ $comentario->estado === 'publicado' && $comentario->visible ? 'checked' : '' }}>
+
+                                                        <label class="form-check-label small">
+                                                            {{ $comentario->estado === 'publicado' && $comentario->visible ? 'Publicado' : 'Oculto' }}
+                                                        </label>
+                                                    </div>
                                                 </div>
                                             </form>
 
                                             {{-- Rechazar / banear --}}
+                                            {{-- Rechazar / banear --}}
                                             @if ($comentario->estado !== 'rechazado')
-                                                <form action="{{ route('admin.comentarios.rechazar', $comentario) }}"
-                                                      method="POST"
-                                                      class="d-inline"
-                                                      onsubmit="return confirm('¿Seguro que quieres rechazar este comentario?');">
-                                                    @csrf
-                                                    @method('PATCH')
-                                                    <button type="submit"
-                                                            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1">
-                                                        <i class="bi bi-slash-circle"></i> Rechazar
-                                                    </button>
-                                                </form>
+                                                <x-admin.comentarios.btn_rechazar :comentario="$comentario" />
                                             @endif
-
                                         </div>
                                     </td>
+
                                 </tr>
                             @endforeach
                         </tbody>

@@ -159,12 +159,14 @@ class UsuarioComentarioController extends Controller
             return back()->with('error', 'No puedes editar los comentarios de otros usuarios.');
         }
 
-        // Solo permitir edición si está pendiente o rechazado
-        if (! in_array($comentario->estado, ['pendiente', 'rechazado'])) {
+        // Solo permitir edición si está pendiente
+        if ($comentario->estado !== 'pendiente') {
             return redirect()
                 ->route('usuario.comentarios.index')
-                ->with('error', 'Solo puedes editar comentarios pendientes o rechazados.');
+                ->with('error', 'Solo puedes editar comentarios pendientes.');
         }
+
+
 
         // Cargar relaciones necesarias
         $comentario->load('trabajo.presupuesto.solicitud');

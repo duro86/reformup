@@ -1,22 +1,18 @@
 {{-- resources/views/components/admin_sidebar.blade.php --}}
 
 @php
-    $user  = Auth::user();
+    $user = Auth::user();
     $roles = $user ? $user->getRoleNames() : collect();
 
-    $isAdmin       = $roles->contains('admin');
-    $isUsuario     = $roles->contains('usuario');
+    $isAdmin = $roles->contains('admin');
+    $isUsuario = $roles->contains('usuario');
     $isProfesional = $roles->contains('profesional');
 @endphp
 
 <div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
     {{-- Botón para plegar/desplegar --}}
-    <button
-        id="sidebar-toggle"
-        type="button"
-        class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
-        aria-label="Contraer/expandir menú"
-    >
+    <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
+        aria-label="Contraer/expandir menú">
         <i class="bi bi-chevron-left"></i>
     </button>
 
@@ -47,7 +43,7 @@
             <li class="nav-item">
                 {{-- Listado Usuarios --}}
                 <a class="nav-link {{ request()->routeIs('admin.usuarios*') ? 'active' : '' }}"
-                   href="{{ route('admin.usuarios') }}">
+                    href="{{ route('admin.usuarios') }}">
                     <i class="bi bi-people-fill"></i> Usuarios
                 </a>
             </li>
@@ -55,7 +51,7 @@
             <li class="nav-item">
                 {{-- Listado Profesionales --}}
                 <a class="nav-link {{ request()->routeIs('admin.profesionales*') ? 'active' : '' }}"
-                   href="{{ route('admin.profesionales') }}">
+                    href="{{ route('admin.profesionales') }}">
                     <i class="bi bi-person-badge"></i> Perfiles Profesionales
                 </a>
             </li>
@@ -63,7 +59,7 @@
             <li class="nav-item">
                 {{-- Listado Solicitudes --}}
                 <a class="nav-link {{ request()->routeIs('admin.solicitudes*') ? 'active' : '' }}"
-                   href="{{ route('admin.solicitudes') }}">
+                    href="{{ route('admin.solicitudes') }}">
                     <i class="bi bi-file-earmark-text"></i> Solicitudes
                 </a>
             </li>
@@ -71,15 +67,14 @@
             <li class="nav-item">
                 {{-- Listado Presupuestos --}}
                 <a class="nav-link {{ request()->routeIs('admin.presupuestos*') ? 'active' : '' }}"
-                   href="{{ route('admin.presupuestos') }}">
+                    href="{{ route('admin.presupuestos') }}">
                     <i class="bi bi-receipt"></i> Presupuestos
                 </a>
             </li>
 
             <li class="nav-item">
                 {{-- Listado Trabajos --}}
-                <a class="nav-link {{ request()->routeIs('admin.trabajos*') ? 'active' : '' }}"
-                   href="#">
+                <a class="nav-link {{ request()->routeIs('admin.trabajos*') ? 'active' : '' }}" href="#">
                     <i class="bi bi-briefcase-fill"></i> Trabajos
                 </a>
             </li>
@@ -87,25 +82,26 @@
             <li class="nav-item">
                 {{-- Listado Comentarios --}}
                 <a class="nav-link {{ request()->routeIs('admin.comentarios*') ? 'active' : '' }}"
-                   href="#">
+                    href="{{ route('admin.comentarios') }}">
                     <i class="bi bi-chat-left-text"></i> Comentarios
                 </a>
             </li>
 
-            <li><hr></li>
+            <li>
+                <hr>
+            </li>
         </ul>
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
         <ul class="nav flex-column mt-auto admin-sidebar">
             <li class="nav-item">
-                <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}"
-                   href="{{ route('home') }}">
+                <a class="nav-link {{ request()->routeIs('home') ? 'active' : '' }}" href="{{ route('home') }}">
                     <i class="bi bi-house-door"></i> Inicio
                 </a>
             </li>
             <li class="nav-item">
                 <a class="nav-link {{ request()->routeIs('admin.perfil') ? 'active' : '' }}"
-                   href="{{ route('admin.perfil') }}">
+                    href="{{ route('admin.perfil') }}">
                     <i class="bi bi-file-person-fill"></i> Perfil
                 </a>
             </li>

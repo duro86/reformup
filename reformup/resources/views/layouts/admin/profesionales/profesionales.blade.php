@@ -145,7 +145,7 @@
                                         <td class="text-end">
 
                                             {{-- TOGGLE VISIBLE --}}
-                                            <form action="{{ route('admin.profesionales.toggleVisible', $perfil->id) }}"
+                                            {{--<form action="{{ route('admin.profesionales.toggleVisible', $perfil->id) }}"
                                                   method="POST" class="d-inline">
                                                 @csrf
 
@@ -158,7 +158,7 @@
                                                         Hacer visible
                                                     </button>
                                                 @endif
-                                            </form>
+                                            </form>--}}
 
                                             {{-- VER --}}
                                             <button class="btn btn-info btn-sm px-2 py-1 mb-1 mb-md-0"

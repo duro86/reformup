@@ -82,7 +82,7 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
 
         // ----- LISTADO COMENTARIOS (ADMIN) -----
         Route::get('/comentarios', [AdminComentarioController::class, 'index'])
-            ->name('comentarios.index');
+            ->name('comentarios');
 
         Route::get('/comentarios/{comentario}', [AdminComentarioController::class, 'mostrar'])
             ->name('comentarios.mostrar');

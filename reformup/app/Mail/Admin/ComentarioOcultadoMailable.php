@@ -11,7 +11,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class ComentarioPublicadoMailable extends Mailable
+class ComentarioOcultadoMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -37,7 +37,7 @@ class ComentarioPublicadoMailable extends Mailable
 
     public function build()
     {
-        return $this->subject('Tu comentario ha sido publicado')
-            ->markdown('emails.admin.comentarios.publicado');
+        return $this->subject('Tu comentario ha dejado de ser visible en ReformUp')
+            ->markdown('emails.admin.comentarios.ocultado');
     }
 }

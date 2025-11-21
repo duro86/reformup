@@ -1,9 +1,9 @@
 @component('mail::message')
-# Tu comentario ha sido publicado
+# Tu comentario no ha podido ser publicado
 
 Hola {{ $cliente->nombre ?? ($cliente->name ?? $cliente->email) }},
 
-Tu comentario ha sido **publicado** y ya es visible en la plataforma.
+Tras revisar tu comentario, hemos decidido **no publicarlo** en la plataforma.
 
 @isset($solicitud)
 ## Detalles de la solicitud
@@ -23,15 +23,24 @@ Tu comentario ha sido **publicado** y ya es visible en la plataforma.
 
 ---
 
-## Detalles de tu comentario
+## Estado del comentario
 
-- **Puntuación:** {{ $comentario->puntuacion }} / 5  
+- **Puntuación enviada:** {{ $comentario->puntuacion }} / 5  
 - **Opinión:**
 @if ($comentario->opinion)
 > {{ $comentario->opinion }}
 @else
 _Sin texto de opinión, solo puntuación._
 @endif
+
+Este comentario se ha marcado como **rechazado** y **no podrá ser editado ni volver a enviarse en su forma actual**.
+
+---
+
+## ¿Qué puedes hacer ahora?
+
+Si crees que se trata de un error o deseas que revisemos el caso con más detalle,  
+puedes responder directamente a este correo y nuestro equipo lo volverá a valorar.
 
 @isset($perfilPro)
 ---
@@ -47,8 +56,6 @@ Teléfono: {{ $perfilPro->telefono_empresa }}
 @endisset
 @endisset
 
----
+Gracias por tu comprensión y por formar parte de **{{ config('app.name') }}**.
 
-Gracias por ayudar a otros usuarios con tu valoración.  
-**{{ config('app.name') }}**
 @endcomponent

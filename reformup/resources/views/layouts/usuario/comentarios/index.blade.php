@@ -30,7 +30,7 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Trabajo</th>
+                                <th class="bg-secondary">Trabajo</th>
                                 <th class="d-none d-md-table-cell bg-secondary">Profesional</th>
                                 <th class="bg-secondary">Puntuación</th>
                                 <th class="d-none d-md-table-cell bg-secondary">Estado</th>
@@ -71,11 +71,13 @@
                                                 };
                                             @endphp
                                             @if ($pro)
-                                            <span class="text-dark bg-secondary rounded px-1">{{ $pro->empresa }}</span><br>
-                                                <small >{{ $pro->email_empresa }}</small>                             
+                                                <span
+                                                    class="text-dark bg-secondary rounded px-1">{{ $pro->empresa }}</span><br>
+                                                <small>{{ $pro->email_empresa }}</small>
                                             @else
                                                 <span class="text-dark">Sin profesional</span>
-                                            @endif<br>
+                                            @endif
+                                            <br>
                                             <span class="badge {{ $badge }}">
                                                 {{ ucfirst($comentario->estado) }}
                                             </span><br>
@@ -125,8 +127,8 @@
                                             </button>
                                         @endif
 
-                                        {{-- Editar si pendiente o rechazado --}}
-                                        @if (in_array($comentario->estado, ['pendiente', 'rechazado']))
+                                        {{-- Editar solo si está pendiente --}}
+                                        @if ($comentario->estado === 'pendiente')
                                             <a href="{{ route('usuario.comentarios.editar', $comentario) }}"
                                                 class="btn btn-sm btn-primary mb-1">
                                                 Editar

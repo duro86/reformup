@@ -11,7 +11,7 @@ use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class ComentarioPublicadoMailable extends Mailable
+class ComentarioRechazadoMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
@@ -24,8 +24,8 @@ class ComentarioPublicadoMailable extends Mailable
     public function __construct(
         Comentario $comentario,
         User $cliente,
-        ?Trabajo $trabajo,
-        ?Perfil_Profesional $perfilPro,
+        ?Trabajo $trabajo = null,
+        ?Perfil_Profesional $perfilPro = null,
         ?Solicitud $solicitud = null
     ) {
         $this->comentario = $comentario;
@@ -37,7 +37,7 @@ class ComentarioPublicadoMailable extends Mailable
 
     public function build()
     {
-        return $this->subject('Tu comentario ha sido publicado')
-            ->markdown('emails.admin.comentarios.publicado');
+        return $this->subject('Tu comentario ha sido rechazado en ReformUp')
+            ->markdown('emails.admin.comentarios.rechazado');
     }
 }
