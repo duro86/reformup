@@ -145,21 +145,26 @@
                                                 </div>
                                             </div>
 
-                                            {{-- Columna derecha: acciones --}}
+                                            {{-- Columna derecha: acciones MOvil--}}
                                             <div class="text-end">
-                                                {{-- Aquí tus botones --}}
+                                                {{-- Botón Ver --}}
                                                 <button type="button" class="btn btn-sm btn-info mb-1"
                                                     @click="openSolicitudModal({{ $solicitud->id }})">
                                                     Ver
                                                 </button>
 
-                                                {{-- Ejemplo de otro botón --}}
-                                                {{-- <x-profesional.solicitudes.btn_cancelar :solicitud="$solicitud" /> --}}
+                                                {{-- Botón Crear presupuesto (solo si está abierta) --}}
+                                                @if ($solicitud->estado === 'abierta')
+                                                    <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
+                                                        class="btn btn-sm btn-primary mb-1">
+                                                        Crear presupuesto
+                                                    </a>
+                                                @endif
                                             </div>
                                         </div>
                                     </td>
 
-                                    {{-- ✅ VISTA TABLET/ESCRITORIO: CELDAS NORMALES --}}
+                                    {{-- VISTA TABLET/ESCRITORIO: CELDAS NORMALES --}}
                                     <td class="d-none d-md-table-cell">
                                         @if ($cliente)
                                             <div class="fw-semibold">
@@ -192,14 +197,23 @@
                                         </span>
                                     </td>
 
+                                    {{-- Columna derecha: acciones ESCRITORIO Y TABLET --}}
                                     <td class="d-none d-md-table-cell text-end">
+                                        {{-- Botón Ver --}}
                                         <button type="button" class="btn btn-sm btn-info me-1 mb-1"
                                             @click="openSolicitudModal({{ $solicitud->id }})">
                                             Ver
                                         </button>
 
-                                        {{-- Más acciones aquí --}}
+                                        {{-- Botón Crear presupuesto (solo si está abierta) --}}
+                                        @if ($solicitud->estado === 'abierta')
+                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
+                                                class="btn btn-sm btn-primary mb-1">
+                                                Crear presupuesto
+                                            </a>
+                                        @endif
                                     </td>
+
                                 </tr>
                             @endforeach
                         </tbody>

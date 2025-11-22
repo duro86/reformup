@@ -80,6 +80,8 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::get('/trabajos', [AdminTrabajoController::class, 'index'])
             ->name('trabajos');
 
+        // ----- COMENTARIOS -----
+
         // ----- LISTADO COMENTARIOS (ADMIN) -----
         Route::get('/comentarios', [AdminComentarioController::class, 'index'])
             ->name('comentarios');
@@ -98,4 +100,26 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
 
         Route::put('/comentarios/{comentario}', [AdminComentarioController::class, 'actualizar'])
             ->name('comentarios.actualizar');
+
+        // ----- LISTADO SOLICITUDES (ADMIN) -----
+        Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])
+            ->name('solicitudes');
+            
+        Route::get('/solicitudes/crear', [AdminSolicitudController::class, 'crear'])
+            ->name('solicitudes.crear');
+
+        Route::post('/solicitudes', [AdminSolicitudController::class, 'guardar'])
+            ->name('solicitudes.guardar');
+
+        Route::get('/solicitudes/{solicitud}', [AdminSolicitudController::class, 'mostrar'])
+            ->name('solicitudes.mostrar');
+
+        Route::patch('/solicitudes/{solicitud}/cancelar', [AdminSolicitudController::class, 'cancelar'])
+            ->name('solicitudes.cancelar');
+
+        Route::get('/solicitudes/{solicitud}/editar', [AdminSolicitudController::class, 'editar'])
+            ->name('solicitudes.editar');
+
+        Route::put('/solicitudes/{solicitud}', [AdminSolicitudController::class, 'actualizar'])
+            ->name('solicitudes.actualizar');
     });

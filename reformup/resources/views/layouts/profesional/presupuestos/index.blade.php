@@ -30,11 +30,11 @@
 
             @php
                 $estados = [
-                    null        => 'Todos',
-                    'enviado'   => 'Enviados',
-                    'aceptado'  => 'Aceptados',
+                    null => 'Todos',
+                    'enviado' => 'Enviados',
+                    'aceptado' => 'Aceptados',
                     'rechazado' => 'Rechazados',
-                    'caducado'  => 'Caducados',
+                    'caducado' => 'Caducados',
                 ];
             @endphp
 
@@ -79,11 +79,11 @@
                                 @php
                                     $cliente = $presu->solicitud?->cliente;
                                     $badgeClass = match ($presu->estado) {
-                                        'enviado'   => 'bg-primary',
-                                        'aceptado'  => 'bg-success',
+                                        'enviado' => 'bg-primary',
+                                        'aceptado' => 'bg-success',
                                         'rechazado' => 'bg-danger',
-                                        'caducado'  => 'bg-secondary',
-                                        default     => 'bg-light text-dark',
+                                        'caducado' => 'bg-secondary',
+                                        default => 'bg-light text-dark',
                                     };
                                 @endphp
                                 <tr>
@@ -135,10 +135,10 @@
                                                     </a>
                                                 @else
                                                     <span class="text-muted small me-2">Sin PDF</span>
-                                                @endif
-                                                
+                                                @endif                                              
+
                                                 {{-- Botón Cancelar presupuesto --}}
-                                                @if ($presu->estado === 'enviado')
+                                                @if ($presu->solicitud === 'abierta')
                                                     <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
                                                 @endif
 
@@ -184,9 +184,9 @@
                                     {{-- Acciones (solo escritorio/tablet) --}}
                                     <td class="text-start d-none d-md-table-cell">
                                         @if ($presu->docu_pdf)
-                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}" 
+                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}"
                                                 class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
-                                                    target="_blank"><i class="bi bi-file-earmark-pdf"></i>
+                                                target="_blank"><i class="bi bi-file-earmark-pdf"></i>
                                                 Ver PDF
                                             </a>
                                         @else
@@ -197,7 +197,7 @@
                                         @if ($presu->estado === 'enviado')
                                             <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
                                         @endif
-                                        
+
                                         {{-- Botón Nuevo presupuesto desde solicitud --}}
                                         @if (
                                             $presu->estado === 'rechazado' &&
@@ -205,7 +205,7 @@
                                                 in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
                                             <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
                                                 class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
-                                                    target="_blank"><i class="bi bi-file-earmark-pdf"></i>
+                                                target="_blank"><i class="bi bi-file-earmark-pdf"></i>
                                                 Nuevo presupuesto
                                             </a>
                                         @endif

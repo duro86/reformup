@@ -36,7 +36,7 @@ class ProfesionalPresupuestoController extends Controller
                 $q->where('estado', $estado);
             })
             ->orderByDesc('fecha')
-            ->paginate(10)
+            ->paginate(5)
             ->withQueryString();
 
         return view('layouts.profesional.presupuestos.index', [

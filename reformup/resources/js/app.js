@@ -11,6 +11,8 @@ import TrabajoModal from "./components/TrabajoModalUser.vue";
 import TrabajoModalPro from "./components/TrabajoModalPro.vue";
 import ComentarioModalPro from "./components/ComentarioModalPro.vue";
 import ComentarioModalAdmin from "./components/ComentarioModalAdmin.vue";
+import SolicitudAdminModal from "./components/SolicitudAdminModal.vue"; 
+
 
 
 const app = createApp({
@@ -37,6 +39,9 @@ const app = createApp({
         openComentarioAdminModal(id) {
             this.$refs.comentarioAdminModal.openModal(id);
         },
+        openSolicitudAdminModal(id) {               // 👈 NUEVO
+            this.$refs.solicitudAdminModal.openModal(id);
+        },
     },
 });
 
@@ -49,6 +54,8 @@ app.component("trabajo-modal", TrabajoModal);
 app.component("trabajo-pro-modal", TrabajoModalPro);
 app.component("comentario-pro-modal", ComentarioModalPro);
 app.component("comentario-admin-modal", ComentarioModalAdmin);
+app.component("solicitud-admin-modal", SolicitudAdminModal);
+
 
 const el = document.getElementById("app");
 if (el) {

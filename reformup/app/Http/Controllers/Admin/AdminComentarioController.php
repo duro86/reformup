@@ -9,6 +9,7 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\Admin\ComentarioPublicadoMailable;
 use App\Mail\Admin\ComentarioRechazadoMailable;
 use App\Mail\Admin\ComentarioOcultadoMailable;
+use App\Mail\Admin\ComentarioModificadoPorAdminMailable;
 
 class AdminComentarioController extends Controller
 {
