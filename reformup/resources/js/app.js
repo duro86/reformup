@@ -4,14 +4,16 @@ import { createApp } from "vue";
 
 import UserModal from "./components/UserModal.vue";
 import DeleteUserButton from "./components/DeleteUserButton.vue";
-import DeleteProfessionalButton from "./components/DeleteProfessionalButton.vue";
+import DeleteProfessionalButton from "./components/profesional/DeleteProfessionalButton.vue";
 import ProfessionalModal from "./components/ProfessionalModal.vue";
 import SolicitudModal from "./components/SolicitudModal.vue";
 import TrabajoModal from "./components/TrabajoModalUser.vue";
 import TrabajoModalPro from "./components/TrabajoModalPro.vue";
-import ComentarioModalPro from "./components/ComentarioModalPro.vue";
-import ComentarioModalAdmin from "./components/ComentarioModalAdmin.vue";
-import SolicitudAdminModal from "./components/SolicitudAdminModal.vue"; 
+import ComentarioModalPro from "./components/profesional/ComentarioModalPro.vue";
+import ComentarioModalAdmin from "./components/admin/ComentarioModalAdmin.vue";
+import SolicitudAdminModal from "./components/admin/SolicitudAdminModal.vue"; 
+import PresupuestoAdminModal from './components/admin/PresupuestoAdminModal.vue';
+
 
 
 
@@ -42,6 +44,9 @@ const app = createApp({
         openSolicitudAdminModal(id) {               // 👈 NUEVO
             this.$refs.solicitudAdminModal.openModal(id);
         },
+        openPresupuestoAdminModal(id) {
+            this.$refs.presupuestoAdminModal.openModal(id);
+        },
     },
 });
 
@@ -55,6 +60,7 @@ app.component("trabajo-pro-modal", TrabajoModalPro);
 app.component("comentario-pro-modal", ComentarioModalPro);
 app.component("comentario-admin-modal", ComentarioModalAdmin);
 app.component("solicitud-admin-modal", SolicitudAdminModal);
+app.component('presupuesto-admin-modal', PresupuestoAdminModal);
 
 
 const el = document.getElementById("app");

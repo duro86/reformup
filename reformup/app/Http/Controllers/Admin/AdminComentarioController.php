@@ -211,6 +211,7 @@ class AdminComentarioController extends Controller
 
         return back()->with('success', 'Comentario rechazado y usuario notificado.');
     }
+    
     /**
      * Editar comentario (formulario).
      */

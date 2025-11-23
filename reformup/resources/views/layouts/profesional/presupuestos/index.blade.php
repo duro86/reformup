@@ -65,7 +65,7 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Solicitud</th>
+                                <th class="bg-secondary">Solicitud</th>
                                 <th class="d-none d-md-table-cell bg-secondary">Cliente</th>
                                 <th class="d-none d-md-table-cell bg-secondary">Importe</th>
                                 <th class="d-none d-md-table-cell bg-secondary">Estado</th>
@@ -135,10 +135,10 @@
                                                     </a>
                                                 @else
                                                     <span class="text-muted small me-2">Sin PDF</span>
-                                                @endif                                              
+                                                @endif
 
                                                 {{-- Botón Cancelar presupuesto --}}
-                                                @if ($presu->solicitud === 'abierta')
+                                                @if ($presu->estado === 'enviado')
                                                     <x-profesional.presupuestos.btn_cancelar :presupuesto="$presu" />
                                                 @endif
 
@@ -203,7 +203,7 @@
                                             $presu->estado === 'rechazado' &&
                                                 $presu->solicitud &&
                                                 in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
-                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
+                                            <a href="{{ route('presupuestos.seleccionar_solicitud', $presu->solicitud) }}"
                                                 class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
                                                 target="_blank"><i class="bi bi-file-earmark-pdf"></i>
                                                 Nuevo presupuesto

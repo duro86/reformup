@@ -101,10 +101,10 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::put('/comentarios/{comentario}', [AdminComentarioController::class, 'actualizar'])
             ->name('comentarios.actualizar');
 
-        // ----- LISTADO SOLICITUDES (ADMIN) -----
+        // ----- SOLICITUDES (ADMIN) -----
         Route::get('/solicitudes', [AdminSolicitudController::class, 'index'])
             ->name('solicitudes');
-            
+
         Route::get('/solicitudes/crear', [AdminSolicitudController::class, 'crear'])
             ->name('solicitudes.crear');
 
@@ -122,4 +122,32 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
 
         Route::put('/solicitudes/{solicitud}', [AdminSolicitudController::class, 'actualizar'])
             ->name('solicitudes.actualizar');
+
+        // -----PRESUPUESTOS (ADMIN)
+        Route::get('/presupuestos', [AdminPresupuestoController::class, 'index'])
+            ->name('presupuestos');
+
+        Route::get('/presupuestos/{presupuesto}', [AdminPresupuestoController::class,'mostrar'])
+        ->name('presupuestos.mostrar');
+
+        // Seleccionar solicitud para crear un nuevo presupuesto (ADMIN)
+        Route::get('/presupuestos/seleccionar-solicitud', [AdminPresupuestoController::class,     'seleccionarSolicitudParaNuevo',])
+            ->name('presupuestos.seleccionar_solicitud');
+
+        Route::get('/presupuestos/crear', [AdminPresupuestoController::class, 'crearDesdeSolicitud'])
+            ->name('presupuestos.crear');
+
+        Route::post('/presupuestos', [AdminPresupuestoController::class, 'guardarDesdeSolicitud'])
+            ->name('presupuestos.guardar');
+
+        Route::patch('/presupuestos/{presupuesto}/cancelar', [AdminPresupuestoController::class, 'cancelar'])
+            ->name('presupuestos.cancelar');
+
+        // EDITAR presupuesto (formulario)
+        Route::get('/presupuestos/{presupuesto}/editar', [AdminPresupuestoController::class, 'editar'])
+            ->name('presupuestos.editar');
+
+        // ACTUALIZAR presupuesto (POST/PUT)
+        Route::put('/presupuestos/{presupuesto}', [AdminPresupuestoController::class, 'actualizar'])
+            ->name('presupuestos.actualizar');
     });

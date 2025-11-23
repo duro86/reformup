@@ -226,7 +226,6 @@
                                             </form>
 
                                             {{-- Rechazar / banear --}}
-                                            {{-- Rechazar / banear --}}
                                             @if ($comentario->estado !== 'rechazado')
                                                 <x-admin.comentarios.btn_rechazar :comentario="$comentario" />
                                             @endif
