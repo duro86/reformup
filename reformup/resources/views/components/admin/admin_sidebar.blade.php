@@ -74,7 +74,8 @@
 
             <li class="nav-item">
                 {{-- Listado Trabajos --}}
-                <a class="nav-link {{ request()->routeIs('admin.trabajos*') ? 'active' : '' }}" href="#">
+                <a class="nav-link {{ request()->routeIs('admin.trabajos*') ? 'active' : '' }}"
+                    href="{{ route('admin.trabajos') }}">
                     <i class="bi bi-briefcase-fill"></i> Trabajos
                 </a>
             </li>

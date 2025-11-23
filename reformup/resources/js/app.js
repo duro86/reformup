@@ -11,11 +11,9 @@ import TrabajoModal from "./components/TrabajoModalUser.vue";
 import TrabajoModalPro from "./components/TrabajoModalPro.vue";
 import ComentarioModalPro from "./components/profesional/ComentarioModalPro.vue";
 import ComentarioModalAdmin from "./components/admin/ComentarioModalAdmin.vue";
-import SolicitudAdminModal from "./components/admin/SolicitudAdminModal.vue"; 
-import PresupuestoAdminModal from './components/admin/PresupuestoAdminModal.vue';
-
-
-
+import SolicitudAdminModal from "./components/admin/SolicitudAdminModal.vue";
+import PresupuestoAdminModal from "./components/admin/PresupuestoAdminModal.vue";
+import TrabajoAdminModal from "./components/admin/TrabajoAdminModal.vue";
 
 const app = createApp({
     methods: {
@@ -32,7 +30,8 @@ const app = createApp({
         openTrabajoModal(id) {
             this.$refs.trabajoModal.openModal(id);
         },
-        openTrabajoProModal(id) { // profesional
+        openTrabajoProModal(id) {
+            // profesional
             this.$refs.trabajoProModal.openModal(id);
         },
         openComentarioModalPro(id) {
@@ -41,11 +40,19 @@ const app = createApp({
         openComentarioAdminModal(id) {
             this.$refs.comentarioAdminModal.openModal(id);
         },
-        openSolicitudAdminModal(id) {               // 👈 NUEVO
+        openSolicitudAdminModal(id) {
+            // 👈 NUEVO
             this.$refs.solicitudAdminModal.openModal(id);
         },
         openPresupuestoAdminModal(id) {
             this.$refs.presupuestoAdminModal.openModal(id);
+        },
+        openTrabajoAdminModal(id) {
+            if (!this.$refs.trabajoAdminModal) {
+                console.error("Ref trabajoAdminModal no encontrado");
+                return;
+            }
+            this.$refs.trabajoAdminModal.openModal(id);
         },
     },
 });
@@ -60,8 +67,8 @@ app.component("trabajo-pro-modal", TrabajoModalPro);
 app.component("comentario-pro-modal", ComentarioModalPro);
 app.component("comentario-admin-modal", ComentarioModalAdmin);
 app.component("solicitud-admin-modal", SolicitudAdminModal);
-app.component('presupuesto-admin-modal', PresupuestoAdminModal);
-
+app.component("presupuesto-admin-modal", PresupuestoAdminModal);
+app.component("trabajo-admin-modal", TrabajoAdminModal);
 
 const el = document.getElementById("app");
 if (el) {

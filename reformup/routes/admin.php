@@ -127,8 +127,8 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::get('/presupuestos', [AdminPresupuestoController::class, 'index'])
             ->name('presupuestos');
 
-        Route::get('/presupuestos/{presupuesto}', [AdminPresupuestoController::class,'mostrar'])
-        ->name('presupuestos.mostrar');
+        Route::get('/presupuestos/{presupuesto}', [AdminPresupuestoController::class, 'mostrar'])
+            ->name('presupuestos.mostrar');
 
         // Seleccionar solicitud para crear un nuevo presupuesto (ADMIN)
         Route::get('/presupuestos/seleccionar-solicitud', [AdminPresupuestoController::class,     'seleccionarSolicitudParaNuevo',])
@@ -150,4 +150,24 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // ACTUALIZAR presupuesto (POST/PUT)
         Route::put('/presupuestos/{presupuesto}', [AdminPresupuestoController::class, 'actualizar'])
             ->name('presupuestos.actualizar');
+
+        // ----- LISTADO TRABAJOS (ADMIN) -----
+        Route::get('/trabajos', [AdminTrabajoController::class, 'index'])
+            ->name('trabajos');
+
+        // MOSTRAR (para modal)
+        Route::get('/trabajos/{trabajo}', [AdminTrabajoController::class, 'mostrar'])
+            ->name('trabajos.mostrar');
+
+        // Editar trabajo (formulario)
+        Route::get('/trabajos/{trabajo}/editar', [AdminTrabajoController::class, 'editar'])
+            ->name('trabajos.editar');
+
+        // Actualizar trabajo
+        Route::put('/trabajos/{trabajo}', [AdminTrabajoController::class, 'actualizar'])
+            ->name('trabajos.actualizar');
+            
+        // Cancelar trabajo
+        Route::patch('/trabajos/{trabajo}/cancelar', [AdminTrabajoController::class, 'cancelar'])
+            ->name('trabajos.cancelar');
     });
