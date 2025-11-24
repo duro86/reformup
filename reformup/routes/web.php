@@ -38,8 +38,8 @@ Route::post('/validarUsuario', [AuthProController::class, 'validarUsuario'])->na
 
 // Registro de empresa profesional(confirmado cuenta usuario)
 Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarFormProEmpresa'])
-    ->name('registro.pro.empresa')
-    ->middleware('auth.redirect'); // Middleware personalizado por si no esta logueado el usuario
+    ->name('registro.pro.empresa');
+
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
 
 

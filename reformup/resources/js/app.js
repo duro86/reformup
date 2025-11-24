@@ -41,7 +41,7 @@ const app = createApp({
             this.$refs.comentarioAdminModal.openModal(id);
         },
         openSolicitudAdminModal(id) {
-            // 👈 NUEVO
+            //  NUEVO
             this.$refs.solicitudAdminModal.openModal(id);
         },
         openPresupuestoAdminModal(id) {

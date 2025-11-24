@@ -108,7 +108,7 @@
 
                                             {{-- Editar --}}
                                             <a href="{{ route('admin.usuarios.editar', $usuario->id) }}"
-                                                class="btn btn-warning btn-sm px-2 py-1 mb-1 mb-md-0">
+                                                class="btn btn-warning btn-sm px-2 py-1 mx-1 mb-1 mb-md-0">
                                                 Editar
                                             </a>
 

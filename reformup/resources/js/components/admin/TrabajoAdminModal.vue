@@ -46,6 +46,17 @@
             </p>
           </div>
 
+           <!-- DIrección del trabajo -->
+          <div class="mb-3">
+            <h6 class="fw-semibold">Dirección del trabajo</h6>
+            <p v-if="trabajo.dir_obra">
+              {{ trabajo.dir_obra }}
+            </p>
+            <p v-else class="text-muted mb-0">
+              Sin descripción específica del trabajo.
+            </p>
+          </div>
+
           <hr>
 
           <!-- Solicitud asociada -->

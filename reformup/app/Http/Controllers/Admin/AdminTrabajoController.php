@@ -62,6 +62,7 @@ class AdminTrabajoController extends Controller
                 'id'        => $trabajo->id,
                 'estado'    => $trabajo->estado,
                 'descripcion' => $trabajo->descripcion ?? null,
+                'dir_obra' => $trabajo->dir_obra ?? null,
                 'fecha_ini' => $trabajo->fecha_ini
                     ? $trabajo->fecha_ini->format('d/m/Y H:i')
                     : null,

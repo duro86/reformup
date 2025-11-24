@@ -315,3 +315,8 @@ $sidebar-width: 210px;
   margin-bottom: 0;
   padding: 0;
 }
+
+.form-switch .form-check-input:checked {
+        background-color: #198754;
+        border-color: #198754;
+    }

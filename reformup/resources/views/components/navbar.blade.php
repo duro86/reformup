@@ -18,7 +18,7 @@
         $perfilRoute = route('admin.perfil');
     } elseif ($roles->contains('profesional')) {
         $panelRoute = route('profesional.dashboard');
-        $perfilRoute = route('usuario.perfil'); // o una vista específica si la tienes
+        $perfilRoute = route('usuario.perfil'); 
     } elseif ($roles->contains('usuario')) {
         $panelRoute = route('usuario.dashboard');
         $perfilRoute = route('usuario.perfil');
@@ -71,7 +71,7 @@
 
                 @guest
                     {{-- Invitados: Entrar + Registro --}}
-                    <li class="nav-item mb-sm-3 mb-lg-0">
+                    <li class="nav-item mb-sm-3 mx-1 mb-lg-0">
                         <a class="nav-link" href="{{ route('login') }}">
                             Entrar
                         </a>

@@ -7,6 +7,9 @@ use Illuminate\Http\Request;
 use App\Models\Perfil_Profesional;
 use App\Models\User;
 use Spatie\Permission\Models\Role;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Admin\PerfilProfesionalOcultoMailable;
+use App\Mail\Admin\PerfilProfesionalPublicadoMailable;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use App\Models\Oficio;
@@ -24,9 +27,67 @@ class ProfesionalPerfilController extends Controller
         // Cargamos también el usuario y sus roles
         $profesionales = Perfil_Profesional::with(['user' => function ($q) {
             $q->with('roles'); // para Spatie
-        }])->paginate(5);
+        }])
+            ->orderBy('created_at', 'desc')
+            ->paginate(5);
 
         return view('layouts.admin.profesionales.profesionales', compact('profesionales'));
+    }
+
+    /**
+     * Publicar / despublicar perfil profesional.
+     */
+    public function toggleVisible(Request $request, Perfil_Profesional $perfil)
+    {
+        // Cargamos el usuario asociado (dueño de la cuenta)
+        $perfil->load('user');
+        $user = $perfil->user;
+
+        // Si no hay usuario asociado, igualmente dejamos hacer el toggle,
+        // pero obviamente sin correo.
+        $emailDestino = $perfil->email_empresa ?? $user?->email;
+
+        // CASO 1: YA ESTÁ visible → lo ocultamos
+        if ($perfil->visible) {
+            $perfil->visible = false;
+            $perfil->save();
+
+            if ($emailDestino) {
+                try {
+                    Mail::to($emailDestino)->send(
+                        new PerfilProfesionalOcultoMailable($perfil, $user)
+                    );
+                } catch (\Throwable $e) {
+                    return back()->with(
+                    'error',
+                    'El perfil se ha ocultado, pero el correo ha fallado: '
+                );
+                }
+            }
+
+
+            return back()->with('success', 'Perfil profesional despublicado correctamente.');
+        }
+
+        // CASO 2: NO está visible → lo publicamos (dar de alta en plataforma)
+        $perfil->visible = true;
+        $perfil->save();
+
+        if ($emailDestino) {
+            try {
+                Mail::to($emailDestino)->send(
+                    new PerfilProfesionalPublicadoMailable($perfil, $user)
+                );
+            } catch (\Throwable $e) {
+                return back()->with(
+                    'error',
+                    'El perfil se ha publicado, pero el correo ha fallado: '
+                );
+            }
+        }
+
+
+        return back()->with('success', 'Perfil profesional publicado correctamente.');
     }
 
     /**
@@ -198,7 +259,6 @@ class ProfesionalPerfilController extends Controller
             return redirect()
                 ->route('admin.profesionales')
                 ->with('success', 'Perfil profesional actualizado correctamente');
-
         } catch (QueryException $e) {
             // Aquí podrías loguear el error técnico
             // Log::error($e->getMessage());

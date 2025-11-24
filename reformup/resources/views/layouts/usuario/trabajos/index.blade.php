@@ -65,7 +65,7 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th>Trabajo / Referencia</th>
+                                <th class="bg-secondary">Trabajo / Referencia</th>
                                 <th class="d-none d-lg-table-cell bg-secondary">Empresa</th>
                                 <th class="d-none d-lg-table-cell bg-secondary">Estado</th>
                                 <th class="d-none d-lg-table-cell bg-secondary">Fecha inicio</th>
@@ -73,7 +73,7 @@
                                 <th class="d-none d-lg-table-cell bg-secondary">Dirección obra</th>
                                 <th class="d-none d-lg-table-cell text-center bg-secondary">Total presupuesto</th>
 
-                                <th class="text-center">Acciones</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

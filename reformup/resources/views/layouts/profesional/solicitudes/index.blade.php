@@ -20,12 +20,6 @@
                     <i class="bi bi-inbox"></i>
                     Solicitudes recibidas
                 </h1>
-
-                <div class="text-muted small">
-                    @if ($perfil)
-                        {{ $perfil->empresa }}
-                    @endif
-                </div>
             </div>
 
             {{-- Mensajes flash --}}

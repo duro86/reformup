@@ -29,6 +29,7 @@ class ProfesionalTrabajoController extends Controller
                 ->with('error', 'No puedes acceder a esta sección, ese trabajo no pertenece a tus registros.');
         }
     }
+    
     /**
      * Listado de trabajos del profesional.
      */
@@ -156,7 +157,7 @@ class ProfesionalTrabajoController extends Controller
             }
         }
 
-        return back()->with('success', 'Has marcado el trabajo como "en curso". El cliente ha sido notificado.');
+        return back()->with('success', 'Has marcado el trabajo como en curso. El cliente ha sido notificado.');
     }
 
     /**

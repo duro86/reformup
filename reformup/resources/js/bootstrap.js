@@ -1,4 +1,5 @@
-import 'bootstrap/dist/js/bootstrap.bundle.min.js'; // incluye Popper + todos los plugins
+console.log("🚀 bootstrap.js CARGADO");
+import 'bootstrap'; 
 import axios from 'axios';
 window.axios = axios;
 

@@ -91,7 +91,7 @@ class AdminComentarioController extends Controller
     }
 
     /**
-     * Toggle publicar / despublicar desde el switch.
+     * Toggle publicar comentario / despublicar desde el switch.
      */
     public function togglePublicado(Request $request, Comentario $comentario)
     {

@@ -25,7 +25,8 @@
                 <professional-modal ref="professionalModal"></professional-modal>
 
                 <div class="container p-1">
-                    <h1 class="text-center d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 mb-4">
+                    <h1
+                        class="text-center d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 mb-4">
                         <span>Listado de Profesionales</span>
 
                         <div class="d-flex flex-wrap gap-2 justify-content-center">
@@ -43,27 +44,37 @@
                     {{-- TABLA RESPONSIVE --}}
                     <div class="table-responsive">
                         <table class="table table-sm align-middle">
-
                             <thead>
                                 <tr style="font-size: .875rem;">
+                                    {{-- Siempre visible --}}
                                     <th>Profesional</th>
+
+                                    {{-- En tablet (md+) y escritorio --}}
                                     <th class="d-none d-md-table-cell">Empresa</th>
-                                    <th class="d-none d-md-table-cell">CIF</th>
-                                    <th class="d-none d-md-table-cell">Email</th>
                                     <th class="d-none d-md-table-cell">Teléfono</th>
-                                    <th class="d-none d-md-table-cell">Rol</th>
+
+                                    {{-- Solo en escritorio (lg+) --}}
+                                    <th class="d-none d-lg-table-cell">CIF</th>
+                                    <th class="d-none d-lg-table-cell">Email</th>
+                                    <th class="d-none d-lg-table-cell">Cuenta Usuario</th>
+                                    <th class="d-none d-lg-table-cell">Rol</th>
+
+                                    {{-- Visible (md+) --}}
                                     <th class="d-none d-md-table-cell text-center">Visible</th>
+
+                                    {{-- Acciones siempre visibles --}}
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
 
                             <tbody style="font-size: .875rem;">
                                 @foreach ($profesionales as $perfil)
-                                    @php $user = $perfil->user; @endphp
+                                    @php
+                                        $user = $perfil->user;
+                                    @endphp
 
                                     <tr>
-
-                                        {{-- COLUMNA PRINCIPAL RESPONSIVE --}}
+                                        {{-- COLUMNA PRINCIPAL RESPONSIVE (xs + md + lg) --}}
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
 
@@ -77,12 +88,17 @@
                                                 @endif
 
                                                 <div>
-                                                    {{-- Nombre --}}
+                                                    {{-- Nombre + email usuario --}}
                                                     <div class="fw-semibold">
                                                         {{ $user?->nombre ?? 'Sin usuario' }}
+                                                        @if ($user)
+                                                            <br><span class="text-muted">{{ $user->email }}</span>
+                                                        @else
+                                                            <br><span class="text-muted">Sin usuario</span>
+                                                        @endif
                                                     </div>
 
-                                                    {{-- INFO EXTRA SOLO MÓVIL --}}
+                                                    {{-- INFO EXTRA SOLO EN MÓVIL (xs) --}}
                                                     <div class="small text-muted d-md-none mt-1">
                                                         {{ $perfil->empresa }} <br>
                                                         CIF: {{ $perfil->cif }} <br>
@@ -107,24 +123,33 @@
                                                         @endif
                                                     </div>
                                                 </div>
-
                                             </div>
                                         </td>
 
-                                        {{-- EMPRESA --}}
+                                        {{-- EMPRESA (md+) --}}
                                         <td class="d-none d-md-table-cell">{{ $perfil->empresa }}</td>
 
-                                        {{-- CIF --}}
-                                        <td class="d-none d-md-table-cell">{{ $perfil->cif }}</td>
-
-                                        {{-- EMAIL --}}
-                                        <td class="d-none d-md-table-cell">{{ $perfil->email_empresa }}</td>
-
-                                        {{-- TELÉFONO --}}
+                                        {{-- TELÉFONO (md+) --}}
                                         <td class="d-none d-md-table-cell">{{ $perfil->telefono_empresa }}</td>
 
-                                        {{-- ROL --}}
-                                        <td class="d-none d-md-table-cell">
+                                        {{-- CIF (lg+) --}}
+                                        <td class="d-none d-lg-table-cell">{{ $perfil->cif }}</td>
+
+                                        {{-- EMAIL EMPRESA (lg+) --}}
+                                        <td class="d-none d-lg-table-cell">{{ $perfil->email_empresa }}</td>
+
+                                        {{-- CUENTA USUARIO (lg+) --}}
+                                        <td class="d-none d-lg-table-cell">
+                                            @if ($user)
+                                                <div>{{ $user->nombre }} {{ $user->apellidos }}</div>
+                                                <small class="text-muted">{{ $user->email }}</small>
+                                            @else
+                                                <span class="text-muted small">Sin usuario</span>
+                                            @endif
+                                        </td>
+
+                                        {{-- ROL (lg+) --}}
+                                        <td class="d-none d-lg-table-cell">
                                             @if ($user)
                                                 {{ $user->getRoleNames()->implode(', ') }}
                                             @else
@@ -132,64 +157,70 @@
                                             @endif
                                         </td>
 
-                                        {{-- VISIBLE DESKTOP --}}
+                                        {{-- VISIBLE + TOGGLE (md+) --}}
                                         <td class="d-none d-md-table-cell text-center">
-                                            @if ($perfil->visible)
-                                                <span class="badge bg-success">Sí</span>
-                                            @else
-                                                <span class="badge bg-danger">No</span>
-                                            @endif
-                                        </td>
-
-                                        {{-- ACCIONES --}}
-                                        <td class="text-end">
-
-                                            {{-- TOGGLE VISIBLE --}}
-                                            {{--<form action="{{ route('admin.profesionales.toggleVisible', $perfil->id) }}"
-                                                  method="POST" class="d-inline">
+                                            <form action="{{ route('admin.profesionales.toggle_visible', $perfil) }}"
+                                                  method="POST"
+                                                  class="d-inline">
                                                 @csrf
+                                                @method('PATCH')
 
-                                                @if ($perfil->visible)
-                                                    <button class="btn btn-outline-danger btn-sm px-2 py-1 mb-1 mb-md-0">
-                                                        Ocultar
-                                                    </button>
-                                                @else
-                                                    <button class="btn btn-outline-success btn-sm px-2 py-1 mb-1 mb-md-0">
-                                                        Hacer visible
-                                                    </button>
-                                                @endif
-                                            </form>--}}
+                                                <div class="d-flex flex-column align-items-center">
+                                                    <small class="text-muted mb-1">
+                                                        Visibilidad
+                                                    </small>
 
-                                            {{-- VER --}}
-                                            <button class="btn btn-info btn-sm px-2 py-1 mb-1 mb-md-0"
-                                                    @click="openProfessionalModal({{ $perfil->id }})">
-                                                Ver
-                                            </button>
+                                                    <div class="form-check form-switch d-flex align-items-center gap-1">
+                                                        <input class="form-check-input"
+                                                               type="checkbox"
+                                                               onChange="this.form.submit()"
+                                                               {{ $perfil->visible ? 'checked' : '' }}>
 
-                                            {{-- EDITAR --}}
-                                            <a href="{{ route('admin.profesionales.editar', $perfil->id) }}"
-                                               class="btn btn-warning btn-sm px-2 py-1 mb-1 mb-md-0">
-                                                Editar
-                                            </a>
-
-                                            {{-- ELIMINAR --}}
-                                            <form id="delete-prof-{{ $perfil->id }}"
-                                                  action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
-                                                  method="POST" class="d-inline">
-                                                @csrf
-                                                @method('DELETE')
-
-                                                <delete-professional-button
-                                                    form-id="delete-prof-{{ $perfil->id }}"
-                                                    empresa="{{ $perfil->empresa }}"
-                                                    :tiene-user="{{ $user ? 'true' : 'false' }}"
-                                                    user-nombre="{{ $user?->nombre }} {{ $user?->apellidos }}"
-                                                    user-email="{{ $user?->email }}">
-                                                </delete-professional-button>
+                                                        <label class="form-check-label small">
+                                                            {{ $perfil->visible ? 'Visible' : 'Oculto' }}
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </form>
-
                                         </td>
 
+                                        {{-- ACCIONES (xs + md + lg) --}}
+                                        <td class="text-end">
+                                            {{-- En móvil: botones en columna y a ancho completo; en md+ en fila --}}
+                                            <div class="d-flex flex-column flex-md-row gap-1 justify-content-end">
+
+                                                {{-- VER --}}
+                                                <button
+                                                    class="btn btn-info btn-sm px-2 py-1 w-100 w-md-auto"
+                                                    @click="openProfessionalModal({{ $perfil->id }})">
+                                                    Ver
+                                                </button>
+
+                                                {{-- EDITAR --}}
+                                                <a href="{{ route('admin.profesionales.editar', $perfil->id) }}"
+                                                   class="btn btn-warning btn-sm px-2 py-1 w-100 w-md-auto">
+                                                    Editar
+                                                </a>
+
+                                                {{-- ELIMINAR --}}
+                                                <form id="delete-prof-{{ $perfil->id }}"
+                                                      action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
+                                                      method="POST"
+                                                      class="d-inline w-100 w-md-auto">
+                                                    @csrf
+                                                    @method('DELETE')
+
+                                                    <delete-professional-button
+                                                        class="w-100 w-md-auto"
+                                                        form-id="delete-prof-{{ $perfil->id }}"
+                                                        empresa="{{ $perfil->empresa }}"
+                                                        :tiene-user="{{ $user ? 'true' : 'false' }}"
+                                                        user-nombre="{{ $user?->nombre }} {{ $user?->apellidos }}"
+                                                        user-email="{{ $user?->email }}">
+                                                    </delete-professional-button>
+                                                </form>
+                                            </div>
+                                        </td>
                                     </tr>
                                 @endforeach
                             </tbody>

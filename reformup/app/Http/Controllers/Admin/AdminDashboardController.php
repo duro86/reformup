@@ -32,7 +32,7 @@ class AdminDashboardController extends Controller
     // Método para listar usuarios (ejemplo adicional)
     public function listarUsuarios()
     {
-        $usuarios = User::paginate(5); // todos los campos paginados
+        $usuarios = User::orderBy('created_at', 'desc')->paginate(5); // todos los campos paginados
         return view('layouts.admin.usuarios.usuarios', compact('usuarios'));
     }
 

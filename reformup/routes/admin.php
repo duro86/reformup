@@ -46,7 +46,10 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
             ->name('profesionales');
 
         Route::get('/profesionales/{profesional}', [ProfesionalPerfilController::class, 'show'])
-            ->name('admin.profesionales.ver');
+            ->name('profesionales.ver');
+
+        Route::patch('/profesionales/{perfil}/toggle-visible', [ProfesionalPerfilController::class, 'toggleVisible'])
+            ->name('profesionales.toggle_visible');
 
         Route::get('/profesionales/{id}/editar', [ProfesionalPerfilController::class, 'editarProfesional'])
             ->name('profesionales.editar');
@@ -166,7 +169,7 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // Actualizar trabajo
         Route::put('/trabajos/{trabajo}', [AdminTrabajoController::class, 'actualizar'])
             ->name('trabajos.actualizar');
-            
+
         // Cancelar trabajo
         Route::patch('/trabajos/{trabajo}/cancelar', [AdminTrabajoController::class, 'cancelar'])
             ->name('trabajos.cancelar');

@@ -58,7 +58,8 @@
             </li>
             <li class="nav-item">
                 {{-- Listado Comentarios --}}
-                <a class="nav-link" href="{{ route('usuario.comentarios.index') }}"><i class="bi bi-chat-left-text"></i> Comentarios</a>
+                <a class="nav-link" href="{{ route('usuario.comentarios.index') }}"><i class="bi bi-chat-left-text"></i>
+                    Comentarios</a>
             </li>
 
             {{-- Bloque acceso profesional --}}
@@ -111,7 +112,7 @@
             {{-- Si es usuario y no tiene perfil profesional --}}
             @if ($isUsuario && !$isProfesional)
                 <li class="nav-item">
-                    <a class="nav-link" href="{{ route('registrar.profesional.opciones') }}">
+                    <a class="nav-link" href="{{ route('registro.pro.empresa') }}">
                         <i class="bi bi-building"></i> Registrar mi empresa
                     </a>
                 </li>
