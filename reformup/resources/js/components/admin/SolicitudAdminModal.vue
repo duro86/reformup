@@ -48,12 +48,12 @@
           </div>
 
           <!-- Descripción -->
-          <div class="mb-3" v-if="solicitud.descripcion">
-            <h6 class="fw-semibold mb-1">Descripción de la solicitud</h6>
-            <p class="mb-0">
-              {{ solicitud.descripcion }}
-            </p>
+        <div class="mb-3" v-if="solicitud.descripcion">
+          <h6 class="fw-semibold mb-1">Descripción de la solicitud</h6>
+          <div class="border rounded p-2 bg-light small"
+              v-html="solicitud.descripcion">
           </div>
+        </div>
 
           <hr>
 

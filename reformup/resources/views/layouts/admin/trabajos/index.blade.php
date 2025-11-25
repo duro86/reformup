@@ -129,6 +129,14 @@
                                                         <span class="text-muted">Sin asignar</span>
                                                     @endif
                                                 </div>
+                                                <div class="small text-muted">
+                                                    <span class="fw-semibold">Email:</span>
+                                                    @if ($pro)
+                                                        {{ $pro->email_empresa }}
+                                                    @else
+                                                        <span class="text-muted">Sin asignar</span>
+                                                    @endif
+                                                </div>
 
                                                 {{-- Ciudad / provincia --}}
                                                 <div class="small text-muted">
@@ -214,6 +222,7 @@
                                     <td class="d-none d-md-table-cell">
                                         @if ($pro)
                                             {{ $pro->empresa }}<br>
+                                            {{ $pro->email_empresa }}<br>
                                             <small class="text-muted">
                                                 {{ $pro->ciudad }}
                                                 {{ $pro->provincia ? ' - ' . $pro->provincia : '' }}

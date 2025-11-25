@@ -10,7 +10,7 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 // === ENVIAR EMAIL A ADMIN ===
-use App\Mail\NuevoProfesionalRegistrado;
+use App\Mail\Admin\NuevoProfesionalRegistrado;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait

@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Comentario;
+use App\Models\Perfil_Profesional;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\Admin\ComentarioPublicadoMailable;
@@ -114,6 +115,9 @@ class AdminComentarioController extends Controller
             $comentario->visible = false;
             $comentario->save();
 
+            // Recalcular media tras OCULTAR
+            $this->recalcularPuntuacionPerfil($perfilPro);
+
             if ($cliente && $cliente->email) {
                 try {
                     Mail::to($cliente->email)->send(
@@ -140,6 +144,9 @@ class AdminComentarioController extends Controller
         $comentario->estado  = 'publicado';
         $comentario->visible = true;
         $comentario->save();
+
+        //  Recalcular media tras PUBLICAR
+        $this->recalcularPuntuacionPerfil($perfilPro);
 
         if ($cliente && $cliente->email) {
             try {
@@ -211,7 +218,7 @@ class AdminComentarioController extends Controller
 
         return back()->with('success', 'Comentario rechazado y usuario notificado.');
     }
-    
+
     /**
      * Editar comentario (formulario).
      */
@@ -283,5 +290,28 @@ class AdminComentarioController extends Controller
         return redirect()
             ->route('admin.comentarios')
             ->with('success', 'Comentario actualizado correctamente. El usuario ha sido notificado de la modificación.');
+    }
+
+    /**
+     * Recalcular la puntuación media de un perfil profesional
+     * en base a TODOS los comentarios publicados y visibles
+     * que tenga asociados.
+     */
+    private function recalcularPuntuacionPerfil(?Perfil_Profesional $perfilPro): void
+    {
+        if (! $perfilPro) {
+            return;
+        }
+
+        $media = Comentario::where('estado', 'publicado')
+            ->where('visible', true)
+            ->whereHas('trabajo.presupuesto', function ($q) use ($perfilPro) {
+                // 👈 IMPORTANTE: aquí la FK real de presupuesto -> profesional
+                $q->where('pro_id', $perfilPro->id);
+            })
+            ->avg('puntuacion'); // Media aritmetica de los comentarios del profesional
+
+        $perfilPro->puntuacion_media = $media ?? 0;
+        $perfilPro->save();
     }
 }

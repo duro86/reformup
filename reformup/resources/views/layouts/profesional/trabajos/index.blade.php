@@ -211,7 +211,7 @@
                                                     method="POST" class="d-inline">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button type="submit" class="btn btn-primary btn-sm px-2 py-1 mx-1">
+                                                    <button type="submit" class="btn btn-danger btn-sm px-2 py-1 mx-1">
                                                         Finalizar
                                                     </button>
                                                 </form>

@@ -102,15 +102,22 @@
           </div>
 
           <hr>
-
           <!-- Notas -->
-          <div class="mb-3">
+          <!--<div class="mb-3">
             <h6 class="fw-semibold">Notas del presupuesto</h6>
             <p v-if="presupuesto.notas">
               {{ presupuesto.notas }}
             </p>
             <p v-else class="text-muted mb-0">Sin notas.</p>
+          </div>-->
+
+          <!-- Notas - Detalle -->
+        <div class="mb-3" v-if="presupuesto.notas">
+          <h6 class="fw-semibold mb-1">Notas del presupuesto</h6>
+          <div class="border rounded p-2 bg-light small"
+              v-html="presupuesto.notas">
           </div>
+        </div>
 
           <!-- Fechas -->
           <div class="small text-muted">

@@ -8,6 +8,7 @@ use App\Http\Controllers\Auth\LoginController;
 
 //Admin
 use App\Http\Controllers\Admin\AdminDashboardController;
+use App\Http\Controllers\Admin\AdminUsuarioController;
 use App\Http\Controllers\Admin\AdminSolicitudController;
 use App\Http\Controllers\Admin\AdminPresupuestoController;
 use App\Http\Controllers\Admin\AdminTrabajoController;
@@ -26,19 +27,24 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); //Mostrar dashboard
 
         // ----- EVENTOS USUARIOS CON ADMIN -----
-        Route::get('/usuarios', [AdminDashboardController::class, 'listarUsuarios'])
+        Route::get('/usuarios', [AdminUsuarioController::class, 'listarUsuarios'])
             ->name('usuarios');
-        Route::get('/usuarios/{usuario}', [AdminDashboardController::class, 'show'])
-            ->name('admin.usuarios.ver');
-        Route::get('/usuarios/{id}/editar', [AdminDashboardController::class, 'editarUsuario'])
+        Route::get('/usuarios/{usuario}', [AdminUsuarioController::class, 'mostrar'])
+            ->name('usuarios.ver');
+        Route::get('/usuarios/{id}/editar', [AdminUsuarioController::class, 'editarUsuario'])
             ->name('usuarios.editar');
-        Route::put('/usuarios/{id}', [AdminDashboardController::class, 'actualizarUsuario'])
+        Route::put('/usuarios/{id}', [AdminUsuarioController::class, 'actualizarUsuario'])
             ->name('usuarios.actualizar');
-        Route::delete('/usuarios/{id}', [AdminDashboardController::class, 'eliminarUsuario'])
+        Route::delete('/usuarios/{id}', [AdminUsuarioController::class, 'eliminarUsuario'])
             ->name('usuarios.eliminar');
+        Route::get('/usuarios/export/pdf', [AdminUsuarioController::class, 'exportarUsuariosPdf'])
+            ->name('usuarios.exportar.pdf');
+        Route::get('/admin/usuarios/exportar_pagina', [AdminUsuarioController::class, 'exportarUsuariosPaginaPdf'])
+            ->name('usuarios.exportarPaginaPdf');
+
 
         // Registrar un cliente siendo Admin
-        Route::get('/registrar/cliente', [AdminDashboardController::class, 'mostrarFormAdminUsuarioNuevo'])->name('admin.form.registrar.cliente');
+        Route::get('/registrar/cliente', [AdminUsuarioController::class, 'mostrarFormAdminUsuarioNuevo'])->name('admin.form.registrar.cliente');
         Route::post('/registrar/cliente', [AdminDashboardController::class, 'crearUsuarioNuevo'])->name('admin.registrar.cliente');
 
         // ----- EVENTOS PROFESIONALES CON ADMIN -----

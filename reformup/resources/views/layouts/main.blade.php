@@ -15,7 +15,8 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     {{-- Vite: JS + SCSS --}}
-    @vite(['resources/js/app.js'])
+    @vite(['resources/scss/app.scss', 'resources/js/app.js'])
+
     {{-- O, si prefieres separar: @vite(['resources/scss/app.scss','resources/js/app.js']) --}}
 </head>
 <body class="bg-white">

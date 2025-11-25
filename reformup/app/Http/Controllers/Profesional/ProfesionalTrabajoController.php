@@ -29,7 +29,7 @@ class ProfesionalTrabajoController extends Controller
                 ->with('error', 'No puedes acceder a esta sección, ese trabajo no pertenece a tus registros.');
         }
     }
-    
+
     /**
      * Listado de trabajos del profesional.
      */
@@ -179,11 +179,18 @@ class ProfesionalTrabajoController extends Controller
         $trabajo->estado    = 'finalizado';
         $trabajo->save();
 
+
+
         // Avisar al cliente
         $presupuesto = $trabajo->presupuesto;
         $solicitud   = $presupuesto?->solicitud;
         $cliente     = $solicitud?->cliente;
         $perfilPro   = $presupuesto?->profesional;
+
+        // Incrementar trabajos_realizados del perfil profesional
+        if ($perfilPro) {
+            $perfilPro->increment('trabajos_realizados');
+        }
 
         // Enviar email al cliente
         if ($cliente && $cliente->email && $perfilPro) {

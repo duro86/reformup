@@ -1,5 +1,5 @@
 <template>
-  <div class="modal fade" id="trabajoProModal" tabindex="-1" aria-hidden="true" ref="modal">
+  <div class="modal fade" id="trabajoModal" tabindex="-1" aria-hidden="true" ref="modal">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
       <div class="modal-content">
         <div class="modal-header">
@@ -12,8 +12,9 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
 
+        <!-- Contenido cargado -->
         <div class="modal-body" v-if="loaded">
-          <!-- Estado y fechas -->
+          <!-- Bloque: Estado y fechas -->
           <div class="row mb-3">
             <div class="col-md-4">
               <h6 class="fw-semibold mb-1">Estado</h6>
@@ -52,21 +53,58 @@
             <p class="mb-1" v-if="trabajo.presupuesto">
               <strong>Nombre:</strong>
               <span>
-                {{ trabajo.presupuesto.nombre || ('Presupuesto #' + trabajo.presupuesto.id) }}
+                {{ trabajo.presupuesto.nombre || (' Presupuesto #' + trabajo.presupuesto.id) }}
               </span>
             </p>
 
-            <p class="mb-1" v-if="trabajo.presupuesto">
-              <strong>Total:</strong>
-              <span v-if="trabajo.presupuesto.total != null">
-                {{ formatMoney(trabajo.presupuesto.total) }} €
+            <p class="mb-1" v-if="trabajo.solicitud && trabajo.solicitud.presupuesto_max">
+              <strong>Presupuesto Solicitud Max:</strong>
+              <span v-if="trabajo.solicitud.presupuesto_max != null">
+                {{ (' ') + formatMoney( trabajo.solicitud.presupuesto_max) }} €
               </span>
               <span v-else class="text-muted">No indicado</span>
             </p>
 
-            <p class="mb-1" v-if="trabajo.presupuesto && trabajo.presupuesto.notas">
+            <p class="mb-1" v-if="trabajo.presupuesto">
+              <strong>Total Presupuesto Profesional:</strong>
+              <span v-if="trabajo.presupuesto.total != null">
+                {{ (' ') + formatMoney( trabajo.presupuesto.total) }} €
+              </span>
+              <span v-else class="text-muted">No indicado</span>
+            </p>
+
+            <!--<p class="mb-1" v-if="trabajo.presupuesto && trabajo.presupuesto.notas">
               <strong>Notas:</strong><br>
               <span>{{ trabajo.presupuesto.notas }}</span>
+            </p>-->
+            
+            <!-- Notas - Detalle -->
+        <div class="mb-3" v-if="trabajo.presupuesto && trabajo.presupuesto.notas">
+          <h6 class="fw-semibold mb-1">Notas del presupuesto</h6>
+          <div class="border rounded p-2 bg-light small"
+              v-html="trabajo.presupuesto.notas">
+          </div>
+        </div>
+
+            <p v-if="!trabajo.presupuesto" class="text-muted mb-0">
+              No hay datos de presupuesto asociados.
+            </p>
+          </div>
+
+          <!-- Solicitud -->
+          <div class="mb-3">
+            <h5 class="fw-semibold mb-2">Datos de la Solicitud</h5>
+
+            <p class="mb-1" v-if="trabajo.solicitud">
+              <strong>ID:</strong>
+              <span>
+                {{ ('  Solicitud #' + trabajo.solicitud.id) }}
+              </span>
+            </p>
+
+            <p class="mb-1" v-if="trabajo.solicitud && trabajo.solicitud.ciudad">
+              <strong>Ciudad:</strong>
+              <span>{{ (' ') +trabajo.solicitud.ciudad }}</span>
             </p>
 
             <p v-if="!trabajo.presupuesto" class="text-muted mb-0">
@@ -74,10 +112,36 @@
             </p>
           </div>
 
+          <!-- Profesional -->
+          <div class="mb-3">
+            <h5 class="fw-semibold mb-2">Profesional</h5>
+            <template v-if="trabajo.presupuesto && trabajo.presupuesto.profesional">
+              <p class="mb-1">
+                <strong>{{ trabajo.presupuesto.profesional.empresa }}</strong>
+              </p>
+              <p class="mb-1">
+                <span v-if="trabajo.presupuesto.profesional.email_empresa">
+                  {{ trabajo.presupuesto.profesional.email_empresa }}<br>
+                </span>
+                <span v-if="trabajo.presupuesto.profesional.telefono_empresa">
+                  {{ trabajo.presupuesto.profesional.telefono_empresa }}
+                </span>
+              </p>
+              <p class="mb-0 text-muted small">
+                {{ trabajo.presupuesto.profesional.ciudad }}
+                <span v-if="trabajo.presupuesto.profesional.ciudad && trabajo.presupuesto.profesional.provincia"> - </span>
+                {{ trabajo.presupuesto.profesional.provincia }}
+              </p>
+            </template>
+            <p v-else class="text-muted mb-0">
+              No hay datos de profesional asociados.
+            </p>
+          </div>
+
           <hr>
 
           <!-- Cliente -->
-          <div class="mb-3">
+          <div>
             <h5 class="fw-semibold mb-2">Cliente</h5>
             <template v-if="trabajo.cliente">
               <p class="mb-1">
@@ -93,6 +157,11 @@
                   {{ trabajo.cliente.email }}
                 </span>
               </p>
+              <p class="mb-0">
+                <span v-if="trabajo.cliente.telefono">
+                  {{ trabajo.cliente.telefono }}
+                </span>
+              </p>
             </template>
             <p v-else class="text-muted mb-0">
               No se han podido cargar los datos del cliente.
@@ -100,6 +169,7 @@
           </div>
         </div>
 
+        <!-- Estado: cargando -->
         <div class="modal-body text-center py-5" v-else>
           <div class="spinner-border text-primary mb-3" role="status">
             <span class="visually-hidden">Cargando...</span>
@@ -118,10 +188,10 @@
 </template>
 
 <script>
-import { Modal } from "bootstrap";
+import { Modal } from 'bootstrap';
 
 export default {
-  name: "TrabajoModalPro",
+  name: 'TrabajoModal',
   data() {
     return {
       trabajo: {},
@@ -130,29 +200,29 @@ export default {
     };
   },
   mounted() {
-    this.modalInstance = new Modal(this.$refs.modal);
+      this.modalInstance = new Modal(this.$refs.modal);
   },
   methods: {
     async openModal(id) {
-      this.loaded = false;
+      this.loaded  = false;
       this.trabajo = {};
 
       try {
-        const resp = await window.axios.get(`/profesional/trabajos/${id}`, {
-          headers: { Accept: "application/json" },
+        const resp = await window.axios.get(`/usuario/trabajos/${id}`, {
+          headers: { Accept: 'application/json' },
         });
 
         this.trabajo = resp.data;
-        this.loaded = true;
+        this.loaded  = true;
         this.modalInstance.show();
       } catch (e) {
         console.error(e);
-        alert("No se ha podido cargar el trabajo.");
+        alert('No se ha podido cargar el trabajo.');
       }
     },
     formatMoney(value) {
-      if (value == null) return "";
-      return Number(value).toLocaleString("es-ES", {
+      if (value == null) return '';
+      return Number(value).toLocaleString('es-ES', {
         minimumFractionDigits: 2,
         maximumFractionDigits: 2,
       });

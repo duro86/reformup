@@ -34,24 +34,55 @@
                                 <i class="bi bi-plus-lg"></i> Añadir usuario
                             </a>
 
-                            <a href="#" class="btn btn-sm" style="background-color: #B5C99A; color: black;">
-                                Exportar PDF usuario
+                            <a href="{{ route('admin.usuarios.exportar.pdf') }}" class="btn btn-sm bg-secondary"
+                                target="_blank">
+                                Exportar PDF todos usuarios
+                            </a>
+                            <a href="{{ route(
+                                'admin.usuarios.exportarPaginaPdf',
+                                array_merge(
+                                    request()->only('q'), // mantiene el filtro actual si existe
+                                    ['page' => $usuarios->currentPage()], // página actual
+                                ),
+                            ) }}"
+                                class="btn btn-sm bg-light" target="_blank">
+                                Exportar PDF esta página
                             </a>
                         </div>
                     </h1>
 
+                    {{-- Buscador --}}
+                    <form method="GET" action="{{ route('admin.usuarios') }}" class="row g-2 mb-3">
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <input type="text" name="q" value="{{ request('q') }}"
+                                class="form-control form-control-sm" placeholder="Buscar por nombre, email o teléfono...">
+                        </div>
+                        <div class="col-6 col-md-3 col-lg-2 d-grid">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+                        <div class="col-6 col-md-3 col-lg-2 d-grid">
+                            @if (request('q'))
+                                <a href="{{ route('admin.usuarios') }}" class="btn btn-sm btn-outline-secondary">
+                                    Limpiar
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+
                     <div class="table-responsive">
                         <table class="table table-sm align-middle">
                             <thead>
-                                <tr style="font-size: 0.875rem;">
-                                    <th>Usuario</th>
+                                <tr class="fs-5">
+                                    <th class="text-center text-md-start">Usuario</th>
                                     <th class="d-none d-md-table-cell">Email</th>
                                     <th class="d-none d-md-table-cell">Teléfono</th>
                                     <th class="d-none d-md-table-cell">Rol</th>
                                     <th class="text-center">Acciones</th>
                                 </tr>
                             </thead>
-                            <tbody style="font-size: 0.875rem;">
+                            <tbody>
                                 @foreach ($usuarios as $usuario)
                                     <tr>
                                         {{-- Columna USUARIO: avatar + nombre + info extra en móvil --}}

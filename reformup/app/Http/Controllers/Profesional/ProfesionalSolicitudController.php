@@ -32,7 +32,7 @@ class ProfesionalSolicitudController extends Controller
             $query->where('estado', $estado);
         }
 
-        $solicitudes = $query->paginate(10)->withQueryString();
+        $solicitudes = $query->paginate(5)->withQueryString();
 
         return view('layouts.profesional.solicitudes.index', [
             'solicitudes' => $solicitudes,

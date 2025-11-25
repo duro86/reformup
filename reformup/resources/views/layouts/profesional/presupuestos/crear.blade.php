@@ -173,10 +173,13 @@
                         {{-- Notas / detalle --}}
                         <div class="mb-3">
                             <label class="form-label">Notas para el cliente</label>
-                            <textarea name="notas" rows="4" class="form-control @error('notas') is-invalid @enderror" style="resize:none;">{{ old('notas') }}</textarea>
+                            <textarea id="notas" name="notas" rows="4" class="form-control @error('notas') is-invalid @enderror"
+                                style="resize:none;">{{ old('notas') }}</textarea>
+
                             @error('notas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+
                             <small class="text-muted">
                                 Puedes explicar qué incluye el presupuesto, plazos, condiciones, etc.
                             </small>
@@ -194,6 +197,9 @@
                                 Opcional, máximo 5 MB.
                             </small>
                         </div>
+
+                        {{-- CKEditor para este campo --}}
+                        <x-ckeditor.ckeditor_descripcion for="notas" />
 
                         {{-- Botones Guardar --}}
                         <div class="d-flex justify-content-end gap-2">
@@ -213,4 +219,3 @@
 
 @endsection
 <x-profesional.presupuestos.anadir_eliminar_lineas />
-
