@@ -15,6 +15,7 @@ import ComentarioModalAdmin from "./components/admin/ComentarioModalAdmin.vue";
 import SolicitudAdminModal from "./components/admin/SolicitudAdminModal.vue";
 import PresupuestoAdminModal from "./components/admin/PresupuestoAdminModal.vue";
 import TrabajoAdminModal from "./components/admin/TrabajoAdminModal.vue";
+import ProfesionalesGrid from "./components/public/ProfesionalesGrid.vue";
 
 const app = createApp({
     methods: {
@@ -70,6 +71,7 @@ app.component("comentario-admin-modal", ComentarioModalAdmin);
 app.component("solicitud-admin-modal", SolicitudAdminModal);
 app.component("presupuesto-admin-modal", PresupuestoAdminModal);
 app.component("trabajo-admin-modal", TrabajoAdminModal);
+app.component("profesionales-grid", ProfesionalesGrid);
 
 const el = document.getElementById("app");
 if (el) {

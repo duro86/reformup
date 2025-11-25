@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
+USE App\Http\Controllers\HomeController;
 
 //Rutas externas
 require __DIR__ . '/admin.php';
@@ -13,10 +14,12 @@ require __DIR__ . '/usuario.php';
 require __DIR__ . '/login.php';
 
 
-// ----- PAGINA INICIO (LANDING PAGE)-----
-Route::get('/', function () {
-    return view('home');
-})->name('home');
+// ----- PÁGINA INICIO (LANDING PAGE) -----
+Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// PÁGINA DE BUSCADOR DE PROFESIONALES (pública)
+Route::get('/profesionales', [HomeController::class, 'profesionalesBuscador'])
+    ->name('public.profesionales.index');
 
 // ----  REGISTROS/invitados  ---
 // Registro de clientes (usuario normal)

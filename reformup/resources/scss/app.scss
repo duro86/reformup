@@ -47,6 +47,52 @@ h1.destacado {
 }
 
 // =====================
+// HERO HEADER
+// =====================
+.hero {
+    position: relative;
+    min-height: 55vh;              // alto escritorio
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+
+    /* Imagen de fondo */
+    background-image: url('/img/landingPage/hero.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    color: #fff;
+}
+/* Capa oscura para que el texto se lea bien */
+.hero .overlay {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55); /* 55% negro */
+}
+/* Contenido por encima de la capa oscura */
+.hero .hero-content {
+    position: relative;
+    z-index: 1;
+    padding: 4rem 1rem;
+}
+
+/* Un poco de ajuste en móvil */
+@media (max-width: 768px) {
+    .hero {
+        min-height: 60vh;
+    }
+
+    .hero .hero-content h1 {
+        font-size: 1.9rem;
+    }
+
+    .hero .hero-content p.lead {
+        font-size: 1rem;
+    }
+}
+
+// =====================
 // NAV-LINK GENÉRICOS
 // =====================
 .nav-link-base {
@@ -290,6 +336,13 @@ $sidebar-width: 210px;
     transform: translateY(-3px);
     box-shadow: 0 .5rem 1rem rgba(0,0,0,.08);
   }
+}
+.card-pro .flex-grow-1 {
+    min-width: 0; // permite que text-truncate funcione dentro del flex
+}
+.card-pro h5,
+.card-pro small {
+    max-width: 100%;
 }
 
 .footer-bg {

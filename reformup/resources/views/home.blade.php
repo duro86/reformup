@@ -16,7 +16,7 @@
 
             {{-- Botones header --}}
             <div class="d-flex justify-content-center gap-3">
-                <a href="#" class="btn btn-warning btn-lg fw-bold">Buscar Profesionales</a>
+                <a href="{{ route('public.profesionales.index') }}" class="btn btn-warning btn-lg fw-bold">Buscar Profesionales</a>
                 <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-outline-light btn-lg">Registrarte como
                     Profesional</a>
             </div>
@@ -78,235 +78,169 @@
             <p class="text-center text-muted mb-5">Profesionales mejor valorados del mes <i class="bi bi-trophy-fill"></i>
             </p>
 
+            {{-- Card Profesionales mejor valorados --}}
             <div class="row g-4">
-                @php
-                    $profesionalesPrueba = [
-                        [
-                            'nombre' => 'Ana Pérez',
-                            'rating' => 5.0,
-                            'resenas' => 20,
-                            'ciudad' => 'Madrid',
-                            'oficios' => ['Electricista', 'Fontanero'],
-                        ],
-                        [
-                            'nombre' => 'Luis Gómez',
-                            'rating' => 4.8,
-                            'resenas' => 15,
-                            'ciudad' => 'Barcelona',
-                            'oficios' => ['Albañil'],
-                        ],
-                        [
-                            'nombre' => 'Marta Ruiz',
-                            'rating' => 4.9,
-                            'resenas' => 30,
-                            'ciudad' => 'Valencia',
-                            'oficios' => ['Cerrajero', 'Jardinero'],
-                        ],
-                        [
-                            'nombre' => 'Carlos Flores',
-                            'rating' => 5.0,
-                            'resenas' => 12,
-                            'ciudad' => 'Sevilla',
-                            'oficios' => ['Pintor'],
-                        ],
-                        [
-                            'nombre' => 'Laura Díaz',
-                            'rating' => 4.7,
-                            'resenas' => 28,
-                            'ciudad' => 'Bilbao',
-                            'oficios' => ['Carpintero'],
-                        ],
-                        [
-                            'nombre' => 'Javier Sánchez',
-                            'rating' => 4.6,
-                            'resenas' => 18,
-                            'ciudad' => 'Granada',
-                            'oficios' => ['Electricista'],
-                        ],
-                        [
-                            'nombre' => 'Sandra Molina',
-                            'rating' => 4.9,
-                            'resenas' => 24,
-                            'ciudad' => 'Zaragoza',
-                            'oficios' => ['Fontanero'],
-                        ],
-                        [
-                            'nombre' => 'Pedro López',
-                            'rating' => 5.0,
-                            'resenas' => 22,
-                            'ciudad' => 'Málaga',
-                            'oficios' => ['Albañil', 'Pintor'],
-                        ],
-                    ];
-                @endphp
-
-                {{-- Array de Profesionales --}}
-                @foreach ($profesionalesPrueba as $p)
+                @forelse ($profesionalesDestacados as $perfil)
                     <div class="col-12 col-sm-6 col-lg-3">
                         <div class="card h-100 shadow-sm card-pro">
                             <div class="d-flex align-items-center p-3">
-                                <img class="rounded-circle me-3" src="/img/pro_card.jpg" alt="Foto {{ $p['nombre'] }}"
-                                    width="60" height="60">
-                                <h5 class="mb-0 flex-grow-1 text-truncate">{{ $p['nombre'] }}</h5>
-                                <i class="bi bi-star-fill text-warning" title="Icono que decidirás"></i>
+                                @if ($perfil->avatar)
+                                    <img class="rounded-circle me-3" src="{{ Storage::url($perfil->avatar) }}"
+                                        alt="Foto {{ $perfil->empresa }}" width="60" height="60"
+                                        style="object-fit:cover;">
+                                @else
+                                    <i class="bi bi-building me-3" style="font-size:2.5rem;"></i>
+                                @endif
+
+                                <div class="flex-grow-1" style="min-width:0;">
+                                    <h5 class="mb-0 text-truncate d-block">
+                                        {{ $perfil->empresa }}
+                                    </h5>
+                                    <small class="text-muted d-block text-truncate">
+                                        {{ $perfil->ciudad }}
+                                        @if ($perfil->provincia)
+                                            - {{ $perfil->provincia }}
+                                        @endif
+                                    </small>
+                                </div>
+
+
+                                <i class="bi bi-star-fill text-warning ms-2"></i>
                             </div>
+
                             <div class="card-body">
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="text-warning me-2">
-                                        {{-- Aquí las estrellas dinámicas más adelante --}}
-                                        ⭐⭐⭐⭐⭐
+                                {{-- Rating --}}
+                                @if (!is_null($perfil->puntuacion_media))
+                                    <div class="d-flex align-items-center mb-2">
+                                        <div class="text-warning me-2">⭐⭐⭐⭐⭐</div>
+                                        <small class="text-muted">
+                                            ({{ number_format($perfil->puntuacion_media, 1) }})
+                                            {{-- si tienes conteo de reseñas lo añades aquí --}}
+                                        </small>
                                     </div>
-                                    <small class="text-muted">({{ number_format($p['rating'], 1) }}) - {{ $p['resenas'] }}
-                                        reseñas</small>
-                                </div>
-                                <div class="mb-3">
-                                    <i class="bi bi-geo-alt-fill text-secondary me-1"></i>
-                                    <small class="text-muted">{{ $p['ciudad'] }}</small>
-                                </div>
-                                <div class="mb-3 d-flex flex-wrap gap-2">
-                                    @foreach ($p['oficios'] as $o)
-                                        <span
-                                            class="badge bg-light text-dark rounded-pill px-3 py-1">{{ $o }}</span>
-                                    @endforeach
-                                </div>
+                                @endif
+
+                                {{-- Oficios como badges --}}
+                                @if ($perfil->relationLoaded('oficios') && $perfil->oficios->isNotEmpty())
+                                    <div class="mb-3 d-flex flex-wrap gap-2">
+                                        @foreach ($perfil->oficios as $oficio)
+                                            <span class="badge bg-light text-dark rounded-pill px-3 py-1">
+                                                {{ $oficio->nombre }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
                             </div>
+
                             <div class="card-footer bg-transparent border-top-0">
-                                <a href="#" class="btn btn-primary w-100">Ver perfil</a>
+                                <a href="#" class="btn btn-primary w-100">
+                                    Ver perfil
+                                </a>
                             </div>
                         </div>
                     </div>
-                @endforeach
+                @empty
+                    <p class="text-center text-muted">Aún no hay profesionales destacados.</p>
+                @endforelse
             </div>
+
         </div>
     </section>
 
     {{-- Comentarios/Valoraciones --}}
-    {{-- Array Comentarios/Valoraciones --}}
+    {{-- Mostramos estrellas --}}
     @php
-        $comentarios = [
-            [
-                'comentario' => 'Excelente trabajo, rápido y profesional. Recomiendo 100% esta plataforma.',
-                'nombre' => 'Ana López',
-                'ubicacion' => 'Madrid/Educación',
-                'foto' => '/img/pro_card.jpg',
-                'estrellas' => 5,
-            ],
-            [
-                'comentario' => 'Me ayudaron en una emergencia y todo fue eficiente.',
-                'nombre' => 'Pedro Martínez',
-                'ubicacion' => 'Barcelona/Autónomo',
-                'foto' => '/img/pro_card.jpg',
-                'estrellas' => 4.5,
-            ],
-            [
-                'comentario' => 'Profesionales atentos y resultados excelentes.',
-                'nombre' => 'Lucía Pérez',
-                'ubicacion' => 'Valencia/Arquitecta',
-                'foto' => '/img/pro_card.jpg',
-                'estrellas' => 5,
-            ],
-            [
-                'comentario' => 'Profesionales atentos y resultados excelentes.',
-                'nombre' => 'Lucía Pérez',
-                'ubicacion' => 'Valencia/Arquitecta',
-                'foto' => '/img/pro_card.jpg',
-                'estrellas' => 5,
-            ],
-            [
-                'comentario' => 'Profesionales atentos y resultados excelentes.',
-                'nombre' => 'Lucía Pérez',
-                'ubicacion' => 'Valencia/Arquitecta',
-                'foto' => '/img/pro_card.jpg',
-                'estrellas' => 5,
-            ],
-        ];
+        $renderStars = function ($score) {
+            $score = (float) $score;
+            $full = floor($score);
+            $half = $score - $full >= 0.5 ? 1 : 0;
+            $empty = 5 - $full - $half;
+
+            $html = str_repeat('<i class="bi bi-star-fill text-warning"></i>', $full);
+            $html .= str_repeat('<i class="bi bi-star-half text-warning"></i>', $half);
+            $html .= str_repeat('<i class="bi bi-star text-warning"></i>', $empty);
+
+            return $html;
+        };
     @endphp
 
-    {{-- Titulo Comentarios/Valoraciones --}}
     <section class="py-5">
         <div class="container">
             <h2 class="text-center fw-bold mb-2">Comentarios y valoraciones</h2>
-            <p class="text-center text-muted mb-4">Opiniones y valoración de nuestros clientes y profesionales.</p>
+            <p class="text-center text-muted mb-4">
+                Opiniones y valoración de nuestros clientes y profesionales.
+            </p>
 
-            @php
-                // Agrupar en slides de 3
-                $slides = array_chunk($comentarios, 3);
-                // Función para pintar estrellas con medios puntos
-                $renderStars = function ($score) {
-                    $full = floor($score);
-                    $half = $score - $full >= 0.5 ? 1 : 0;
-                    $empty = 5 - $full - $half;
-                    $html = str_repeat('<i class="bi bi-star-fill text-warning"></i>', $full);
-                    $html .= str_repeat('<i class="bi bi-star-half text-warning"></i>', $half);
-                    $html .= str_repeat('<i class="bi bi-star text-warning"></i>', $empty);
-                    return $html;
-                };
-            @endphp
-
-            <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5500">
-
-                {{-- Indicadores --}}
-                <div class="carousel-indicators">
-                    @foreach ($slides as $i => $_)
-                        <button type="button" data-bs-target="#reviewsCarousel" data-bs-slide-to="{{ $i }}"
-                            @class(['active' => $i === 0]) aria-current="{{ $i === 0 ? 'true' : 'false' }}"
-                            aria-label="Slide {{ $i + 1 }}"></button>
-                    @endforeach
-                </div>
-
-                {{-- Carrusel --}}
-                <div class="carousel-inner">
-                    @foreach ($slides as $i => $grupo)
-                        <div class="carousel-item @if ($i === 0) active @endif">
-                            <div class="row g-4">
-                                @foreach ($grupo as $c)
-                                    <div class="col-12 col-md-6 col-lg-4">
-                                        <article class="card shadow-sm border-0 rounded-4 h-100 review-card">
-                                            <div class="card-body p-4">
-                                                <div class="text-primary mb-2" style="opacity:.35">
-                                                    <i class="bi bi-quote fs-1"></i>
-                                                </div>
-
-                                                <p class="mb-4 text-muted">{{ $c['comentario'] }}</p>
-
-                                                <div class="d-flex align-items-center">
-                                                    <img src="{{ $c['foto'] }}" class="rounded-circle me-3"
-                                                        width="52" height="52" alt="Foto de {{ $c['nombre'] }}">
-
-                                                    <div class="me-auto">
-                                                        <div class="fw-bold">{{ $c['nombre'] }}</div>
-                                                        <div class="text-muted small">{{ $c['ubicacion'] }}</div>
+            @if ($slides->isEmpty())
+                <p class="text-center text-muted">Todavía no hay comentarios publicados.</p>
+            @else
+                <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5500">
+                    <div class="carousel-inner">
+                        @foreach ($slides as $i => $grupo)
+                            <div class="carousel-item @if ($i === 0) active @endif">
+                                <div class="row g-4">
+                                    @foreach ($grupo as $c)
+                                        <div class="col-12 col-md-6 col-lg-4">
+                                            <article class="card shadow-sm border-0 rounded-4 h-100 review-card">
+                                                <div class="card-body p-4">
+                                                    <div class="text-primary mb-2" style="opacity:.35">
+                                                        <i class="bi bi-quote fs-1"></i>
                                                     </div>
 
-                                                    <div class="text-nowrap">
-                                                        {!! $renderStars($c['estrellas']) !!}
-                                                        <span
-                                                            class="fw-semibold ms-1">{{ number_format($c['estrellas'], 1) }}</span>
+                                                    {{-- Opinión --}}
+                                                    <p class="mb-4 text-muted">
+                                                        {{ $c->opinion }}
+                                                    </p>
+
+                                                    <div class="d-flex align-items-center">
+                                                        {{-- Avatar del cliente si lo tienes, si no genérico --}}
+                                                        <img src="/img/pro_card.jpg" class="rounded-circle me-3"
+                                                            width="52" height="52"
+                                                            alt="Foto de {{ $c->cliente->nombre ?? 'Cliente ReformUp' }}">
+
+                                                        <div class="me-auto">
+                                                            <div class="fw-bold">
+                                                                {{ $c->cliente->nombre ?? 'Cliente ReformUp' }}
+                                                                {{ $c->cliente->apellidos ?? '' }}
+                                                            </div>
+                                                            <div class="text-muted small">
+                                                                {{ $c->cliente->ciudad ?? '' }}
+                                                            </div>
+                                                        </div>
+
+                                                        <div class="text-nowrap">
+                                                            {!! $renderStars($c->puntuacion) !!}
+                                                            <span class="fw-semibold ms-1">
+                                                                {{ number_format($c->puntuacion, 1) }}
+                                                            </span>
+                                                        </div>
                                                     </div>
                                                 </div>
-                                            </div>
-                                        </article>
-                                    </div>
-                                @endforeach
+                                            </article>
+                                        </div>
+                                    @endforeach
+                                </div>
                             </div>
-                        </div>
-                    @endforeach
-                </div>
+                        @endforeach
+                    </div>
 
-                {{-- Controles --}}
-                <button class="carousel-control-prev" type="button" data-bs-target="#reviewsCarousel" data-bs-slide="prev">
-                    <span class="carousel-control-prev-icon"></span>
-                    <span class="visually-hidden">Anterior</span>
-                </button>
-                <button class="carousel-control-next" type="button" data-bs-target="#reviewsCarousel"
-                    data-bs-slide="next">
-                    <span class="carousel-control-next-icon"></span>
-                    <span class="visually-hidden">Siguiente</span>
-                </button>
-            </div>
+                    {{-- Controles --}}
+                    <button class="carousel-control-prev" type="button" data-bs-target="#reviewsCarousel"
+                        data-bs-slide="prev">
+                        <span class="carousel-control-prev-icon"></span>
+                        <span class="visually-hidden">Anterior</span>
+                    </button>
+                    <button class="carousel-control-next" type="button" data-bs-target="#reviewsCarousel"
+                        data-bs-slide="next">
+                        <span class="carousel-control-next-icon"></span>
+                        <span class="visually-hidden">Siguiente</span>
+                    </button>
+                </div>
+            @endif
         </div>
-        
     </section>
+
+
 
     {{-- Footer  --}}
     <x-footer />
