@@ -184,14 +184,15 @@
                                     {{-- Acciones (solo escritorio/tablet) --}}
                                     <td class="text-start d-none d-md-table-cell">
                                         @if ($presu->docu_pdf)
-                                            <a href="{{ asset('storage/' . $presu->docu_pdf) }}"
+                                            <a href="{{ route('profesional.presupuestos.ver_pdf', $presu) }}"
                                                 class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
-                                                target="_blank"><i class="bi bi-file-earmark-pdf"></i>
-                                                Ver PDF
+                                                target="_blank">
+                                                <i class="bi bi-file-earmark-pdf"></i> Ver PDF
                                             </a>
                                         @else
                                             <span class="text-muted small me-2">Sin PDF</span>
                                         @endif
+
 
                                         {{-- Botón Cancelar presupuesto --}}
                                         @if ($presu->estado === 'enviado')
@@ -203,7 +204,7 @@
                                             $presu->estado === 'rechazado' &&
                                                 $presu->solicitud &&
                                                 in_array($presu->solicitud->estado, ['abierta', 'en_revision']))
-                                            <a href="{{ route('presupuestos.seleccionar_solicitud', $presu->solicitud) }}"
+                                            <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $presu->solicitud) }}"
                                                 class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded"
                                                 target="_blank"><i class="bi bi-file-earmark-pdf"></i>
                                                 Nuevo presupuesto

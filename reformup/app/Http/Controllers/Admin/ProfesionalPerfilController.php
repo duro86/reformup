@@ -209,6 +209,7 @@ class ProfesionalPerfilController extends Controller
             'avatar.image' => 'El archivo debe ser una imagen.',
             'avatar.mimes' => 'Sólo se permiten archivos JPG, PNG, JPEG, GIF, SVG o WEBP.',
             'avatar.max'   => 'La imagen no debe superar los 2MB.',
+            'avatar.uploaded'    => 'La subida de la imagen ha fallado. Por favor, inténtalo de nuevo.',
 
             'oficios.required' => 'Debes seleccionar al menos un oficio.',
         ]);

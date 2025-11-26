@@ -121,17 +121,22 @@ class ProfesionalPresupuestoController extends Controller
             $total = $validated['total'];
             $notas = $validated['notas'] ?? null;
 
-            $file = $request->file('docu_pdf');
-            $dir  = 'presupuestos/documentos/' . now()->format('Ymd');
+            $file = $request->file('docu_pdf'); // Cogemos el archivo del formulario
+            $dir  = 'presupuestos/documentos/' . now()->format('Ymd'); // Ponemos ficha al documento(carpeta)
 
+            // Cogemos el nombresin la extension 
             $ext  = $file->getClientOriginalExtension();
             $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $safe = Str::slug($base);
-            $name = $safe . '-' . Str::random(8) . '.' . $ext;
+            $safe = Str::slug($base); // Version segura quitando paramentros raros
+            $name = $safe . '-' . Str::random(8) . '.' . $ext; // Añade un código aleatorio de 8 caracteres (Str::random(8))
 
-            Storage::disk('public')->makeDirectory($dir);
-            $file->storeAs($dir, $name, 'public');
+            // Creamos el directorio en el disco privado (si no existe)
+            Storage::disk('private')->makeDirectory($dir);
 
+            // Guardamos el archivo en el disco privado
+            $file->storeAs($dir, $name, 'private');
+
+            // Deifnimos ruta
             $rutaPdf = $dir . '/' . $name;
         } else {
             // ======= MODO 2: líneas -> generamos el PDF =======
@@ -206,13 +211,26 @@ class ProfesionalPresupuestoController extends Controller
                 'presupuestoNumero' => null, // si luego quieres numerarlos
             ]);
 
-            $dir  = 'presupuestos/generados/' . now()->format('Ymd');
-            $safe = Str::slug('presupuesto-solicitud-' . $solicitud->id);
+            // ==== Guardar el PDF generado en el disco "private" con nombre "bonito" ====
+            $dir = 'presupuestos/generados/' . now()->format('Ymd');
+
+            // Base del nombre: por ejemplo "presupuesto-solicitud-23-mi-empresa"
+            $base = 'presupuesto-solicitud-' . $solicitud->id;
+            if (!empty($perfil->empresa)) {
+                $base .= '-' . $perfil->empresa;
+            }
+
+            // Lo limpiamos para que sea seguro como nombre de fichero
+            $safe = Str::slug($base);
+
+            // Extensión fija porque siempre es PDF
             $name = $safe . '-' . Str::random(8) . '.pdf';
 
-            Storage::disk('public')->makeDirectory($dir);
-            Storage::disk('public')->put($dir . '/' . $name, $pdf->output());
+            // Creamos directorio (si no existe) y guardamos
+            Storage::disk('private')->makeDirectory($dir);
+            Storage::disk('private')->put($dir . '/' . $name, $pdf->output());
 
+            // Ruta que guardarás en la BD
             $rutaPdf = $dir . '/' . $name;
         }
 
@@ -242,6 +260,50 @@ class ProfesionalPresupuestoController extends Controller
                 ->with('error', 'Ha ocurrido un error al guardar el presupuesto.');
         }
     }
+
+    /**
+     * Ver pdf filtrando por usuario registrado y logueado, así como permiso por id
+     */
+    public function verPdf(Presupuesto $presupuesto)
+    {
+        $user   = Auth::user();
+        $perfil = $user->perfil_Profesional;
+
+        // 1) No tiene perfil profesional
+        if (! $perfil) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'Debes tener un perfil profesional para acceder a esta sección.');
+        }
+
+        // 2) El presupuesto NO es suyo
+        if ($perfil->id !== $presupuesto->pro_id) {
+            return redirect()
+                ->route('profesional.presupuestos.index')
+                ->with('error', 'No tienes permiso para ver este presupuesto.');
+        }
+
+        // 3) No hay PDF asociado
+        if (! $presupuesto->docu_pdf) {
+            return redirect()
+                ->route('profesional.presupuestos.index')
+                ->with('error', 'Este presupuesto no tiene ningún PDF asociado.');
+        }
+
+        // 4) El archivo no existe físicamente
+        if (! Storage::disk('private')->exists($presupuesto->docu_pdf)) {
+            return redirect()
+                ->route('profesional.presupuestos.index')
+                ->with('error', 'No se ha encontrado el archivo PDF en el servidor.');
+        }
+
+        // 5) Todo OK → mostramos el PDF
+        return response()->file(
+            Storage::disk('private')->path($presupuesto->docu_pdf),
+            ['Content-Type' => 'application/pdf']
+        );
+    }
+
 
     /**
      * El profesional cancela (rechaza) un presupuesto que está ENVIADO.

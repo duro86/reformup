@@ -54,6 +54,10 @@ Route::middleware(['auth', 'rol.redirigir:profesional'])
         Route::post('/presupuestos/solicitud/{solicitud}', [ProfesionalPresupuestoController::class, 'guardarFromSolicitud'])
             ->name('presupuestos.guardar_desde_solicitud');
 
+        // NUEVA RUTA: ver PDF de un presupuesto concreto filtrando por id
+        Route::get('/presupuestos/{presupuesto}/pdf', [ProfesionalPresupuestoController::class, 'verPdf'])
+            ->name('presupuestos.ver_pdf');
+
         // Cancelar presupuesto
         Route::patch('/presupuestos/{presupuesto}/cancelar', [
             ProfesionalPresupuestoController::class,

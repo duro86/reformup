@@ -4,17 +4,17 @@
 @section('content')
 
     <x-navbar />
-<div class="d-flex justify-content-start mx-5 my-1">
+    <div class="d-flex justify-content-start mx-5 my-1">
         <a href="{{ route('admin.usuarios') }}" class="btn btn-secondary btn-sm d-flex align-items-center gap-2">
             <i class="bi bi-arrow-left"></i> Volver a la lista Usuarios
         </a>
     </div>
     <div class="container my-5">
         <div class="row g-0 shadow rounded overflow-hidden">
-            
+
             {{-- Panel izquierdo decorativo (puedes dejar el mismo que en crear) --}}
             <div class="col-lg-5 d-none d-lg-block" style="background:#E9F5DB;">
-                
+
                 <div class="h-100 p-5">
 
                     <h2 class="mb-3 text-success">Editar usuario</h2>
@@ -174,6 +174,8 @@
 
                         {{-- Rol --}}
                         @foreach ($allRoles as $roleName)
+                            @continue($roleName === 'usuario')
+
                             <div class="form-check form-check-inline">
                                 <input class="form-check-input rol-input" type="checkbox" name="roles[]"
                                     id="role_{{ $roleName }}" value="{{ $roleName }}"

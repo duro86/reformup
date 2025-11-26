@@ -58,11 +58,9 @@
                             <hr class="my-4">
                             <h5>Roles del usuario</h5>
 
-                            @php
-                            // $allRoles y $currentRoles vienen del controlador
-                            @endphp
-
                             @foreach ($allRoles as $roleName)
+                                @continue($roleName === 'usuario')
+
                                 @php
                                     $isChecked = in_array($roleName, old('roles', $currentRoles));
                                 @endphp

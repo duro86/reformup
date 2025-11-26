@@ -1,6 +1,6 @@
 {{-- resources/views/components/profesional/profesional_sidebar.blade.php --}}
-
 @php
+    //AUTENTICAMOS
     $user = Auth::user();
     $roles = $user ? $user->getRoleNames() : collect();
 
@@ -63,8 +63,8 @@
 
     {{-- Texto roles adicionales --}}
     <div class="ms-1 mb-2 small text-muted">
-        @if ($isUsuario)
-            <div>Rol usuario</div>
+        @if ($isProfesional)
+            <div>Rol Profesional</div>
         @endif
         @if ($isAdmin)
             <div>Rol administrador</div>
@@ -109,6 +109,8 @@
             <li>
                 <hr>
             </li>
+
+            {{-- MOSTRAR PERFIL PROFESIONAL ACTIVO O NO --}}
             @if ($perfilProfesional->visible)
                 <i class="bi bi-hourglass-split text-success" aria-label="Perfil profesional activo"
                     title="Perfil profesional activo"></i> Perfil profesional activo
@@ -119,7 +121,7 @@
 
         </ul>
 
-        {{-- Zona inferior --}}
+        {{-- Zona inferior PERFIL Y CERRAR SESION--}}
         <ul class="nav flex-column mt-auto admin-sidebar">
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('home') }}">

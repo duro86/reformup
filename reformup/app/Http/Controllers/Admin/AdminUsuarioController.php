@@ -250,12 +250,12 @@ class AdminUsuarioController extends Controller
     {
         $usuario = User::findOrFail($id);
 
-        // Roles válidos sacados de la BD (limitados a los que quieres manejar desde el panel)
-        $validRoles = Role::whereIn('name', ['usuario', 'profesional', 'admin'])
+        // Roles que SÍ se pueden modificar desde el panel
+        $validRoles = Role::whereIn('name', ['profesional', 'admin'])
             ->pluck('name')
-            ->toArray(); // ['usuario','profesional','admin']
+            ->toArray(); // ['profesional','admin']
 
-        // Validación (email y teléfono únicos, ignorando al propio usuario)
+        // Validación
         $request->validate([
             'nombre'     => ['required', 'string', 'max:50'],
             'apellidos'  => ['required', 'string', 'max:100'],
@@ -264,14 +264,14 @@ class AdminUsuarioController extends Controller
                 'email:rfc,dns',
                 Rule::unique('users', 'email')->ignore($usuario->id),
             ],
-            // password opcional: solo si se rellena
             'password'   => ['nullable', 'confirmed', 'min:6'],
             'telefono'   => [
                 'required',
                 'regex:/^[6789]\d{8}$/',
                 Rule::unique('users', 'telefono')->ignore($usuario->id),
             ],
-            'roles'   => ['required', 'array', 'min:1'],
+            // OJO: ahora 'roles' puede venir vacío (solo tendrá 'usuario' fijo)
+            'roles'   => ['nullable', 'array'],
             'roles.*' => ['string', Rule::in($validRoles)],
             'ciudad'     => ['nullable', 'string', 'max:100'],
             'provincia'  => ['nullable', 'string', 'max:100'],
@@ -293,30 +293,28 @@ class AdminUsuarioController extends Controller
             'avatar.image'       => 'El archivo debe ser una imagen.',
             'avatar.mimes'       => 'Sólo se permiten archivos JPG, PNG, JPEG, GIF o SVG.',
             'avatar.max'         => 'La imagen no debe superar los 2MB.',
-            'roles.required'     => 'Debes seleccionar al menos un rol.',
-            'roles.min'          => 'Debes seleccionar al menos un rol.',
+            'avatar.uploaded'    => 'La subida de la imagen ha fallado. Por favor, inténtalo de nuevo.',
+
+            // Mensajes de roles (si quieres alguno, aunque ahora es nullable)
             'roles.*.in'         => 'Alguno de los roles seleccionados no es válido.',
         ]);
 
-        // Roles seleccionados desde el formulario
+        // Roles seleccionados desde el formulario (solo admin/profesional)
         $rolesSeleccionados = $request->roles ?? [];
+
+        // Nos aseguramos de que solo haya roles válidos (por si viene algo raro)
+        $rolesSeleccionados = array_values(
+            array_intersect($rolesSeleccionados, $validRoles)
+        );
 
         // --- REGLAS DE NEGOCIO SOBRE ROLES ---
 
-        // 1) El usuario debe tener SIEMPRE el rol "usuario"
-        if (! in_array('usuario', $rolesSeleccionados)) {
-            return back()
-                ->with([
-                    'error' => 'El usuario debe tener siempre el rol básico de usuario. ' .
-                        'Si quieres eliminar al usuario, hazlo desde la opción de eliminar, no quitándole el rol. O si no tiene perfil de usuario, deberias registrarlo primero.',
-                ])
-                ->withInput();
-        }
+        // 1) NO controlamos 'usuario' aquí: SIEMPRE lo tendrá por código (no desde el form)
 
         // 2) No puede quitar "profesional" si tiene perfil_profesional
-        $teniaProfesional = $usuario->hasRole('profesional');
-        $quitandoProfesional = $teniaProfesional && ! in_array('profesional', $rolesSeleccionados);
-        $tienePerfilProfesional = $usuario->perfil_Profesional()->exists();
+        $teniaProfesional        = $usuario->hasRole('profesional');
+        $quitandoProfesional     = $teniaProfesional && ! in_array('profesional', $rolesSeleccionados);
+        $tienePerfilProfesional  = $usuario->perfil_Profesional()->exists();
 
         if ($quitandoProfesional && $tienePerfilProfesional) {
             return back()
@@ -330,7 +328,6 @@ class AdminUsuarioController extends Controller
         // --- Procesar avatar (si sube uno nuevo) ---
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
 
-            // opcional: borrar avatar anterior si no es el default
             if ($usuario->avatar && $usuario->avatar !== 'imagenes/avatarUser/avatar_default.png') {
                 Storage::disk('public')->delete($usuario->avatar);
             }
@@ -346,7 +343,6 @@ class AdminUsuarioController extends Controller
 
             $avatarPath = $dir . '/' . $file;
         } else {
-            // si no sube nada, dejamos el que ya tenía
             $avatarPath = $usuario->avatar;
         }
 
@@ -361,21 +357,25 @@ class AdminUsuarioController extends Controller
         $usuario->direccion = $request->direccion;
         $usuario->avatar    = $avatarPath;
 
-        // Si el admin cambia la contraseña
         if ($request->filled('password')) {
             $usuario->password = bcrypt($request->password);
         }
 
-        // Guardamos Usuario
         $usuario->save();
 
-        // --- Gestionar roles: esto borra los anteriores y deja solo los seleccionados ---
-        $usuario->syncRoles($rolesSeleccionados);
+        // --- Gestionar roles ---
+
+        // Siempre queremos que tenga el rol 'usuario' aunque no venga en el form
+        $rolesFinales = array_unique(array_merge(['usuario'], $rolesSeleccionados));
+
+        // Sobrescribimos roles con: usuario + (admin/profesional según el form)
+        $usuario->syncRoles($rolesFinales);
 
         return redirect()
             ->route('admin.usuarios')
             ->with('success', 'Usuario actualizado correctamente');
     }
+
 
     /**
      * Eliminar usuario desde el panel admin
@@ -403,6 +403,4 @@ class AdminUsuarioController extends Controller
             ->route('admin.usuarios')
             ->with('success', 'Usuario eliminado correctamente (y su perfil profesional, si tenía).');
     }
-
-    
 }

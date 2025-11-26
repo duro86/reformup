@@ -1,15 +1,15 @@
 @php
     use Illuminate\Support\Facades\Auth;
+    use Illuminate\Support\Facades\Storage;
 
     $user = Auth::user();
-
     $nombre = $user?->nombre ?? 'Admin';
 
-    // Avatar: primero el que tenga el admin; si no, uno fijo de la app
     if ($user?->avatar) {
-        $avatarUrl = asset('storage/' . $user->avatar);
+        $avatarUrl = Storage::disk('public')->url($user->avatar);
+        // dd($avatarUrl);   // si quieres ver qué URL genera exactamente
     } else {
-        $avatarUrl = asset('img/admin/avatar_admin_dibujo.png'); // el que ya usabas
+        $avatarUrl = asset('img/admin/avatar_admin_dibujo.png');
     }
 
     $bgColor = '#FFF3CD'; // amarillito suave de "barra de control"
@@ -30,10 +30,8 @@
 
             <div class="d-flex align-items-center gap-2">
                 @if ($avatarUrl)
-                    <img src="{{ $avatarUrl }}"
-                         alt="avatar admin"
-                         class="rounded-circle"
-                         style="width: 36px; height: 36px; object-fit: cover;">
+                    <img src="{{ $avatarUrl }}" alt="avatar admin" class="rounded-circle"
+                        style="width: 36px; height: 36px; object-fit: cover;">
                 @else
                     <i class="bi bi-shield-lock" style="font-size: 1.9rem;"></i>
                 @endif
