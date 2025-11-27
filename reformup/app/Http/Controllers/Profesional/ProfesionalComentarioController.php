@@ -35,7 +35,7 @@ class ProfesionalComentarioController extends Controller
             ->where('estado', 'publicado')
             ->where('visible', true)
             ->orderByDesc('fecha')
-            ->paginate(10);
+            ->paginate(6);
 
         // Para la vista (el filtro realmente solo tiene sentido en "publicados")
         $estado  = null;

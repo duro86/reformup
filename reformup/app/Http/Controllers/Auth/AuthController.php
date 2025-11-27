@@ -86,8 +86,8 @@ class AuthController extends Controller
             // Guardamos solo la ruta relativa en BD
             $avatarPath = $dir . '/' . $file;
         } else {
-            // Si no sube nada, asignamos el avatar por defecto
-            $avatarPath = 'imagenes/avatarUser/avatar_default.png';
+            // Si no sube nada, dejamos nulo
+            $avatarPath = null;
         }
 
         // Insertamos en la tabla users y asignamos el rol de cliente

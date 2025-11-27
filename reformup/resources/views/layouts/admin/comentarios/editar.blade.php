@@ -11,11 +11,6 @@
         <x-admin.nav_movil active="comentarios" />
 
         <div class="container py-4">
-
-            <h1 class="h4 mb-3">
-                Editar comentario #{{ $comentario->id }} del usuario
-            </h1>
-
             @php
                 $trabajo = $comentario->trabajo;
                 $presu = $trabajo?->presupuesto;
@@ -23,6 +18,9 @@
                 $cliente = $solicitud?->cliente;
                 $pro = $presu?->profesional;
             @endphp
+            <h1 class="h4 mb-3">
+                Editar comentario #{{ $comentario->id }} del usuario {{ $cliente->nombre }} {{ $cliente->apellidos }}
+            </h1>
 
             {{-- Mensajes flash --}}
             @if (session('success'))
@@ -116,7 +114,8 @@
                             normas de la plataforma.
                         </span>
                     </label>
-                    <textarea name="opinion" rows="5" class="form-control @error('opinion') is-invalid @enderror">{{ old('opinion', $comentario->opinion) }}</textarea>
+                    <textarea style="resize: none;" name="opinion" rows="5"
+                        class="form-control @error('opinion') is-invalid @enderror">{{ old('opinion', $comentario->opinion) }}</textarea>
                     @error('opinion')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror

@@ -1,5 +1,4 @@
-
-@if(session('success'))
+@if (session('success'))
     <script>
         Swal.fire({
             title: '¡Éxito!',
@@ -10,7 +9,7 @@
     </script>
 @endif
 
-@if(session('error'))
+@if (session('error'))
     <script>
         Swal.fire({
             title: 'Error',
@@ -21,7 +20,7 @@
     </script>
 @endif
 
-@if(session('info'))
+@if (session('info'))
     <script>
         Swal.fire({
             title: 'Información',
@@ -32,9 +31,9 @@
     </script>
 @endif
 
-@if ($errors->has('concepto'))
+@if (isset($errors) && $errors->has('concepto'))
     <script>
-        document.addEventListener('DOMContentLoaded', function () {
+        document.addEventListener('DOMContentLoaded', function() {
             Swal.fire({
                 icon: 'error',
                 title: 'Error de validación',

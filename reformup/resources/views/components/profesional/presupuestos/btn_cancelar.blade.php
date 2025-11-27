@@ -5,16 +5,14 @@
     $fnName = 'confirmCancelarPresu' . $presupuesto->id;
 @endphp
 
-<form id="{{ $formId }}"
-      action="{{ route('profesional.presupuestos.cancelar', $presupuesto) }}"
-      method="POST"
-      class="d-inline">
+<form id="{{ $formId }}" action="{{ route('profesional.presupuestos.cancelar', $presupuesto) }}" method="POST"
+    class="d-inline">
     @csrf
     @method('PATCH')
 
-    <button type="button"
-            class="btn btn-outline-danger btn-sm"
-            onclick="{{ $fnName }}()">
+    <button type="button" class="btn btn-danger btn-sm w-100 d-flex justify-content-center align-items-center gap-1"
+        onclick="{{ $fnName }}()">
+        <i class="bi bi-slash-circle"></i>
         Cancelar
     </button>
 </form>

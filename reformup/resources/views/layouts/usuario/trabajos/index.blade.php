@@ -4,6 +4,7 @@
 
 @section('content')
 
+    {{-- Navbar superior --}}
     <x-navbar />
 
     {{-- SIDEBAR FIJO (escritorio) --}}
@@ -18,9 +19,11 @@
 
         <div class="container py-4" id="app">
 
+            {{-- Título --}}
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-hammer"></i> Mis trabajos
+                    <i class="bi bi-hammer"></i>
+                    Mis trabajos
                 </h1>
             </div>
 
@@ -33,20 +36,39 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
+            <x-buscador-q :action="route('usuario.trabajos.index')" placeholder="Buscar por título, empresa, ciudad, estado o importe..." />
+
+
             {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
                 {{-- Todos --}}
                 <li class="nav-item">
-                    <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ route('usuario.trabajos.index') }}">
+                    @php
+                        $urlTodos = route(
+                            'usuario.trabajos.index',
+                            array_filter([
+                                'q' => request('q'),
+                            ]),
+                        );
+                    @endphp
+                    <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ $urlTodos }}">
                         Todos
                     </a>
                 </li>
 
                 {{-- ESTADOS DEL MODELO --}}
                 @foreach ($estados as $valor => $texto)
+                    @php
+                        $urlEstado = route(
+                            'usuario.trabajos.index',
+                            array_filter([
+                                'estado' => $valor,
+                                'q' => request('q'),
+                            ]),
+                        );
+                    @endphp
                     <li class="nav-item">
-                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}"
-                            href="{{ route('usuario.trabajos.index', ['estado' => $valor]) }}">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
                             {{ $texto }}
                         </a>
                     </li>
@@ -60,20 +82,21 @@
                     {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
                 </div>
             @else
-                {{-- Tabla listado Trabajos --}}
-                <div class="table-responsive">
-                    <table class="table align-middle">
+                {{-- ===================================================== --}}
+                {{-- TABLA SOLO ESCRITORIO (lg+)                         --}}
+                {{-- ===================================================== --}}
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-sm align-middle">
                         <thead>
-                            <tr>
-                                <th class="bg-secondary">Trabajo / Referencia</th>
-                                <th class="d-none d-lg-table-cell bg-secondary">Empresa</th>
-                                <th class="d-none d-lg-table-cell bg-secondary">Estado</th>
-                                <th class="d-none d-lg-table-cell bg-secondary">Fecha inicio</th>
-                                <th class="d-none d-lg-table-cell bg-secondary">Fecha fin</th>
-                                <th class="d-none d-lg-table-cell bg-secondary">Dirección obra</th>
-                                <th class="d-none d-lg-table-cell text-center bg-secondary">Total presupuesto</th>
-
-                                <th class="text-center bg-secondary">Acciones</th>
+                            <tr class="fs-5">
+                                <th>Trabajo / Referencia</th>
+                                <th>Empresa</th>
+                                <th class="text-center">Estado</th>
+                                <th>Fecha inicio</th>
+                                <th>Fecha fin</th>
+                                <th>Dirección obra</th>
+                                <th class="text-center">Total presupuesto</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -88,10 +111,18 @@
                                     $yaComentado = $trabajo->comentarios
                                         ->where('cliente_id', $usuario->id)
                                         ->isNotEmpty();
+
+                                    $badgeClass = match ($trabajo->estado) {
+                                        'previsto' => 'bg-primary',
+                                        'en_curso' => 'bg-warning text-dark',
+                                        'finalizado' => 'bg-success',
+                                        'cancelado' => 'bg-secondary',
+                                        default => 'bg-light text-dark',
+                                    };
                                 @endphp
 
                                 <tr>
-                                    {{-- Trabajo / referencia + bloque móvil --}}
+                                    {{-- Trabajo / referencia --}}
                                     <td>
                                         <strong>
                                             @if ($solicitud?->titulo)
@@ -100,123 +131,80 @@
                                                 Trabajo #{{ $trabajo->id }}
                                             @endif
                                         </strong>
-
-                                        {{-- Versión móvil: detalles debajo --}}
-                                        <div class="small text-muted d-block d-lg-none mt-1">
-
-                                            {{-- Empresa (presupuesto / solicitud) --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Empresa:</span>
-                                                @if ($profesionalPresu?->empresa || $profesionalSol?->empresa || $solicitud?->empresa)
-                                                    @if ($profesionalPresu?->empresa)
-                                                        {{ $profesionalPresu->empresa }}
-                                                    @endif
-                                                    @if ($profesionalSol?->empresa && $profesionalSol?->empresa !== ($profesionalPresu->empresa ?? null))
-                                                        <br><span class="text-muted">Sol.:
-                                                            {{ $profesionalSol->empresa }}</span>
-                                                    @elseif($solicitud?->empresa && !$profesionalSol)
-                                                        <br><span class="text-muted">Sol.: {{ $solicitud->empresa }}</span>
-                                                    @endif
-                                                @else
-                                                    <span class="text-muted">Sin empresa</span>
-                                                @endif
-                                            </span>
-
-                                            {{-- Estado --}}
-                                            @php
-                                                $badgeClass = match ($trabajo->estado) {
-                                                    'previsto' => 'bg-primary',
-                                                    'en_curso' => 'bg-warning text-dark',
-                                                    'finalizado' => 'bg-success',
-                                                    'cancelado' => 'bg-secondary',
-                                                    default => 'bg-light text-dark',
-                                                };
-                                            @endphp
-                                            <span class="d-block mt-1">
-                                                <span class="fw-semibold">Estado:</span>
-                                                <span class="badge {{ $badgeClass }}">
-                                                    {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
-                                                </span>
-                                            </span>
-
-                                            {{-- Fechas --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Inicio:</span>
-                                                {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
-                                            </span>
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Fin:</span>
-                                                {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
-                                            </span>
-
-                                            {{-- Dirección obra --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Dir. obra:</span>
-                                                {{ Str::limit($trabajo->dir_obra ?? 'No indicada', 20, '...') }}
-                                            </span>
-
-                                            {{-- Total presupuesto --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Total:</span>
-                                                @if ($presupuesto?->total)
-                                                    {{ number_format($presupuesto->total, 2, ',', '.') }} €
-                                                @else
-                                                    <span class="text-muted">No indicado</span>
-                                                @endif
-                                            </span>
+                                        <div class="small text-muted">
+                                            Ref. trabajo: #{{ $trabajo->id }}
+                                            @if ($presupuesto)
+                                                · Presupuesto #{{ $presupuesto->id }}
+                                            @endif
                                         </div>
                                     </td>
 
-                                    {{-- Empresa (solo escritorio) --}}
-                                    <td class="d-none d-lg-table-cell">
+                                    {{-- Empresa (presupuesto / solicitud) --}}
+                                    <td>
                                         @if ($profesionalPresu?->empresa || $profesionalSol?->empresa || $solicitud?->empresa)
                                             @if ($profesionalPresu?->empresa)
                                                 {{ $profesionalPresu->empresa }}
                                             @endif
                                             @if ($profesionalSol?->empresa && $profesionalSol?->empresa !== ($profesionalPresu->empresa ?? null))
-                                                <br><span class="text-muted small">Sol.:
-                                                    {{ $profesionalSol->empresa }}</span>
+                                                <br>
+                                                <span class="text-muted small">
+                                                    Sol.: {{ $profesionalSol->empresa }}
+                                                </span>
                                             @elseif($solicitud?->empresa && !$profesionalSol)
-                                                <br><span class="text-muted small">Sol.: {{ $solicitud->empresa }}</span>
+                                                <br>
+                                                <span class="text-muted small">
+                                                    Sol.: {{ $solicitud->empresa }}
+                                                </span>
                                             @endif
                                         @else
                                             <span class="text-muted small">Sin empresa</span>
                                         @endif
                                     </td>
 
-                                    {{-- Estado (solo escritorio grande) --}}
-                                    <td class="d-none d-lg-table-cell">
-                                        @php
-                                            $badgeClass = match ($trabajo->estado) {
-                                                'previsto' => 'bg-primary',
-                                                'en_curso' => 'bg-warning text-dark',
-                                                'finalizado' => 'bg-success',
-                                                'cancelado' => 'bg-secondary',
-                                                default => 'bg-light text-dark',
-                                            };
-                                        @endphp
+                                    {{-- Estado (centrado) --}}
+                                    <td class="text-center">
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
                                         </span>
+                                        @if ($trabajo->estado === 'previsto')
+                                            <div class="small text-primary mt-1">
+                                                EL trabajo esta pendiente de comenzar por parte del profesional
+                                            </div>
+                                        @endif
+                                        @if ($trabajo->estado === 'en_curso')
+                                            <div class="small text-primary mt-1">
+                                                El trabajo está iniciado, si ha finalizado, el profesional se lo comunicará
+                                            </div>
+                                        @endif
+                                        @if ($trabajo->estado === 'finalizado')
+                                            <div class="small text-primary mt-1">
+                                                El trabajo se ha finalizado, ¡Deje su reseña en comentarios!
+                                            </div>
+                                        @endif
+                                        @if ($trabajo->estado === 'cancelado')
+                                            <div class="small text-primary mt-1">
+                                                El trabajo ha sido cancelado y notificado al cliente y profesional
+                                            </div>
+                                        @endif
                                     </td>
 
-                                    {{-- Fecha inicio (solo escritorio) --}}
-                                    <td class="d-none d-lg-table-cell">
+                                    {{-- Fecha inicio --}}
+                                    <td>
                                         {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
                                     </td>
 
-                                    {{-- Fecha fin (solo escritorio) --}}
-                                    <td class="d-none d-lg-table-cell">
+                                    {{-- Fecha fin --}}
+                                    <td>
                                         {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
                                     </td>
 
-                                    {{-- Dirección obra (solo escritorio) --}}
-                                    <td class="d-none d-lg-table-cell">
-                                        {{ Str::limit($trabajo->dir_obra ?? 'No indicada', 20, '...') }}
+                                    {{-- Dirección obra --}}
+                                    <td>
+                                        {{ Str::limit($trabajo->dir_obra ?? 'No indicada', 40, '...') }}
                                     </td>
 
-                                    {{-- Total presupuesto (solo escritorio) --}}
-                                    <td class="d-none d-lg-table-cell justify-center text-center">
+                                    {{-- Total presupuesto --}}
+                                    <td class="text-center">
                                         @if ($presupuesto?->total)
                                             {{ number_format($presupuesto->total, 2, ',', '.') }} €
                                         @else
@@ -226,35 +214,40 @@
 
                                     {{-- Acciones --}}
                                     <td class="text-center">
-                                        {{-- Ver detalle trabajo (modal Vue) --}}
-                                        <button type="button" class="btn btn-info btn-sm px-2 py-1 mx-1"
-                                            @click="openTrabajoModal({{ $trabajo->id }})">
-                                            Ver
-                                        </button>
+                                        <div class="d-flex flex-row flex-wrap gap-1 justify-content-center mx-2">
 
-                                        {{-- Ver presupuesto PDF --}}
-                                        @if ($presupuesto?->docu_pdf)
-                                            <a href="{{ asset('storage/' . $presupuesto->docu_pdf) }}"
-                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
-                                                target="_blank">
-                                                <i class="bi bi-file-earmark-pdf"></i>
-                                                Ver presupuesto
-                                            </a>
-                                        @endif
+                                            {{-- Ver detalle trabajo (modal Vue) --}}
+                                            <button type="button"
+                                                class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
+                                                @click="openTrabajoModal({{ $trabajo->id }})">
+                                                Ver
+                                            </button>
 
-                                        {{-- Cancelar trabajo (solo si está previsto y no ha empezado) --}}
-                                        @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
-                                            <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" />
-                                        @endif
+                                            {{-- Ver presupuesto PDF (usando ruta protegida) --}}
+                                            @if ($presupuesto?->docu_pdf)
+                                                <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}"
+                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1"
+                                                    target="_blank">
+                                                    <i class="bi bi-file-earmark-pdf"></i>
+                                                    Ver presupuesto
+                                                </a>
+                                            @endif
 
-                                        {{-- Botón comentar (solo si finalizado y sin comentario del cliente) --}}
-                                        @if ($trabajo->estado === 'finalizado' && !$yaComentado)
-                                            <a href="{{ route('usuario.comentarios.crear', $trabajo) }}"
-                                                class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1 mb-1">
-                                                <i class="bi bi-star"></i>
-                                                Valorar
-                                            </a>
-                                        @endif
+                                            {{-- Cancelar trabajo (solo si está previsto y no ha empezado) --}}
+                                            @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
+                                                <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" />
+                                            @endif
+
+                                            {{-- Valorar (solo si finalizado y sin comentario del cliente) --}}
+                                            @if ($trabajo->estado === 'finalizado' && !$yaComentado)
+                                                <a href="{{ route('usuario.comentarios.crear', $trabajo) }}"
+                                                    class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1">
+                                                    <i class="bi bi-star"></i>
+                                                    Valorar
+                                                </a>
+                                            @endif
+
+                                        </div>
                                     </td>
                                 </tr>
                             @endforeach
@@ -262,14 +255,175 @@
                     </table>
                 </div>
 
-                <div class="mt-3">
-                    {{ $trabajos->links() }}
-                </div>
-            @endif
+                {{-- ===================================================== --}}
+                {{-- VISTA CARDS MÓVIL/TABLET (xs–lg)                     --}}
+                {{-- ===================================================== --}}
+                <div class="d-block d-lg-none">
+                    @foreach ($trabajos as $trabajo)
+                        @php
+                            $presupuesto = $trabajo->presupuesto;
+                            $solicitud = $presupuesto?->solicitud;
+                            $profesionalPresu = $presupuesto?->profesional;
+                            $profesionalSol = $solicitud?->profesional;
 
-            {{-- Modal Vue --}}
-            <trabajo-modal ref="trabajoModal"></trabajo-modal>
+                            $yaComentado = $trabajo->comentarios->where('cliente_id', $usuario->id)->isNotEmpty();
+
+                            $badgeClass = match ($trabajo->estado) {
+                                'previsto' => 'bg-primary',
+                                'en_curso' => 'bg-warning text-dark',
+                                'finalizado' => 'bg-success',
+                                'cancelado' => 'bg-secondary',
+                                default => 'bg-light text-dark',
+                            };
+                        @endphp
+
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body bg-light">
+
+                                {{-- Título / referencia --}}
+                                <div class="mb-2">
+                                    <div class="fw-semibold">
+                                        @if ($solicitud?->titulo)
+                                            {{ $solicitud->titulo }}
+                                        @else
+                                            Trabajo #{{ $trabajo->id }}
+                                        @endif
+                                    </div>
+                                    <div class="small text-muted">
+                                        Ref. trabajo: #{{ $trabajo->id }}
+                                        @if ($presupuesto)
+                                            · Presupuesto #{{ $presupuesto->id }}
+                                        @endif
+                                    </div>
+                                </div>
+
+                                <div class="small text-muted mb-2">
+
+                                    {{-- Empresa --}}
+                                    <div class="mb-1">
+                                        <strong>Empresa:</strong>
+                                        @if ($profesionalPresu?->empresa || $profesionalSol?->empresa || $solicitud?->empresa)
+                                            @if ($profesionalPresu?->empresa)
+                                                {{ $profesionalPresu->empresa }}
+                                            @endif
+                                            @if ($profesionalSol?->empresa && $profesionalSol?->empresa !== ($profesionalPresu->empresa ?? null))
+                                                <br>
+                                                <span class="text-muted">Sol.: {{ $profesionalSol->empresa }}</span>
+                                            @elseif($solicitud?->empresa && !$profesionalSol)
+                                                <br>
+                                                <span class="text-muted">Sol.: {{ $solicitud->empresa }}</span>
+                                            @endif
+                                        @else
+                                            <span class="text-muted">Sin empresa</span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Estado --}}
+                                    <div class="mb-1">
+                                        <strong>Estado:</strong>
+                                        <span class="badge {{ $badgeClass }}">
+                                            {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
+                                        </span>
+                                        @if ($trabajo->estado === 'previsto')
+                                            <div class="small text-primary mt-1">
+                                                EL trabajo esta pendiente de comenzar por parte del profesional
+                                            </div>
+                                        @endif
+                                        @if ($trabajo->estado === 'en_curso')
+                                            <div class="small text-primary mt-1">
+                                                El trabajo está iniciado, si ha finalizado, el profesional se lo comunicará
+                                            </div>
+                                        @endif
+                                        @if ($trabajo->estado === 'finalizado')
+                                            <div class="small text-primary mt-1">
+                                                El trabajo se ha finalizado, ¡Deje su reseña en comentarios!
+                                            </div>
+                                        @endif
+                                        @if ($trabajo->estado === 'cancelado')
+                                            <div class="small text-primary mt-1">
+                                                El trabajo ha sido cancelado y notificado al cliente y profesional
+                                            </div>
+                                        @endif
+                                    </div>
+
+                                    {{-- Fechas --}}
+                                    <div class="mb-1">
+                                        <strong>Inicio:</strong>
+                                        {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
+                                    </div>
+                                    <div class="mb-1">
+                                        <strong>Fin:</strong>
+                                        {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
+                                    </div>
+
+                                    {{-- Dirección obra --}}
+                                    <div class="mb-1">
+                                        <strong>Dir. obra:</strong>
+                                        {{ Str::limit($trabajo->dir_obra ?? 'No indicada', 40, '...') }}
+                                    </div>
+
+                                    {{-- Total presupuesto --}}
+                                    <div class="mb-1">
+                                        <strong>Total:</strong>
+                                        @if ($presupuesto?->total)
+                                            {{ number_format($presupuesto->total, 2, ',', '.') }} €
+                                        @else
+                                            <span class="text-muted">No indicado</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Acciones en columna, ancho completo --}}
+                                <div class="d-grid gap-2">
+                                    {{-- Ver detalle trabajo --}}
+                                    <button type="button" class="btn btn-info btn-sm w-100"
+                                        @click="openTrabajoModal({{ $trabajo->id }})">
+                                        Ver Detalle
+                                    </button>
+
+                                    {{-- Ver presupuesto PDF (usando ruta protegida) --}}
+                                    @if ($presupuesto?->docu_pdf)
+                                        <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}"
+                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 w-100"
+                                            target="_blank">
+                                            <i class="bi bi-file-earmark-pdf"></i>
+                                            Ver presupuesto
+                                        </a>
+                                    @endif
+
+                                    {{-- Cancelar trabajo --}}
+                                    @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
+                                        {{-- asegúrate de que el componente use w-100 en su botón interno --}}
+                                        <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" />
+                                    @endif
+
+                                    {{-- Valorar --}}
+                                    @if ($trabajo->estado === 'finalizado' && !$yaComentado)
+                                        <a href="{{ route('usuario.comentarios.crear', $trabajo) }}"
+                                            class="btn btn-sm btn-warning d-inline-flex align-items-center justify-content-center gap-1 w-100">
+                                            <i class="bi bi-star"></i>
+                                            Valorar
+                                        </a>
+                                    @endif
+                                </div>
+
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+                {{-- Modal Vue --}}
+                <trabajo-modal ref="trabajoModal"></trabajo-modal>
         </div>
+
+        {{-- Paginación --}}
+        <div class="mt-3">
+            {{ $trabajos->links('pagination::bootstrap-5') }}
+        </div>
+
+        @endif
+
+
+    </div>
     </div>
 
 @endsection

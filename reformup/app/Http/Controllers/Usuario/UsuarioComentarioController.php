@@ -11,6 +11,7 @@ use App\Mail\Admin\ComentarioPendienteMailable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Mews\Purifier\Facades\Purifier;
 
 class UsuarioComentarioController extends Controller
 {
@@ -18,24 +19,46 @@ class UsuarioComentarioController extends Controller
     /**
      * Listado de comentarios del usuario.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user = Auth::user();
+        $q    = $request->input('q');
 
-        $comentarios = Comentario::with([
+        $query = Comentario::with([
             'trabajo.presupuesto.solicitud',
             'trabajo.presupuesto.profesional',
         ])
-            ->where('cliente_id', $user->id)
-            ->orderByDesc('fecha')
-            ->paginate(5);
+            ->where('cliente_id', $user->id);
 
-        return view('layouts.usuario.comentarios.index', compact('comentarios', 'user'));
+        if ($q) {
+            $like = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($like) {
+                $sub
+                    // Título de la solicitud
+                    ->whereHas('trabajo.presupuesto.solicitud', function ($qSol) use ($like) {
+                        $qSol->where('titulo', 'like', $like);
+                    })
+                    // Profesional (empresa)
+                    ->orWhereHas('trabajo.presupuesto.profesional', function ($qPro) use ($like) {
+                        $qPro->where('empresa', 'like', $like)
+                            ->orWhere('email_empresa', 'like', $like);
+                    })
+                    // Opinión
+                    ->orWhere('opinion', 'like', $like)
+                    // Estado
+                    ->orWhere('estado', 'like', $like);
+            });
+        }
+
+        $comentarios = $query
+            ->orderByDesc('fecha')
+            ->paginate(5)
+            ->withQueryString();
+
+        return view('layouts.usuario.comentarios.index', compact('comentarios', 'user', 'q'));
     }
 
-    /**
-     * Formulario para dejar comentario de un trabajo finalizado.
-     */
     /**
      * Formulario para dejar comentario de un trabajo finalizado.
      */
@@ -109,12 +132,30 @@ class UsuarioComentarioController extends Controller
             'opinion'    => 'nullable|string|max:2000',
         ]);
 
+
+        // Limpiamos con el purifier
+        $opinion = $validated['opinion'];
+
+        $opinion_limpia = $opinion
+            ? Purifier::clean($opinion, 'solicitud')
+            : null;
+
+        $comentario = Comentario::create([
+            'trabajo_id' => $trabajo->id,
+            'cliente_id' => $user->id,
+            'puntuacion' => $validated['puntuacion'],
+            'opinion'    => $opinion_limpia,
+            'estado'     => 'pendiente',
+            'visible'    => false,
+            'fecha'      => now(),
+        ]);
+
         // 5) Crear comentario
         $comentario = Comentario::create([
             'trabajo_id' => $trabajo->id,
             'cliente_id' => $user->id,
             'puntuacion' => $validated['puntuacion'],
-            'opinion'    => $validated['opinion'] ?? null,
+            'opinion'    => $opinion_limpia ?? null,
             'estado'     => 'pendiente',
             'visible'    => false,
             'fecha'      => now(),

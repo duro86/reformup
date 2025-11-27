@@ -8,15 +8,16 @@
     <x-admin.admin_sidebar />
 
     <div class="container-fluid main-content-with-sidebar">
-        {{-- NAV MÓVIL ADMIN --}}
+
+        {{-- Nav móvil admin --}}
         <x-admin.nav_movil active="solicitudes" />
 
         <div class="container py-4" id="app">
 
-            {{-- Título + feedback --}}
+            {{-- Título + botón nueva --}}
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-file-earmark-text"></i> Mis solicitudes
+                    <i class="bi bi-file-earmark-text"></i> Gestión de solicitudes
                 </h1>
 
                 <a href="{{ route('admin.solicitudes.crear') }}"
@@ -26,6 +27,7 @@
                 </a>
             </div>
 
+            {{-- Mensajes flash --}}
             @if (session('success'))
                 <div class="alert alert-success">{{ session('success') }}</div>
             @endif
@@ -34,22 +36,47 @@
                 <div class="alert alert-danger">{{ session('error') }}</div>
             @endif
 
+            {{-- Buscador --}}
+            <form method="GET" action="{{ route('admin.solicitudes') }}" class="row g-2 mb-3">
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, cliente, profesional, ciudad, provincia o estado...">
+                </div>
+
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q'))
+                        <a href="{{ route('admin.solicitudes') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
+
             @if ($solicitudes->isEmpty())
                 <div class="alert alert-info">
                     No hay solicitudes registradas todavía.
                 </div>
             @else
-                <div class="table-responsive">
-                    <table class="table align-middle">
+                {{-- ===================================================== --}}
+                {{-- TABLA SOLO ESCRITORIO (lg+)                         --}}
+                {{-- ===================================================== --}}
+                <div class="table-responsive d-none d-lg-block">
+                    <table class="table table-sm align-middle">
                         <thead>
-                            <tr>
-                                <th class="bg-secondary text-white">Título / Solicitud</th>
-                                <th class="d-none d-lg-table-cell bg-secondary text-white">Cliente</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Profesional</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Ciudad / Provincia</th>
-                                <th class="bg-secondary text-white">Estado</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Fecha</th>
-                                <th class="text-center bg-secondary text-white">Acciones</th>
+                            <tr class="fs-5">
+                                <th>Título / Ref</th>
+                                <th>Cliente</th>
+                                <th>Profesional</th>
+                                <th>Ciudad / Provincia</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -67,70 +94,18 @@
                                 @endphp
 
                                 <tr>
-                                    {{-- TITULO + BLOQUE MÓVIL --}}
+                                    {{-- Título / Ref --}}
                                     <td>
                                         <strong>
                                             {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
                                         </strong>
-
                                         <div class="small text-muted">
-                                            @if ($solicitud->created_at)
-                                                Ref: #{{ $solicitud->id }}
-                                            @endif
-                                        </div>
-
-                                        {{-- Versión móvil (md-) con más detalles --}}
-                                        <div class="small text-muted d-block d-md-none mt-1">
-
-                                            {{-- Cliente --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Cliente:</span>
-                                                @if ($cliente)
-                                                    {{ $cliente->nombre ?? $cliente->name }}
-                                                    {{ $cliente->apellidos ?? '' }}
-                                                @else
-                                                    <span class="text-muted">Sin cliente</span>
-                                                @endif
-                                            </span>
-
-                                            {{-- Profesional --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Profesional:</span>
-                                                @if ($pro)
-                                                    {{ $pro->empresa }}
-                                                    {{ $pro->email_empresa }}
-                                                @else
-                                                    <span class="text-muted">Sin asignar</span>
-                                                @endif
-                                            </span>
-
-                                            {{-- Ciudad / provincia --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Ubicación:</span>
-                                                {{ $solicitud->ciudad ?? 'No indicada' }}
-                                                @if ($solicitud->provincia)
-                                                    - {{ $solicitud->provincia }}
-                                                @endif
-                                            </span>
-
-                                            {{-- Estado --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Estado:</span>
-                                                <span class="badge {{ $badgeClass }}">
-                                                    {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}
-                                                </span>
-                                            </span>
-
-                                            {{-- Fecha --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Fecha:</span>
-                                                {{ $solicitud->fecha?->format('d/m/Y H:i') ?? $solicitud->created_at?->format('d/m/Y H:i') }}
-                                            </span>
+                                            Ref: #{{ $solicitud->id }}
                                         </div>
                                     </td>
 
-                                    {{-- CLIENTE (lg+) --}}
-                                    <td class="d-none d-lg-table-cell">
+                                    {{-- Cliente --}}
+                                    <td>
                                         @if ($cliente)
                                             {{ $cliente->nombre ?? $cliente->name }}
                                             {{ $cliente->apellidos ?? '' }}<br>
@@ -140,8 +115,8 @@
                                         @endif
                                     </td>
 
-                                    {{-- PROFESIONAL (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Profesional --}}
+                                    <td>
                                         @if ($pro)
                                             {{ $pro->empresa }}<br>
                                             @if ($pro->email_empresa)
@@ -158,41 +133,41 @@
                                         @endif
                                     </td>
 
-                                    {{-- CIUDAD / PROVINCIA (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Ciudad / Provincia --}}
+                                    <td>
                                         {{ $solicitud->ciudad ?? 'No indicada' }}
                                         @if ($solicitud->provincia)
                                             - {{ $solicitud->provincia }}
                                         @endif
                                     </td>
 
-                                    {{-- ESTADO --}}
+                                    {{-- Estado --}}
                                     <td>
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}
                                         </span>
                                     </td>
 
-                                    {{-- FECHA (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Fecha --}}
+                                    <td>
                                         {{ $solicitud->fecha?->format('d/m/Y H:i') ?? $solicitud->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
-                                    {{-- ACCIONES --}}
+                                    {{-- Acciones --}}
                                     <td class="text-center">
-                                        <div class="d-flex flex-column flex-md-row flex-wrap justify-content-center gap-2">
+                                        <div class="d-flex flex-row flex-wrap gap-1 justify-content-center">
 
-                                            {{-- Ver en modal Vue (ya tienes SolicitudModal y openSolicitudModal en app.js) --}}
+                                            {{-- Ver (modal Vue) --}}
                                             <button type="button"
-                                                class="btn btn-info btn-sm px-2 py-1 mb-1 mb-md-0 d-inline-flex align-items-center gap-1"
+                                                class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
                                                 @click="openSolicitudAdminModal({{ $solicitud->id }})">
                                                 Ver
                                             </button>
 
-                                            {{-- Editar: solo si abierta o en revisión --}}
+                                            {{-- Editar sólo si abierta o en revisión --}}
                                             @if (in_array($solicitud->estado, ['abierta', 'en_revision']))
-                                                <a href="{{ route('admin.solicitudes.editar', $solicitud) }}"
-                                                    class="btn btn-warning btn-sm px-2 py-1 mb-1 mb-md-0 d-inline-flex align-items-center gap-1">
+                                                <a href="{{ route('admin.solicitudes.editar', [$solicitud->id, 'page' => $solicitudes->currentPage()]) }}"
+                                                    class="btn btn-warning btn-sm px-2 py-1 d-inline-flex align-items-center gap-1">
                                                     <i class="bi bi-pencil"></i> Editar
                                                 </a>
                                             @endif
@@ -205,9 +180,117 @@
                     </table>
                 </div>
 
-                <div class="mt-3">
-                    {{ $solicitudes->links() }}
+                {{-- ===================================================== --}}
+                {{-- VISTA CARDS MÓVIL/TABLET (xs–lg)                     --}}
+                {{-- ===================================================== --}}
+                <div class="d-block d-lg-none">
+                    @foreach ($solicitudes as $solicitud)
+                        @php
+                            $cliente = $solicitud->cliente;
+                            $pro = $solicitud->profesional;
+                            $badgeClass = match ($solicitud->estado) {
+                                'abierta' => 'bg-primary',
+                                'en_revision' => 'bg-warning text-dark',
+                                'cerrada' => 'bg-success',
+                                'cancelada' => 'bg-secondary',
+                                default => 'bg-light text-dark',
+                            };
+                        @endphp
+
+                        <div class="card mb-3 shadow-sm">
+                            {{-- mismo tono que usas en otros listados --}}
+                            <div class="card-body bg-light">
+
+                                {{-- Título + ref --}}
+                                <div class="mb-2">
+                                    <div class="fw-semibold">
+                                        {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
+                                    </div>
+                                    <div class="small text-muted">
+                                        Ref: #{{ $solicitud->id }}
+                                    </div>
+                                </div>
+
+                                <div class="small text-muted mb-2">
+                                    {{-- Cliente --}}
+                                    <div>
+                                        <strong>Cliente:</strong>
+                                        @if ($cliente)
+                                            {{ $cliente->nombre ?? $cliente->name }}
+                                            {{ $cliente->apellidos ?? '' }}
+                                            <br>
+                                            <span>{{ $cliente->email }}</span>
+                                        @else
+                                            <span class="text-muted">Sin cliente</span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Profesional --}}
+                                    <div class="mt-1">
+                                        <strong>Profesional:</strong>
+                                        @if ($pro)
+                                            {{ $pro->empresa }}<br>
+                                            @if ($pro->email_empresa)
+                                                <span>{{ $pro->email_empresa }}</span><br>
+                                            @endif
+                                            <span>
+                                                {{ $pro->ciudad }}
+                                                {{ $pro->provincia ? ' - ' . $pro->provincia : '' }}
+                                            </span>
+                                        @else
+                                            <span class="text-muted">Sin asignar</span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Ubicación --}}
+                                    <div class="mt-1">
+                                        <strong>Ubicación:</strong>
+                                        {{ $solicitud->ciudad ?? 'No indicada' }}
+                                        @if ($solicitud->provincia)
+                                            - {{ $solicitud->provincia }}
+                                        @endif
+                                    </div>
+
+                                    {{-- Estado (SOLO AQUÍ EN MÓVIL, no en otra parte) --}}
+                                    <div class="mt-1">
+                                        <strong>Estado:</strong>
+                                        <span class="badge {{ $badgeClass }}">
+                                            {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Fecha --}}
+                                    <div class="mt-1">
+                                        <strong>Fecha:</strong>
+                                        {{ $solicitud->fecha?->format('d/m/Y H:i') ?? $solicitud->created_at?->format('d/m/Y H:i') }}
+                                    </div>
+                                </div>
+
+                                {{-- Acciones en columna, ancho completo --}}
+                                <div class="d-grid gap-2">
+                                    {{-- Ver --}}
+                                    <button type="button" class="btn btn-info btn-sm"
+                                        @click="openSolicitudAdminModal({{ $solicitud->id }})">
+                                        Ver
+                                    </button>
+
+                                    {{-- Editar sólo si abierta o en revisión --}}
+                                    @if (in_array($solicitud->estado, ['abierta', 'en_revision']))
+                                        <a href="{{ route('admin.solicitudes.editar', [$solicitud->id, 'page' => $solicitudes->currentPage()]) }}"
+                                            class="btn btn-warning btn-sm">
+                                            Editar
+                                        </a>
+                                    @endif
+                                </div>
+
+                            </div>
+                        </div>
+                    @endforeach
                 </div>
+
+                {{-- Paginación --}}
+                {{ $solicitudes->links('pagination::bootstrap-5') }}
+
             @endif
 
             {{-- Modal Vue para ver solicitud (admin) --}}

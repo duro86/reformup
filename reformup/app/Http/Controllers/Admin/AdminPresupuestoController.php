@@ -23,24 +23,9 @@ class AdminPresupuestoController extends Controller
      */
     public function index(Request $request)
     {
-        // Filtro por estado si lo necesitas (en la query string: ?estado=enviado, etc.)
         $estado = $request->query('estado');
+        $q      = $request->query('q');
 
-        $query = Presupuesto::with([
-            'solicitud.cliente',    // Para sacar título, ciudad/provincia y cliente
-            'profesional',          // Para sacar el profesional (empresa, email_empresa, etc.)
-        ]);
-
-        if ($estado) {
-            $query->where('estado', $estado);
-        }
-
-        $presupuestos = $query
-            ->orderByDesc('created_at')
-            ->paginate(5)
-            ->withQueryString(); // para mantener el filtro en la paginación
-
-        // Si quieres tener también el array de estados en la vista (pills de filtro)
         $estados = [
             null         => 'Todos',
             'enviado'    => 'Enviados',
@@ -50,10 +35,48 @@ class AdminPresupuestoController extends Controller
             'caducado'   => 'Caducados',
         ];
 
+        $presupuestos = Presupuesto::with(['solicitud.cliente', 'profesional'])
+            // Filtro por estado si llega
+            ->when($estado, function ($query) use ($estado) {
+                $query->where('estado', $estado);
+            })
+            // Filtro por búsqueda libre
+            ->when($q, function ($query) use ($q) {
+                $query->where(function ($sub) use ($q) {
+                    $sub
+                        // Buscar por id exacto si escribe un número
+                        ->orWhere('id', $q)
+                        // Por total aproximado (si metiera un número con coma o punto)
+                        ->orWhere('total', 'like', '%' . str_replace(',', '.', $q) . '%')
+                        // Por datos de la solicitud
+                        ->orWhereHas('solicitud', function ($q2) use ($q) {
+                            $q2->where('titulo', 'like', "%{$q}%")
+                                ->orWhere('ciudad', 'like', "%{$q}%")
+                                ->orWhere('provincia', 'like', "%{$q}%");
+                        })
+                        // Por cliente
+                        ->orWhereHas('solicitud.cliente', function ($q3) use ($q) {
+                            $q3->where('nombre', 'like', "%{$q}%")
+                                ->orWhere('apellidos', 'like', "%{$q}%")
+                                ->orWhere('email', 'like', "%{$q}%");
+                        })
+                        // Por profesional
+                        ->orWhereHas('profesional', function ($q4) use ($q) {
+                            $q4->where('empresa', 'like', "%{$q}%")
+                                ->orWhere('email_empresa', 'like', "%{$q}%")
+                                ->orWhere('ciudad', 'like', "%{$q}%")
+                                ->orWhere('provincia', 'like', "%{$q}%");
+                        });
+                });
+            })
+            ->orderByDesc('created_at')
+            ->paginate(6)
+            ->withQueryString(); // conserva q y estado en la paginación
+
         return view('layouts.admin.presupuestos.index', [
             'presupuestos' => $presupuestos,
-            'estado'       => $estado,
             'estados'      => $estados,
+            'estado'       => $estado,
         ]);
     }
 
@@ -507,5 +530,111 @@ class AdminPresupuestoController extends Controller
         return redirect()
             ->route('admin.presupuestos')
             ->with('success', 'Presupuesto actualizado correctamente. Cliente y profesional han sido notificados de la modificación.');
+    }
+
+    /**
+     * Eliminar presupuesto por parte del admin
+     * 
+     */
+
+    public function eliminarPresuAdmin(Presupuesto $presupuesto)
+    {
+        // Cargamos relaciones necesarias (si no las tienes ya eager-loaded en el index)
+        $presupuesto->load(['solicitud.cliente', 'trabajo', 'profesional']);
+
+        $solicitud = $presupuesto->solicitud;
+        $trabajo   = $presupuesto->trabajo;
+        $cliente   = $solicitud?->cliente;
+        $pro       = $presupuesto->profesional;
+
+        // CASO 1: ENVIADO → aquí NO se elimina, para eso ya tienes cancelar
+        if ($presupuesto->estado === 'enviado') {
+            return back()->with(
+                'error',
+                'Este presupuesto está ENVIADO. Primero debes cancelarlo con el botón de "Cancelar", no eliminarlo.'
+            );
+        }
+
+        // CASO 2: ACEPTADO → sólo si el trabajo NO ha empezado (fecha_ini = null)
+        if ($presupuesto->estado === 'aceptado') {
+
+            if (! $trabajo) {
+                return back()->with(
+                    'error',
+                    'Este presupuesto está aceptado pero no tiene trabajo asociado. Revisa los datos antes de eliminar.'
+                );
+            }
+
+            if (! is_null($trabajo->fecha_ini)) {
+                return back()->with(
+                    'error',
+                    'El trabajo asociado ya tiene fecha de inicio. No se puede cancelar/eliminar este presupuesto.'
+                );
+            }
+
+            // 1) Marcamos presupuesto como CANCELADO (no lo borramos físicamente)
+            $presupuesto->estado = 'cancelado';
+            $presupuesto->save();
+
+            // 2) Cancelamos el trabajo asociado
+            $trabajo->estado = 'cancelado';
+            $trabajo->save();
+
+            // 3) La solicitud vuelve a EN_REVISIÓN para poder enviar un nuevo presupuesto
+            if ($solicitud) {
+                $solicitud->estado = 'en_revision';
+                $solicitud->save();
+            }
+
+            // 4) Avisos por email (si quieres)
+            /*
+        try {
+            if ($cliente && $cliente->email) {
+                Mail::to($cliente->email)->queue(new PresupuestoCanceladoPorAdmin($presupuesto, 'cliente'));
+            }
+
+            if ($pro && $pro->email_empresa) {
+                Mail::to($pro->email_empresa)->queue(new PresupuestoCanceladoPorAdmin($presupuesto, 'profesional'));
+            }
+        } catch (\Throwable $e) {
+            // loguear si quieres, pero sin romper el flujo
+        }
+        */
+
+            return back()->with(
+                'success',
+                'Presupuesto aceptado cancelado correctamente. Se ha cancelado también el trabajo y la solicitud ha pasado a "en revisión".'
+            );
+        }
+
+        // CASO 3: RECHAZADO → se puede ELIMINAR y la solicitud queda CERRADA
+        if ($presupuesto->estado === 'rechazado') {
+
+            // Opcional: borrar el PDF del disco si existe
+            if ($presupuesto->docu_pdf) {
+                // Ajusta 'public' por 'private' si lo guardas en otro disk
+                Storage::disk('public')->delete($presupuesto->docu_pdf);
+            }
+
+            // 1) Eliminamos el presupuesto
+            $presupuesto->delete();
+
+            // 2) La solicitud asociada queda CERRADA (si existe)
+            if ($solicitud) {
+                $solicitud->estado = 'cerrada';
+                $solicitud->save();
+            }
+
+            return back()->with(
+                'success',
+                'Presupuesto rechazado eliminado correctamente. La solicitud asociada ha quedado cerrada.'
+            );
+        }
+
+        // Otros estados → de momento no permitimos esta operación
+        return back()->with(
+            'error',
+            'No se puede eliminar este presupuesto en su estado actual.'
+        );
     }
 }

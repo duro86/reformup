@@ -14,12 +14,23 @@ use Illuminate\Database\QueryException;
 
 class ProfesionalDashboardController extends Controller
 {
-    // Panel de control para profesionales
+    /**
+     * Panel Dashboard profesionales, controlamos si tiene perfil profesional o no
+     */
+
     public function index()
     {
-        $user   = Auth::user();
+        $user = Auth::user();
         $perfil = $user->perfil_Profesional()->first();
 
+        // Si NO tiene perfil profesional, redirigimos al panel de usuario
+        if (! $perfil) {
+            return redirect()
+                ->route('usuario.dashboard')
+                ->with('error', 'No tienes un perfil profesional creado. Accede a tu panel de usuario o crea primero tu perfil profesional.');
+        }
+
+        // Si tiene perfil profesional, mostramos el dashboard pro
         return view('layouts.profesional.dashboard_profesional', compact('user', 'perfil'));
     }
 

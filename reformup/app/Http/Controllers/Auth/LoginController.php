@@ -23,7 +23,7 @@ class LoginController extends Controller
     }
 
     /**
-     * Procesa el login del usuario.
+     * Procesa el login del usuario. Validamos campos
      */
     public function login(Request $request)
     {

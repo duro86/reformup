@@ -10,15 +10,15 @@
         </div>
 
         <div class="modal-body" v-if="loaded">
-          <div class="mb-3">
-            <h6 class="fw-semibold">Descripción</h6>
-            <p class="mb-0" v-if="solicitud.descripcion">
-              {{ solicitud.descripcion }}
-            </p>
-            <p class="text-muted" v-else>
-              Sin descripción detallada.
-            </p>
+          
+          <!-- Descripción -->
+          <div class="mb-3" v-if="solicitud.descripcion">
+            <h6 class="fw-semibold mb-1">Descripción de la solicitud</h6>
+            <div class="border rounded p-2 bg-light small"
+                 v-html="solicitud.descripcion">
+            </div>
           </div>
+          <span v-else class="text-muted">Sin descripción</span>
 
           <div class="row mb-3">
             <div class="col-md-6">

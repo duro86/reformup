@@ -5,16 +5,12 @@
     $fnName = 'confirmRechazarComentario' . $comentario->id;
 @endphp
 
-<form id="{{ $formId }}"
-      action="{{ route('admin.comentarios.rechazar', $comentario) }}"
-      method="POST"
-      class="d-inline">
+<form id="{{ $formId }}" action="{{ route('admin.comentarios.rechazar', $comentario) }}" method="POST"
+    class="d-inline">
     @csrf
     @method('PATCH')
 
-    <button type="button"
-            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
-            onclick="{{ $fnName }}()">
+    <button type="button" class="btn btn-outline-danger btn-sm px-2 py-1 w-100" onclick="{{ $fnName }}()">
         <i class="bi bi-slash-circle"></i>
         Rechazar
     </button>

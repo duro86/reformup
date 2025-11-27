@@ -16,7 +16,8 @@
 
             {{-- Botones header --}}
             <div class="d-flex justify-content-center gap-3">
-                <a href="{{ route('public.profesionales.index') }}" class="btn btn-warning btn-lg fw-bold">Buscar Profesionales</a>
+                <a href="{{ route('public.profesionales.index') }}" class="btn btn-warning btn-lg fw-bold">Buscar
+                    Profesionales</a>
                 <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-outline-light btn-lg">Registrarte como
                     Profesional</a>
             </div>
@@ -147,18 +148,18 @@
         </div>
     </section>
 
-    {{-- Comentarios/Valoraciones --}}
-    {{-- Mostramos estrellas --}}
+    {{-- Sección: Comentarios y Valoraciones --}}
+    {{-- Función para renderizar estrellas según la puntuación --}}
     @php
-        $renderStars = function ($score) {
-            $score = (float) $score;
-            $full = floor($score);
-            $half = $score - $full >= 0.5 ? 1 : 0;
-            $empty = 5 - $full - $half;
+        $renderizarEstrellas = function ($puntuacion) {
+            $puntuacion = (float) $puntuacion;
+            $llenas = floor($puntuacion); // Número de estrellas llenas
+            $media = $puntuacion - $llenas >= 0.5 ? 1 : 0; // Media estrella si es necesario
+            $vacias = 5 - $llenas - $media; // Estrellas vacías
 
-            $html = str_repeat('<i class="bi bi-star-fill text-warning"></i>', $full);
-            $html .= str_repeat('<i class="bi bi-star-half text-warning"></i>', $half);
-            $html .= str_repeat('<i class="bi bi-star text-warning"></i>', $empty);
+            $html = str_repeat('<i class="bi bi-star-fill text-warning"></i>', $llenas);
+            $html .= str_repeat('<i class="bi bi-star-half text-warning"></i>', $media);
+            $html .= str_repeat('<i class="bi bi-star text-warning"></i>', $vacias);
 
             return $html;
         };
@@ -171,47 +172,52 @@
                 Opiniones y valoración de nuestros clientes y profesionales.
             </p>
 
+            {{-- Si no hay comentarios, muestra mensaje --}}
             @if ($slides->isEmpty())
                 <p class="text-center text-muted">Todavía no hay comentarios publicados.</p>
             @else
+                {{-- Carrusel de comentarios --}}
                 <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5500">
                     <div class="carousel-inner">
-                        @foreach ($slides as $i => $grupo)
-                            <div class="carousel-item @if ($i === 0) active @endif">
+                        @foreach ($slides as $indice => $grupo)
+                            <div class="carousel-item @if ($indice === 0) active @endif">
                                 <div class="row g-4">
-                                    @foreach ($grupo as $c)
+                                    @foreach ($grupo as $comentario)
                                         <div class="col-12 col-md-6 col-lg-4">
                                             <article class="card shadow-sm border-0 rounded-4 h-100 review-card">
                                                 <div class="card-body p-4">
+                                                    {{-- Icono de comillas --}}
                                                     <div class="text-primary mb-2" style="opacity:.35">
                                                         <i class="bi bi-quote fs-1"></i>
                                                     </div>
 
-                                                    {{-- Opinión --}}
+                                                    {{-- Opinión del cliente --}}
                                                     <p class="mb-4 text-muted">
-                                                        {{ $c->opinion }}
+                                                        {{ $comentario->opinion }}
                                                     </p>
 
                                                     <div class="d-flex align-items-center">
-                                                        {{-- Avatar del cliente si lo tienes, si no genérico --}}
+                                                        {{-- Avatar del cliente --}}
                                                         <img src="/img/pro_card.jpg" class="rounded-circle me-3"
                                                             width="52" height="52"
-                                                            alt="Foto de {{ $c->cliente->nombre ?? 'Cliente ReformUp' }}">
+                                                            alt="Foto de {{ $comentario->cliente->nombre ?? 'Cliente ReformUp' }}">
 
+                                                        {{-- Nombre y ciudad del cliente --}}
                                                         <div class="me-auto">
                                                             <div class="fw-bold">
-                                                                {{ $c->cliente->nombre ?? 'Cliente ReformUp' }}
-                                                                {{ $c->cliente->apellidos ?? '' }}
+                                                                {{ $comentario->cliente->nombre ?? 'Cliente ReformUp' }}
+                                                                {{ $comentario->cliente->apellidos ?? '' }}
                                                             </div>
                                                             <div class="text-muted small">
-                                                                {{ $c->cliente->ciudad ?? '' }}
+                                                                {{ $comentario->cliente->ciudad ?? '' }}
                                                             </div>
                                                         </div>
 
+                                                        {{-- Puntuación en estrellas --}}
                                                         <div class="text-nowrap">
-                                                            {!! $renderStars($c->puntuacion) !!}
+                                                            {!! $renderizarEstrellas($comentario->puntuacion) !!}
                                                             <span class="fw-semibold ms-1">
-                                                                {{ number_format($c->puntuacion, 1) }}
+                                                                {{ number_format($comentario->puntuacion, 1) }}
                                                             </span>
                                                         </div>
                                                     </div>
@@ -224,7 +230,7 @@
                         @endforeach
                     </div>
 
-                    {{-- Controles --}}
+                    {{-- Controles del carrusel --}}
                     <button class="carousel-control-prev" type="button" data-bs-target="#reviewsCarousel"
                         data-bs-slide="prev">
                         <span class="carousel-control-prev-icon"></span>
@@ -240,10 +246,9 @@
         </div>
     </section>
 
-
-
     {{-- Footer  --}}
     <x-footer />
 
 @endsection
+
 <x-alertas_sweet />

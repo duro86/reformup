@@ -8,7 +8,8 @@
     {{-- Aquí guardaremos el motivo que escriba el usuario en el SweetAlert --}}
     <input type="hidden" name="motivo" id="motivo-cancelar-trabajo-{{ $trabajo->id }}">
 
-    <button type="button" id="btn-cancelar-trabajo-{{ $trabajo->id }}" class="btn btn-outline-danger btn-sm px-2 py-1">
+    <button type="button" id="btn-cancelar-trabajo-{{ $trabajo->id }}"
+        class="btn btn-outline-danger btn-sm px-2 py-1 w-100">
         Cancelar trabajo
     </button>
 </form>
@@ -41,13 +42,13 @@
                     inputAttributes: {
                         'aria-label': 'Motivo de la cancelación'
                     },
-                    // Si quisieras obligar a poner motivo:
-                    // inputValidator: (value) => {
-                    //     if (!value) {
-                    //         return 'Por favor, indica un motivo.';
-                    //     }
-                    //     return null;
-                    // }
+                    // Obligar a poner motivo:
+                    inputValidator: (value) => {
+                        if (!value) {
+                            return 'Por favor, indica un motivo.';
+                        }
+                        return null;
+                    }
                 }).then((result) => {
                     if (result.isConfirmed) {
                         input.value = result.value || '';

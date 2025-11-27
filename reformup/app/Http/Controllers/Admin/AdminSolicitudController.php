@@ -20,14 +20,38 @@ class AdminSolicitudController extends Controller
      */
     public function index(Request $request)
     {
-        // Más adelante aquí metemos filtros (estado, fechas, etc.)
-        $solicitudes = Solicitud::with(['cliente', 'profesional'])
-            ->orderByDesc('fecha')
-            ->paginate(6)
-            ->withQueryString();
+        $q = $request->input('q');
 
-        return view('layouts.admin.solicitudes.index', compact('solicitudes'));
+        $query = Solicitud::with(['cliente', 'profesional']);
+
+        if ($q) {
+            $qLike = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($qLike) {
+                $sub->where('titulo', 'like', $qLike)
+                    ->orWhere('ciudad', 'like', $qLike)
+                    ->orWhere('provincia', 'like', $qLike)
+                    ->orWhere('estado', 'like', $qLike)
+                    ->orWhereHas('cliente', function ($q2) use ($qLike) {
+                        $q2->where('nombre', 'like', $qLike)
+                            ->orWhere('apellidos', 'like', $qLike)
+                            ->orWhere('email', 'like', $qLike);
+                    })
+                    ->orWhereHas('profesional', function ($q3) use ($qLike) {
+                        $q3->where('empresa', 'like', $qLike)
+                            ->orWhere('email_empresa', 'like', $qLike);
+                    });
+            });
+        }
+
+        $solicitudes = $query
+            ->orderByDesc('created_at')
+            ->paginate(6)
+            ->withQueryString(); // conserva ?q= en la paginación
+
+        return view('layouts.admin.solicitudes.index', compact('solicitudes', 'q'));
     }
+
 
     /**
      * Mostrar una solicitud mediante una ventana modal
@@ -451,7 +475,7 @@ class AdminSolicitudController extends Controller
             return back()
                 ->withInput()
                 ->withErrors($validator)
-                ->with('error', 'Revisa los campos marcados en rojo.'); 
+                ->with('error', 'Revisa los campos marcados en rojo.');
         }
 
         // Si todo va bien, ya tienes datos validados

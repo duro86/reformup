@@ -34,26 +34,75 @@
                     No hay comentarios registrados todavía.
                 </div>
             @else
+                {{-- Switch en verde cuando está publicado --}}
                 <style>
-                    /* Para que el switch al publicarse sea verde */
                     .form-switch .form-check-input:checked {
                         background-color: #198754;
                         border-color: #198754;
                     }
                 </style>
 
-                <div class="table-responsive">
+                {{-- ========================== --}}
+                {{-- BUSCADOR + FILTROS         --}}
+                {{-- ========================== --}}
+                <form method="GET" action="{{ route('admin.comentarios') }}" class="row g-2 mb-3">
+                    {{-- Texto libre --}}
+                    <div class="col-12 col-md-6 col-lg-4">
+                        <input type="text" name="q" value="{{ request('q') }}"
+                            class="form-control form-control-sm"
+                            placeholder="Buscar por solicitud, profesional, cliente u opinión...">
+                    </div>
+
+                    {{-- Filtro estado --}}
+                    <div class="col-6 col-md-3 col-lg-2">
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente" {{ request('estado') === 'pendiente' ? 'selected' : '' }}>Pendiente
+                            </option>
+                            <option value="publicado" {{ request('estado') === 'publicado' ? 'selected' : '' }}>Publicado
+                            </option>
+                            <option value="rechazado" {{ request('estado') === 'rechazado' ? 'selected' : '' }}>Rechazado
+                            </option>
+                        </select>
+                    </div>
+
+                    {{-- Buscar --}}
+                    <div class="col-6 col-md-3 col-lg-2 d-grid">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+
+                    {{-- Limpiar --}}
+                    <div class="col-12 col-md-3 col-lg-2 d-grid">
+                        @if (request('q') || request('estado'))
+                            <a href="{{ route('admin.comentarios') }}" class="btn btn-sm btn-outline-secondary">
+                                Limpiar
+                            </a>
+                        @endif
+                    </div>
+                </form>
+
+                {{-- ========================== --}}
+                {{-- TABLA (solo en lg+)       --}}
+                {{-- ========================== --}}
+                <div class="table-responsive d-none d-lg-block">
                     <table class="table align-middle">
                         <thead>
-                            <tr>
-                                <th class="bg-secondary text-white">Trabajo / Solicitud</th>
-                                <th class="d-none d-lg-table-cell bg-secondary text-white">Profesional</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Cliente</th>
-                                <th class="bg-secondary text-white">Puntuación</th>
-                                <th class="bg-secondary text-white">Estado</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Fecha</th>
-                                <th class="d-none d-lg-table-cell bg-secondary text-white">Opinión</th>
-                                <th class="text-center bg-secondary text-white">Acciones</th>
+                            <tr class="fs-5">
+                                {{-- Siempre visible --}}
+                                <th class="text-center text-md-start">Trabajo / Solicitud</th>
+
+                                {{-- En tablet (md+) y escritorio --}}
+                                <th class="d-none d-md-table-cell">Profesional</th>
+                                <th class="d-none d-md-table-cell">Cliente</th>
+                                <th class="d-none d-md-table-cell">Puntuación</th>
+                                <th class="d-none d-md-table-cell">Estado</th>
+                                <th class="d-none d-md-table-cell">Fecha</th>
+                                <th class="d-none d-md-table-cell">Opinión</th>
+
+                                {{-- Acciones siempre visibles --}}
+                                <th class="text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -64,10 +113,17 @@
                                     $solicitud = $presupuesto?->solicitud;
                                     $cliente = $solicitud?->cliente;
                                     $perfilPro = $presupuesto?->profesional;
+
+                                    $badgeClass = match ($comentario->estado) {
+                                        'pendiente' => 'bg-warning text-dark',
+                                        'publicado' => 'bg-success',
+                                        'rechazado' => 'bg-secondary',
+                                        default => 'bg-light text-dark',
+                                    };
                                 @endphp
 
                                 <tr>
-                                    {{-- Trabajo / Solicitud + vista móvil --}}
+                                    {{-- Trabajo / Solicitud --}}
                                     <td>
                                         <strong>
                                             @if ($solicitud?->titulo)
@@ -76,59 +132,13 @@
                                                 Trabajo #{{ $trabajo?->id }}
                                             @endif
                                         </strong>
-
-                                        <div class="small text-muted d-block d-md-none mt-1">
-                                            {{-- Profesional --}}
-                                            @if ($perfilPro)
-                                                <span class="d-block">
-                                                    <span class="fw-semibold">Profesional:</span>
-                                                    {{ $perfilPro->empresa }}
-                                                </span>
-                                            @endif
-
-                                            {{-- Cliente --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Cliente:</span>
-                                                @if ($cliente)
-                                                    {{ $cliente->nombre ?? $cliente->name }}
-                                                    {{ $cliente->apellidos ?? '' }}
-                                                @else
-                                                    <span class="text-muted">Sin cliente</span>
-                                                @endif
-                                            </span>
-
-                                            {{-- Puntuación --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Puntuación:</span>
-                                                {{ $comentario->puntuacion }} / 5
-                                            </span>
-
-                                            {{-- Estado --}}
-                                            @php
-                                                $badgeClass = match ($comentario->estado) {
-                                                    'pendiente' => 'bg-warning text-dark',
-                                                    'publicado' => 'bg-success',
-                                                    'rechazado' => 'bg-secondary',
-                                                    default => 'bg-light text-dark',
-                                                };
-                                            @endphp
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Estado:</span>
-                                                <span class="badge {{ $badgeClass }}">
-                                                    {{ ucfirst($comentario->estado) }}
-                                                </span>
-                                            </span>
-
-                                            {{-- Fecha --}}
-                                            <span class="d-block">
-                                                <span class="fw-semibold">Fecha:</span>
-                                                {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
-                                            </span>
+                                        <div class="small text-muted">
+                                            Comentario #{{ $comentario->id }}
                                         </div>
                                     </td>
 
-                                    {{-- Profesional (escritorio lg) --}}
-                                    <td class="d-none d-lg-table-cell">
+                                    {{-- Profesional --}}
+                                    <td>
                                         @if ($perfilPro)
                                             {{ $perfilPro->empresa }}<br>
                                             <small class="text-muted">
@@ -139,8 +149,8 @@
                                         @endif
                                     </td>
 
-                                    {{-- Cliente (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Cliente --}}
+                                    <td>
                                         @if ($cliente)
                                             {{ $cliente->nombre ?? $cliente->name }}
                                             {{ $cliente->apellidos ?? '' }}<br>
@@ -151,34 +161,26 @@
                                     </td>
 
                                     {{-- Puntuación --}}
-                                    <td>
+                                    <td class="text-center">
                                         {{ $comentario->puntuacion }} / 5
                                     </td>
 
                                     {{-- Estado --}}
                                     <td>
-                                        @php
-                                            $badgeClass = match ($comentario->estado) {
-                                                'pendiente' => 'bg-warning text-dark',
-                                                'publicado' => 'bg-success',
-                                                'rechazado' => 'bg-secondary',
-                                                default => 'bg-light text-dark',
-                                            };
-                                        @endphp
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst($comentario->estado) }}
                                         </span>
                                     </td>
 
-                                    {{-- Fecha (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    {{-- Fecha --}}
+                                    <td>
                                         {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
-                                    {{-- Opinión (lg+) --}}
-                                    <td class="d-none d-lg-table-cell">
+                                    {{-- Opinión --}}
+                                    <td>
                                         @if ($comentario->opinion)
-                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 60, '...') }}
+                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 70, '...') }}
                                         @else
                                             <span class="text-muted small">Sin opinión</span>
                                         @endif
@@ -186,30 +188,29 @@
 
                                     {{-- Acciones --}}
                                     <td class="text-center">
-                                        <div class="d-flex flex-column flex-md-row flex-wrap justify-content-center gap-2">
+                                        <div class="d-flex flex-row flex-wrap justify-content-center gap-2">
 
-                                            {{-- Ver (modal Vue) --}}
+                                            {{-- Ver modal Vue --}}
                                             <button type="button"
-                                                class="btn btn-sm btn-outline-primary d-inline-flex align-items-center gap-1"
+                                                class="btn btn-sm btn-info d-inline-flex align-items-center gap-1"
                                                 @click="openComentarioAdminModal({{ $comentario->id }})">
-                                                <i class="bi bi-eye"></i> Ver
+                                                Ver
                                             </button>
 
                                             {{-- Editar --}}
                                             <a href="{{ route('admin.comentarios.editar', $comentario) }}"
-                                                class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
+                                                class="btn btn-sm btn-warning d-inline-flex align-items-center gap-1">
                                                 <i class="bi bi-pencil"></i> Editar
                                             </a>
 
-                                            {{-- Switch publicar / despublicar --}}
+                                            {{-- Publicar / ocultar --}}
                                             <form action="{{ route('admin.comentarios.toggle_publicado', $comentario) }}"
                                                 method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
 
                                                 <div class="d-flex flex-column align-items-center">
-                                                    {{-- Etiqueta encima en pantallas grandes --}}
-                                                    <small class="text-muted d-none d-md-block mb-1">
+                                                    <small class="text-muted mb-1">
                                                         Publicación
                                                     </small>
 
@@ -217,7 +218,6 @@
                                                         <input class="form-check-input" type="checkbox"
                                                             onChange="this.form.submit()"
                                                             {{ $comentario->estado === 'publicado' && $comentario->visible ? 'checked' : '' }}>
-
                                                         <label class="form-check-label small">
                                                             {{ $comentario->estado === 'publicado' && $comentario->visible ? 'Publicado' : 'Oculto' }}
                                                         </label>
@@ -238,8 +238,144 @@
                     </table>
                 </div>
 
+                {{-- ========================== --}}
+                {{-- VISTA CARDS (xs–lg)       --}}
+                {{-- ========================== --}}
+                <div class="d-block d-lg-none">
+                    @foreach ($comentarios as $comentario)
+                        @php
+                            $trabajo = $comentario->trabajo;
+                            $presupuesto = $trabajo?->presupuesto;
+                            $solicitud = $presupuesto?->solicitud;
+                            $cliente = $solicitud?->cliente;
+                            $perfilPro = $presupuesto?->profesional;
+
+                            $badgeClass = match ($comentario->estado) {
+                                'pendiente' => 'bg-warning text-dark',
+                                'publicado' => 'bg-success',
+                                'rechazado' => 'bg-secondary',
+                                default => 'bg-light text-dark',
+                            };
+                        @endphp
+
+                        <div class="card mb-3 shadow-sm">
+                            <div class="card-body bg-light">
+
+                                {{-- Cabecera: trabajo / solicitud --}}
+                                <div class="mb-2">
+                                    <div class="fw-semibold">
+                                        @if ($solicitud?->titulo)
+                                            {{ $solicitud->titulo }}
+                                        @else
+                                            Trabajo #{{ $trabajo?->id }}
+                                        @endif
+                                    </div>
+                                    <div class="small text-muted">
+                                        Comentario #{{ $comentario->id }}
+                                    </div>
+                                </div>
+
+                                {{-- Datos principales --}}
+                                <div class="small text-muted mb-2">
+                                    {{-- Profesional --}}
+                                    <div class="mb-1">
+                                        <strong>Profesional:</strong>
+                                        @if ($perfilPro)
+                                            {{ $perfilPro->empresa }}
+                                        @else
+                                            <span class="text-muted">Sin profesional</span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Cliente --}}
+                                    <div class="mb-1">
+                                        <strong>Cliente:</strong>
+                                        @if ($cliente)
+                                            {{ $cliente->nombre ?? $cliente->name }}
+                                            {{ $cliente->apellidos ?? '' }}
+                                            @if ($cliente->email)
+                                                <br><span class="text-muted">{{ $cliente->email }}</span>
+                                            @endif
+                                        @else
+                                            <span class="text-muted">Sin cliente</span>
+                                        @endif
+                                    </div>
+
+                                    {{-- Puntuación --}}
+                                    <div class="mb-1">
+                                        <strong>Puntuación:</strong>
+                                        {{ $comentario->puntuacion }} / 5
+                                    </div>
+
+                                    {{-- Estado --}}
+                                    <div class="mb-1">
+                                        <strong>Estado:</strong>
+                                        <span class="badge {{ $badgeClass }}">
+                                            {{ ucfirst($comentario->estado) }}
+                                        </span>
+                                    </div>
+
+                                    {{-- Fecha --}}
+                                    <div class="mb-1">
+                                        <strong>Fecha:</strong>
+                                        {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
+                                    </div>
+
+                                    {{-- Opinión (resumen) --}}
+                                    <div class="mt-2">
+                                        <strong>Opinión:</strong><br>
+                                        @if ($comentario->opinion)
+                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 120, '...') }}
+                                        @else
+                                            <span class="text-muted">Sin opinión</span>
+                                        @endif
+                                    </div>
+                                </div>
+
+                                {{-- Acciones --}}
+                                <div class="d-grid gap-2">
+                                    {{-- Ver modal --}}
+                                    <button type="button"
+                                        class="btn btn-sm btn-info d-inline-flex align-items-center justify-content-center gap-1"
+                                        @click="openComentarioAdminModal({{ $comentario->id }})">
+                                        Ver
+                                    </button>
+
+                                    {{-- Editar --}}
+                                    <a href="{{ route('admin.comentarios.editar', $comentario) }}"
+                                        class="btn btn-sm btn-warning d-inline-flex align-items-center justify-content-center gap-1">
+                                        <i class="bi bi-pencil"></i> Editar
+                                    </a>
+
+                                    {{-- Publicar / ocultar --}}
+                                    <form action="{{ route('admin.comentarios.toggle_publicado', $comentario) }}"
+                                        method="POST">
+                                        @csrf
+                                        @method('PATCH')
+
+                                        <div class="form-check form-switch d-flex align-items-center gap-2">
+                                            <input class="form-check-input" type="checkbox" onChange="this.form.submit()"
+                                                {{ $comentario->estado === 'publicado' && $comentario->visible ? 'checked' : '' }}>
+                                            <label class="form-check-label small">
+                                                {{ $comentario->estado === 'publicado' && $comentario->visible ? 'Publicado' : 'Oculto' }}
+                                            </label>
+                                        </div>
+                                    </form>
+
+                                    {{-- Rechazar / banear --}}
+                                    @if ($comentario->estado !== 'rechazado')
+                                        <x-admin.comentarios.btn_rechazar :comentario="$comentario" />
+                                    @endif
+                                </div>
+
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+
+                {{-- Paginación --}}
                 <div class="mt-3">
-                    {{ $comentarios->links() }}
+                    {{ $comentarios->links('pagination::bootstrap-5') }}
                 </div>
             @endif
 

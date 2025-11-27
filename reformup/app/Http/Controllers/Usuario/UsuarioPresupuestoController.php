@@ -16,16 +16,50 @@ class UsuarioPresupuestoController extends Controller
      */
     public function index(Request $request)
     {
-        $user   = Auth::user();
-        $estado = $request->query('estado'); // enviado, aceptado, rechazado, caducado, null
+        $user = Auth::user();
 
-        $presupuestos = Presupuesto::with(['solicitud.profesional'])
-            ->whereHas('solicitud', function ($q) use ($user) {
-                $q->where('cliente_id', $user->id);
-            })
-            ->when($estado, function ($q) use ($estado) {
-                $q->where('estado', $estado);
-            })
+        if (! $user) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión para ver tus presupuestos.');
+        }
+
+        $estado = $request->query('estado');             // enviado, aceptado, rechazado, caducado, null
+        $q      = trim((string) $request->query('q'));   // texto buscador
+
+        $query = Presupuesto::with(['solicitud.profesional'])
+            ->whereHas('solicitud', function ($sub) use ($user) {
+                $sub->where('cliente_id', $user->id);
+            });
+
+        // Filtro por estado
+        if (! empty($estado)) {
+            $query->where('estado', $estado);
+        }
+
+        // Buscador libre
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($like) {
+                // Por datos de la solicitud (título, ciudad, provincia)
+                $sub->whereHas('solicitud', function ($q2) use ($like) {
+                    $q2->where('titulo', 'like', $like)
+                        ->orWhere('ciudad', 'like', $like)
+                        ->orWhere('provincia', 'like', $like);
+                })
+                    // Por profesional
+                    ->orWhereHas('solicitud.profesional', function ($q3) use ($like) {
+                        $q3->where('empresa', 'like', $like)
+                            ->orWhere('email_empresa', 'like', $like);
+                    })
+                    // Por estado del presupuesto
+                    ->orWhere('estado', 'like', $like)
+                    // Por importe (como texto)
+                    ->orWhereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
+            });
+        }
+
+        $presupuestos = $query
             ->orderByDesc('fecha')
             ->paginate(5)
             ->withQueryString();
@@ -33,9 +67,11 @@ class UsuarioPresupuestoController extends Controller
         return view('layouts.usuario.presupuestos.index', [
             'presupuestos' => $presupuestos,
             'estado'       => $estado,
+            'q'            => $q,
             'estados'      => Presupuesto::ESTADOS,
         ]);
     }
+
 
     /**
      * Aceptar un presupuesto (cliente).

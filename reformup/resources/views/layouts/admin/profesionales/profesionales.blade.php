@@ -19,9 +19,10 @@
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-3">
 
+            {{-- CONTENIDO VUE + TABLA --}}
             <div id="app">
 
-                {{-- Modal --}}
+                {{-- Modal Vue profesional --}}
                 <professional-modal ref="professionalModal"></professional-modal>
 
                 <div class="container p-1">
@@ -41,13 +42,38 @@
                         </div>
                     </h1>
 
-                    {{-- TABLA RESPONSIVE --}}
-                    <div class="table-responsive">
+                    {{-- Buscador --}}
+                    <form method="GET" action="{{ route('admin.profesionales') }}" class="row g-2 mb-3">
+                        <div class="col-12 col-md-6 col-lg-4">
+                            <input type="text" name="q" value="{{ request('q') }}"
+                                   class="form-control form-control-sm"
+                                   placeholder="Buscar por empresa, CIF, email, teléfono o usuario...">
+                        </div>
+
+                        <div class="col-6 col-md-3 col-lg-2 d-grid">
+                            <button type="submit" class="btn btn-sm btn-primary">
+                                <i class="bi bi-search"></i> Buscar
+                            </button>
+                        </div>
+
+                        <div class="col-6 col-md-3 col-lg-2 d-grid">
+                            @if (request('q'))
+                                <a href="{{ route('admin.profesionales') }}" class="btn btn-sm btn-outline-secondary">
+                                    Limpiar
+                                </a>
+                            @endif
+                        </div>
+                    </form>
+
+                    {{-- ========================= --}}
+                    {{-- TABLA (solo en lg+)      --}}
+                    {{-- ========================= --}}
+                    <div class="table-responsive d-none d-lg-block">
                         <table class="table table-sm align-middle">
                             <thead>
-                                <tr style="font-size: .875rem;">
+                                <tr class="fs-5">
                                     {{-- Siempre visible --}}
-                                    <th>Profesional</th>
+                                    <th class="text-center text-md-start">Profesional</th>
 
                                     {{-- En tablet (md+) y escritorio --}}
                                     <th class="d-none d-md-table-cell">Empresa</th>
@@ -57,7 +83,7 @@
                                     <th class="d-none d-lg-table-cell">CIF</th>
                                     <th class="d-none d-lg-table-cell">Email</th>
                                     <th class="d-none d-lg-table-cell">Cuenta Usuario</th>
-                                    <th class="d-none d-lg-table-cell">Rol</th>
+                                    <th class="d-none d-lg-table-cell text-center">Rol</th>
 
                                     {{-- Visible (md+) --}}
                                     <th class="d-none d-md-table-cell text-center">Visible</th>
@@ -74,10 +100,9 @@
                                     @endphp
 
                                     <tr>
-                                        {{-- COLUMNA PRINCIPAL RESPONSIVE (xs + md + lg) --}}
+                                        {{-- COLUMNA PRINCIPAL --}}
                                         <td>
                                             <div class="d-flex align-items-center gap-2">
-
                                                 {{-- Avatar --}}
                                                 @if ($perfil->avatar)
                                                     <img src="{{ Storage::url($perfil->avatar) }}"
@@ -88,38 +113,12 @@
                                                 @endif
 
                                                 <div>
-                                                    {{-- Nombre + email usuario --}}
                                                     <div class="fw-semibold">
                                                         {{ $user?->nombre ?? 'Sin usuario' }}
                                                         @if ($user)
                                                             <br><span class="text-muted">{{ $user->email }}</span>
                                                         @else
                                                             <br><span class="text-muted">Sin usuario</span>
-                                                        @endif
-                                                    </div>
-
-                                                    {{-- INFO EXTRA SOLO EN MÓVIL (xs) --}}
-                                                    <div class="small text-muted d-md-none mt-1">
-                                                        {{ $perfil->empresa }} <br>
-                                                        CIF: {{ $perfil->cif }} <br>
-                                                        {{ $perfil->email_empresa }} <br>
-                                                        Tel: {{ $perfil->telefono_empresa }} <br>
-
-                                                        {{-- Rol --}}
-                                                        Rol:
-                                                        @if ($user)
-                                                            {{ $user->getRoleNames()->implode(', ') }}
-                                                        @else
-                                                            Sin usuario
-                                                        @endif
-                                                        <br>
-
-                                                        {{-- Visible --}}
-                                                        Visible:
-                                                        @if ($perfil->visible)
-                                                            <span class="text-success">Sí</span>
-                                                        @else
-                                                            <span class="text-danger">No</span>
                                                         @endif
                                                     </div>
                                                 </div>
@@ -149,30 +148,24 @@
                                         </td>
 
                                         {{-- ROL (lg+) --}}
-                                        <td class="d-none d-lg-table-cell">
+                                        <td class="d-none d-lg-table-cell text-center">
                                             @if ($user)
-                                                {{ $user->getRoleNames()->implode(', ') }}
+                                                {!! $user->getRoleNames()->implode('<br>') !!}
                                             @else
-                                                <span class="text-muted">Sin usuario</span>
+                                                Sin usuario
                                             @endif
                                         </td>
 
                                         {{-- VISIBLE + TOGGLE (md+) --}}
                                         <td class="d-none d-md-table-cell text-center">
                                             <form action="{{ route('admin.profesionales.toggle_visible', $perfil) }}"
-                                                  method="POST"
-                                                  class="d-inline">
+                                                  method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
 
                                                 <div class="d-flex flex-column align-items-center">
-                                                    <small class="text-muted mb-1">
-                                                        Visibilidad
-                                                    </small>
-
                                                     <div class="form-check form-switch d-flex align-items-center gap-1">
-                                                        <input class="form-check-input"
-                                                               type="checkbox"
+                                                        <input class="form-check-input" type="checkbox"
                                                                onChange="this.form.submit()"
                                                                {{ $perfil->visible ? 'checked' : '' }}>
 
@@ -184,34 +177,29 @@
                                             </form>
                                         </td>
 
-                                        {{-- ACCIONES (xs + md + lg) --}}
+                                        {{-- ACCIONES --}}
                                         <td class="text-end">
-                                            {{-- En móvil: botones en columna y a ancho completo; en md+ en fila --}}
-                                            <div class="d-flex flex-column flex-md-row gap-1 justify-content-end">
-
+                                            <div class="d-flex flex-row gap-1 justify-content-end">
                                                 {{-- VER --}}
-                                                <button
-                                                    class="btn btn-info btn-sm px-2 py-1 w-100 w-md-auto"
-                                                    @click="openProfessionalModal({{ $perfil->id }})">
+                                                <button class="btn btn-info btn-sm px-2 py-1"
+                                                        @click="openProfessionalModal({{ $perfil->id }})">
                                                     Ver
                                                 </button>
 
-                                                {{-- EDITAR --}}
-                                                <a href="{{ route('admin.profesionales.editar', $perfil->id) }}"
-                                                   class="btn btn-warning btn-sm px-2 py-1 w-100 w-md-auto">
+                                                {{-- EDITAR (con page) --}}
+                                                <a href="{{ route('admin.profesionales.editar', [$perfil->id, 'page' => $profesionales->currentPage()]) }}"
+                                                   class="btn btn-warning btn-sm px-2 py-1">
                                                     Editar
                                                 </a>
 
                                                 {{-- ELIMINAR --}}
                                                 <form id="delete-prof-{{ $perfil->id }}"
                                                       action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
-                                                      method="POST"
-                                                      class="d-inline w-100 w-md-auto">
+                                                      method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
 
-                                                    <delete-professional-button
-                                                        class="w-100 w-md-auto"
+                                                    <delete-professional-button class="btn btn-danger"
                                                         form-id="delete-prof-{{ $perfil->id }}"
                                                         empresa="{{ $perfil->empresa }}"
                                                         :tiene-user="{{ $user ? 'true' : 'false' }}"
@@ -226,6 +214,119 @@
                             </tbody>
 
                         </table>
+                    </div>
+
+                    {{-- ========================= --}}
+                    {{-- VISTA CARDS (xs–lg)      --}}
+                    {{-- ========================= --}}
+                    <div class="d-block d-lg-none">
+                        @foreach ($profesionales as $perfil)
+                            @php
+                                $user = $perfil->user;
+                            @endphp
+
+                            <div class="card mb-3 shadow-sm">
+                                <div class="card-body bg-light">
+
+                                    {{-- Cabecera: avatar + nombre --}}
+                                    <div class="d-flex align-items-center gap-2 mb-2">
+                                        @if ($perfil->avatar)
+                                            <img src="{{ Storage::url($perfil->avatar) }}"
+                                                 class="rounded-circle"
+                                                 style="width:40px;height:40px;object-fit:cover">
+                                        @else
+                                            <i class="bi bi-person-circle fs-3"></i>
+                                        @endif
+
+                                        <div>
+                                            <div class="fw-semibold">
+                                                {{ $user?->nombre ?? 'Sin usuario' }}
+                                            </div>
+                                            <div class="small text-muted">
+                                                {{ $user?->email ?? 'Sin email de usuario' }}
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {{-- Datos empresa --}}
+                                    <div class="mb-2 small text-muted">
+                                        <div><strong>Empresa:</strong> {{ $perfil->empresa }}</div>
+                                        <div><strong>CIF:</strong> {{ $perfil->cif }}</div>
+                                        <div><strong>Email empresa:</strong> {{ $perfil->email_empresa }}</div>
+                                        <div><strong>Tel:</strong> {{ $perfil->telefono_empresa }}</div>
+
+                                        @if ($user)
+                                            <div class="mt-1">
+                                                <strong>Rol:</strong>
+                                                {{ $user->getRoleNames()->implode(', ') ?: '—' }}
+                                            </div>
+                                        @else
+                                            <div class="mt-1">
+                                                <strong>Rol:</strong> Sin usuario
+                                            </div>
+                                        @endif
+
+                                        <div class="mt-1">
+                                            <strong>Visible:</strong>
+                                            @if ($perfil->visible)
+                                                <span class="text-success">Sí</span>
+                                            @else
+                                                <span class="text-danger">No</span>
+                                            @endif
+                                        </div>
+                                    </div>
+
+                                    {{-- Toggle visible --}}
+                                    <div class="mb-2">
+                                        <form action="{{ route('admin.profesionales.toggle_visible', $perfil) }}"
+                                              method="POST">
+                                            @csrf
+                                            @method('PATCH')
+
+                                            <div class="form-check form-switch d-flex align-items-center gap-2">
+                                                <input class="form-check-input" type="checkbox"
+                                                       onChange="this.form.submit()"
+                                                       {{ $perfil->visible ? 'checked' : '' }}>
+                                                <label class="form-check-label small">
+                                                    {{ $perfil->visible ? 'Visible' : 'Oculto' }}
+                                                </label>
+                                            </div>
+                                        </form>
+                                    </div>
+
+                                    {{-- Acciones --}}
+                                    <div class="d-grid gap-2">
+                                        <button class="btn btn-info btn-sm"
+                                                @click="openProfessionalModal({{ $perfil->id }})">
+                                            Ver
+                                        </button>
+
+                                        {{-- EDITAR (con page) --}}
+                                        <a href="{{ route('admin.profesionales.editar', [$perfil->id, 'page' => $profesionales->currentPage()]) }}"
+                                           class="btn btn-warning btn-sm">
+                                            Editar
+                                        </a>
+
+                                        <form id="delete-prof-mobile-{{ $perfil->id }}"
+                                              action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
+                                              method="POST" class="d-grid">
+                                            @csrf
+                                            @method('DELETE')
+
+                                            <delete-professional-button
+                                                class="btn btn-danger btn-sm w-100"
+                                                form-id="delete-prof-mobile-{{ $perfil->id }}"
+                                                empresa="{{ $perfil->empresa }}"
+                                                :tiene-user="{{ $user ? 'true' : 'false' }}"
+                                                user-nombre="{{ $user?->nombre }} {{ $user?->apellidos }}"
+                                                user-email="{{ $user?->email }}">
+                                            </delete-professional-button>
+                                        </form>
+                                    </div>
+
+                                </div>
+                            </div>
+                        @endforeach
                     </div>
 
                     {{-- Paginación --}}

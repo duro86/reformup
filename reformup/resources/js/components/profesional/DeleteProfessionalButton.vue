@@ -1,7 +1,6 @@
 <template>
   <button
     type="button"
-    class="btn btn-danger btn-sm px-2 py-1"
     @click="confirmDelete"
   >
     Eliminar

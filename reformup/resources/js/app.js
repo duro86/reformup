@@ -16,6 +16,7 @@ import SolicitudAdminModal from "./components/admin/SolicitudAdminModal.vue";
 import PresupuestoAdminModal from "./components/admin/PresupuestoAdminModal.vue";
 import TrabajoAdminModal from "./components/admin/TrabajoAdminModal.vue";
 import ProfesionalesGrid from "./components/public/ProfesionalesGrid.vue";
+import SolicitudUsuarioModal from "./components/usuario/SolicitudUsuarioModal.vue";
 
 const app = createApp({
     methods: {
@@ -56,6 +57,10 @@ const app = createApp({
             }
             this.$refs.trabajoAdminModal.openModal(id);
         },
+        openSolicitudUsuarioModal(id) {
+            // Llama al método openModal del componente referenciado en Blade
+            this.$refs.solicitudUsuarioModal.openModal(id);
+        },
     },
 });
 
@@ -72,6 +77,7 @@ app.component("solicitud-admin-modal", SolicitudAdminModal);
 app.component("presupuesto-admin-modal", PresupuestoAdminModal);
 app.component("trabajo-admin-modal", TrabajoAdminModal);
 app.component("profesionales-grid", ProfesionalesGrid);
+app.component("solicitud-usuario-modal", SolicitudUsuarioModal);
 
 const el = document.getElementById("app");
 if (el) {

@@ -28,6 +28,11 @@ class TrabajoModificadoPorAdminMailable extends Mailable
 
     public $paraProfesional;
 
+    // Nuevos campos “comodín”
+    public $newEstado;
+    public $estadoHumanoOld;
+    public $estadoHumanoNew;
+
     public function __construct(
         Trabajo $trabajo,
         ?User $cliente = null,
@@ -52,13 +57,33 @@ class TrabajoModificadoPorAdminMailable extends Mailable
         $this->oldFechaFin   = $oldFechaFin;
 
         $this->paraProfesional = $paraProfesional;
+
+        // --------- COMODÍN DE ESTADOS ---------
+        $this->newEstado = $trabajo->estado;
+
+        $mapEstados = [
+            'previsto'   => 'previsto',
+            'en_curso'   => 'en curso',
+            'finalizado' => 'finalizado',
+            'cancelado'  => 'cancelado',
+        ];
+
+        $this->estadoHumanoOld = $oldEstado
+            ? ($mapEstados[$oldEstado] ?? str_replace('_', ' ', $oldEstado))
+            : null;
+
+        $this->estadoHumanoNew = $mapEstados[$this->newEstado]
+            ?? str_replace('_', ' ', $this->newEstado);
     }
 
     public function build()
     {
+        // Asunto genérico pero usando el estado nuevo
+        $baseSubject = 'Estado del trabajo actualizado a: ' . ucfirst($this->estadoHumanoNew);
+
         $subject = $this->paraProfesional
-            ? 'Se ha modificado un trabajo asignado a tu empresa'
-            : 'Se ha modificado el estado de tu trabajo en ReformUp';
+            ? 'ReformUp · ' . $baseSubject . ' (trabajo de tu empresa)'
+            : 'ReformUp · ' . $baseSubject;
 
         return $this
             ->subject($subject)

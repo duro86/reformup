@@ -1,18 +1,26 @@
 @php
     use Illuminate\Support\Facades\Auth;
+    use Illuminate\Support\Facades\Storage;
 
-    $user = Auth::user();
+    $user   = Auth::user();
     $perfil = $user?->perfil_Profesional;
 
+    // Nombre a mostrar
     $nombre = $perfil?->empresa ?? ($user?->nombre ?? 'Profesional');
 
-    // Avatar del perfil profesional
-    $avatarUrl = $perfil?->avatar ? asset('storage/' . $perfil->avatar) : null;
+    // Avatar por defecto 
+    $defaultAvatarPro = asset('img/User/avatarPro/avatarHombrePro.png'); 
 
-    $bgColor = '#E5F0FF'; // azulito suave para diferenciar
+    // Si el perfil tiene avatar (ruta en storage), lo sacamos con Storage::url
+    if ($perfil?->avatar) {
+        $avatarUrl = Storage::url($perfil->avatar);   // ej: /storage/imagenes/avatarPro/...
+    } else {
+        $avatarUrl = $defaultAvatarPro;
+    }
+
 @endphp
 
-<div class="w-100 border-bottom" style="background-color: {{ $bgColor }};">
+<div class="w-100 border-bottom bg-secondary text-white">
     <div class="container-fluid">
         <div class="d-flex flex-column flex-sm-row align-items-end justify-content-end py-2 gap-2">
             <div class="text-start">
@@ -25,17 +33,16 @@
             </div>
 
             <div class="d-flex align-items-center gap-2">
-                @if ($avatarUrl)
-                    <img src="{{ $avatarUrl }}" alt="avatar profesional" class="rounded-circle"
-                        style="width: 36px; height: 36px; object-fit: cover;">
-                @else
-                    <i class="bi bi-person-workspace" style="font-size: 1.9rem;"></i>
-                @endif
-                {{-- Botón para acceder al panel profesional --}}
-                    <a href="{{ route('usuario.dashboard') }}"
-                        class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1">
-                        Ir a Panel usuario
-                    </a>
+                <img src="{{ $defaultAvatarPro }}"
+                     alt="avatar profesional"
+                     class="rounded-circle"
+                     style="width: 36px; height: 36px; object-fit: cover;">
+
+                {{-- Botón para acceder al panel usuario --}}
+                <a href="{{ route('usuario.dashboard') }}"
+                   class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1">
+                    Ir a Panel usuario
+                </a>
             </div>
         </div>
     </div>

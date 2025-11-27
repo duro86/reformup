@@ -89,6 +89,7 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         Route::get('/trabajos', [AdminTrabajoController::class, 'index'])
             ->name('trabajos');
 
+            
         // ----- COMENTARIOS -----
 
         // ----- LISTADO COMENTARIOS (ADMIN) -----
@@ -159,6 +160,12 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // ACTUALIZAR presupuesto (POST/PUT)
         Route::put('/presupuestos/{presupuesto}', [AdminPresupuestoController::class, 'actualizar'])
             ->name('presupuestos.actualizar');
+
+        // Eliminar presupuesto
+        Route::delete('/presupuestos/{presupuesto}/eliminar', [
+            AdminPresupuestoController::class,
+            'eliminarPresuAdmin',
+        ])->name('presupuestos.eliminar_admin');
 
         // ----- LISTADO TRABAJOS (ADMIN) -----
         Route::get('/trabajos', [AdminTrabajoController::class, 'index'])

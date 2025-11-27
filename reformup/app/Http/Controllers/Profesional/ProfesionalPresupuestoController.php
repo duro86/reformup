@@ -23,27 +23,59 @@ class ProfesionalPresupuestoController extends Controller
         $perfil = $user->perfil_Profesional;
 
         if (! $perfil) {
-            return redirect()
-                ->route('home')
-                ->with('error', 'No tienes permiso para acceder a esta zona.');
+            abort(403, 'No tienes perfil profesional.');
         }
 
-        $estado = $request->query('estado'); // enviado, aceptado, rechazado, caducado, null
+        $estado = $request->query('estado');             // enviado, aceptado, rechazado, caducado, null
+        $q      = trim((string) $request->query('q'));   // texto buscador
 
-        $presupuestos = Presupuesto::with(['solicitud.cliente'])
-            ->where('pro_id', $perfil->id)
-            ->when($estado, function ($q) use ($estado) {
-                $q->where('estado', $estado);
-            })
-            ->orderByDesc('fecha')
-            ->paginate(5)
+        $query = Presupuesto::with(['solicitud.cliente'])
+            ->where('pro_id', $perfil->id);
+
+        // Filtro por estado
+        if (! empty($estado)) {
+            $query->where('estado', $estado);
+        }
+
+        // Buscador
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($like) {
+                $sub
+                    // Por solicitud (título, ciudad, provincia)
+                    ->whereHas('solicitud', function ($q2) use ($like) {
+                        $q2->where('titulo', 'like', $like)
+                            ->orWhere('ciudad', 'like', $like)
+                            ->orWhere('provincia', 'like', $like);
+                    })
+                    // Por cliente
+                    ->orWhereHas('solicitud.cliente', function ($q3) use ($like) {
+                        $q3->where('nombre', 'like', $like)
+                            ->orWhere('apellidos', 'like', $like)
+                            ->orWhere('email', 'like', $like);
+                    })
+                    // Por estado
+                    ->orWhere('estado', 'like', $like)
+                    // Por total
+                    ->orWhereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
+            });
+        }
+
+        $presupuestos = $query
+            ->orderByDesc('created_at')
+            ->paginate(6)
             ->withQueryString();
 
         return view('layouts.profesional.presupuestos.index', [
             'presupuestos' => $presupuestos,
             'estado'       => $estado,
+            'q'            => $q,
+            'estados'      => Presupuesto::ESTADOS,
+            'perfil'       => $perfil,
         ]);
     }
+
 
     /**
      * Formulario para crear un presupuesto a partir de una solicitud concreta.
@@ -260,50 +292,6 @@ class ProfesionalPresupuestoController extends Controller
                 ->with('error', 'Ha ocurrido un error al guardar el presupuesto.');
         }
     }
-
-    /**
-     * Ver pdf filtrando por usuario registrado y logueado, así como permiso por id
-     */
-    public function verPdf(Presupuesto $presupuesto)
-    {
-        $user   = Auth::user();
-        $perfil = $user->perfil_Profesional;
-
-        // 1) No tiene perfil profesional
-        if (! $perfil) {
-            return redirect()
-                ->route('home')
-                ->with('error', 'Debes tener un perfil profesional para acceder a esta sección.');
-        }
-
-        // 2) El presupuesto NO es suyo
-        if ($perfil->id !== $presupuesto->pro_id) {
-            return redirect()
-                ->route('profesional.presupuestos.index')
-                ->with('error', 'No tienes permiso para ver este presupuesto.');
-        }
-
-        // 3) No hay PDF asociado
-        if (! $presupuesto->docu_pdf) {
-            return redirect()
-                ->route('profesional.presupuestos.index')
-                ->with('error', 'Este presupuesto no tiene ningún PDF asociado.');
-        }
-
-        // 4) El archivo no existe físicamente
-        if (! Storage::disk('private')->exists($presupuesto->docu_pdf)) {
-            return redirect()
-                ->route('profesional.presupuestos.index')
-                ->with('error', 'No se ha encontrado el archivo PDF en el servidor.');
-        }
-
-        // 5) Todo OK → mostramos el PDF
-        return response()->file(
-            Storage::disk('private')->path($presupuesto->docu_pdf),
-            ['Content-Type' => 'application/pdf']
-        );
-    }
-
 
     /**
      * El profesional cancela (rechaza) un presupuesto que está ENVIADO.

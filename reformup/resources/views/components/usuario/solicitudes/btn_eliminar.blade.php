@@ -15,18 +15,18 @@
         @method('DELETE')
 
         <button type="button"
-            class="btn btn-sm btn-outline-danger d-flex align-items-center justify-content-end gap-1 btn-confirmar-eliminar"
+            class="btn btn-danger btn-sm w-100 w-md-auto d-flex justify-content-center align-items-center gap-1"
             data-titulo="{{ $titulo }}">
             <i class="bi bi-trash"></i>
             <span class="d-none d-md-inline">Eliminar</span>
         </button>
     </form>
 @else
-    <span class="text-muted small d-none d-md-inline">—</span>
+    <span class="text-muted small d-none d-md-inline"></span>
 @endif
 
-{{--@once asegura que el JS de SweetAlert se inyecta una sola vez--}}
-@once 
+{{-- @once asegura que el JS de SweetAlert se inyecta una sola vez --}}
+@once
     @push('scripts')
         <script>
             document.addEventListener('DOMContentLoaded', function() {

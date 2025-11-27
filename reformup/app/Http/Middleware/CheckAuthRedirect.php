@@ -12,15 +12,16 @@ class CheckAuthRedirect
     /**
      * Handle an incoming request.
      *
-     * @param  \Illuminate\Http\Request $request
+     * @param  \Illuminate\Http\Request  $request
      * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
      * @return \Symfony\Component\HttpFoundation\Response
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if (!Auth::check()) {
-            // Redirige a la ruta que muestra el formulario de login
-            return redirect()->route('login')->with('error', 'Usuario no autorizado. Debes iniciar sesión para continuar.');
+        if (! Auth::check()) {
+            return redirect()
+                ->route('login')
+                ->with('error', 'Usuario no autorizado. Debes iniciar sesión para continuar.');
         }
 
         return $next($request);

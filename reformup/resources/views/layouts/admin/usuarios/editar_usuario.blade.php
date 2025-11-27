@@ -21,7 +21,7 @@
                     <p class="text-muted">
                         Modifica los datos del usuario. Recuerda guardar los cambios.
                     </p>
-
+                    
                     <div class="text-center mt-3">
                         <img src="{{ asset('img/User/panel_registro/panel_registro_user.png') }}" alt="Reformas"
                             class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
@@ -29,9 +29,10 @@
                 </div>
             </div>
 
-            {{-- Formulario --}}
+            {{-- CONTENEDOR PRINCIPAL --}}
             <div class="col-lg-7 bg-white">
                 <div class="p-4 p-lg-5">
+
                     <h1 class="h4 mb-4">
                         <i class="bi-person-bounding-box me-2"></i>
                         Editar cuenta <span class="text-primary">(Cliente)</span>
@@ -42,12 +43,18 @@
                             Revisa los campos marcados en rojo.
                         </div>
                     @endif
-
+                    
+                    {{-- FORMULARIO ACTUALIZAR USUARIO --}}
                     <form method="POST" action="{{ route('admin.usuarios.actualizar', $usuario->id) }}" novalidate
                         enctype="multipart/form-data">
                         @csrf
                         @method('PUT')
 
+
+                        {{-- mantener la página actual de la paginación --}}
+                        <input type="hidden" name="page" value="{{ request('page', 1) }}">
+
+                        {{-- Nombre y Apellidos --}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Nombre<span class="text-danger">*</span></label>
@@ -68,6 +75,7 @@
                             </div>
                         </div>
 
+                        {{-- Email --}}
                         <div class="mb-3">
                             <label class="form-label">Email<span class="text-danger">*</span></label>
                             <input type="email" name="email" value="{{ old('email', $usuario->email) }}"
@@ -76,7 +84,7 @@
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
                         </div>
-
+                        {{-- Password --}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">
@@ -96,6 +104,7 @@
                             </div>
                         </div>
 
+                        {{-- Telefono --}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Teléfono<span class="text-danger">*</span></label>
@@ -107,6 +116,7 @@
                                 @enderror
                             </div>
 
+                            {{-- Ciudad --}}
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Ciudad</label>
                                 <input type="text" name="ciudad" value="{{ old('ciudad', $usuario->ciudad) }}"
@@ -117,6 +127,7 @@
                             </div>
                         </div>
 
+                        {{-- Provincia --}}
                         <div class="row">
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Provincia</label>
@@ -127,6 +138,7 @@
                                 @enderror
                             </div>
 
+                            {{-- CP --}}
                             <div class="col-md-6 mb-3">
                                 <label class="form-label">Código postal</label>
                                 <input type="text" name="cp" placeholder="21004"
@@ -138,6 +150,7 @@
                             </div>
                         </div>
 
+                        {{-- Direccion --}}
                         <div class="mb-3">
                             <label class="form-label">Dirección</label>
                             <input type="text" name="direccion" placeholder="Avd/Cabezo de la Joya 3, escalera 3, 4ºA"
@@ -198,7 +211,8 @@
                             <button type="submit" class="btn btn-primary">
                                 Guardar cambios
                             </button>
-                            <a href="{{ route('admin.usuarios') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('admin.usuarios', ['page' => request('page', 1)]) }}"
+                                class="btn btn-outline-secondary">
                                 Cancelar
                             </a>
                         </div>

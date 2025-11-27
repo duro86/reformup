@@ -1,51 +1,57 @@
-@props(['presupuesto'])
+@props([
+    'presupuesto',
+    'contexto' => 'desktop',      // 'desktop' o 'mobile'
+    'tieneDireccion' => false,    // bool: ¿la solicitud ya tiene dir_cliente?
+    'direccionObra' => null,      // string: texto de la dirección (si existe)
+])
 
 @php
-    $id = $presupuesto->id;
-    $formId = "form-aceptar-presupuesto-$id";
-    $dirObra = optional($presupuesto->solicitud)->dir_cliente; // puede ser null
+    // Sufijo para diferenciar desktop / mobile y evitar IDs duplicados
+    $suffix = $contexto === 'mobile' ? '-m' : '';
+    $formId = 'form-aceptar-' . $presupuesto->id . $suffix;
+    $btnId  = 'btn-aceptar-presu-' . $presupuesto->id . $suffix;
 @endphp
 
-<form id="{{ $formId }}" action="{{ route('usuario.presupuestos.aceptar', $presupuesto) }}" method="POST"
-    style="display:none;">
+<form id="{{ $formId }}" method="POST" action="{{ route('usuario.presupuestos.aceptar', $presupuesto) }}">
     @csrf
-    @method('PATCH')
-    <input type="hidden" name="direccion_obra" value="">
-</form>
 
-<button type="button" class="btn btn-success btn-sm px-2 py-1 mx-1" id="btn-aceptar-presu-{{ $id }}">
-    Aceptar
-</button>
+    {{-- Campo oculto que rellenaremos si el user escribe la dirección --}}
+    <input type="hidden" name="direccion_obra" value="">
+
+    <button
+        type="button"
+        id="{{ $btnId }}"
+        class="btn btn-success btn-sm w-100"
+    >
+        Aceptar
+    </button>
+</form>
 
 @push('scripts')
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('btn-aceptar-presu-{{ $id }}');
-            if (!btn) return;
+        document.addEventListener('DOMContentLoaded', function () {
+            const btn  = document.getElementById('{{ $btnId }}');
+            const form = document.getElementById('{{ $formId }}');
+            if (!btn || !form) return;
 
-            const tieneDirObra = @json((bool) $dirObra);
-            const dirObraTexto = @json($dirObra);
+            const tieneDirObra = @json((bool) $tieneDireccion);
+            const dirObraTexto = @json($direccionObra);
 
-            btn.addEventListener('click', function() {
+            btn.addEventListener('click', function () {
 
-                // Caso 1: la solicitud ya tiene dir_cliente → solo informamos
+                // CASO 1: la solicitud YA tiene dirección -> solo confirmamos
                 if (tieneDirObra) {
                     Swal.fire({
                         title: 'Aceptar presupuesto',
                         html: `¿Seguro que deseas aceptar este presupuesto?<br><br>
-                       <span class="fw-semibold">Se utilizará esta dirección de obra:</span><br>
-                       <span class="text-muted">{{ $dirObra }}</span>`,
+                               <span class="fw-semibold">Se utilizará esta dirección de obra:</span><br>
+                               <span class="text-muted">${dirObraTexto ?? ''}</span>`,
                         icon: 'question',
                         showCancelButton: true,
                         confirmButtonText: 'Aceptar presupuesto',
                         cancelButtonText: 'Cancelar',
                     }).then((result) => {
                         if (result.isConfirmed) {
-                            const form = document.getElementById('{{ $formId }}');
-                            if (!form) return;
-
-                            // No necesitamos rellenar direccion_obra:
-                            // el backend usará la dir_cliente de la solicitud.
                             form.submit();
                         }
                     });
@@ -53,7 +59,7 @@
                     return;
                 }
 
-                // Caso 2: NO hay dirección en la solicitud → pedirla por input
+                // CASO 2: no hay dirección -> pedimos la dirección al usuario
                 Swal.fire({
                     title: 'Aceptar presupuesto',
                     text: '¿Seguro que deseas aceptar este presupuesto? Se creará un trabajo asociado.',
@@ -74,10 +80,10 @@
                     icon: 'question'
                 }).then((result) => {
                     if (result.isConfirmed) {
-                        const form = document.getElementById('{{ $formId }}');
-                        if (!form) return;
-
-                        form.querySelector('input[name="direccion_obra"]').value = result.value;
+                        const inputDir = form.querySelector('input[name="direccion_obra"]');
+                        if (inputDir) {
+                            inputDir.value = result.value;
+                        }
                         form.submit();
                     }
                 });

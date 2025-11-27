@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Auth;
 use App\Models\Comentario;
 use App\Models\Perfil_Profesional;
 use Illuminate\Http\Request;
@@ -17,19 +18,80 @@ class AdminComentarioController extends Controller
     /**
      * Listado de TODOS los comentarios (sin filtro)
      */
-    public function index()
+    public function index(Request $request)
     {
-        // Lista Comentarios
-        $comentarios = Comentario::with([
+        $user = Auth::user();
+
+        // Opcional: asegurar que es admin
+        if (! $user->hasRole('admin')) {
+            return redirect()->route('home')
+                ->with('error', 'No tienes permisos para acceder a los comentarios de administración.');
+        }
+
+        $estado = $request->input('estado');  // null | pendiente | publicado | rechazado
+        $q      = $request->input('q');
+
+        // Para las pestañas/filtros por estado
+        $estados = [
+            'pendiente' => 'Pendientes',
+            'publicado' => 'Publicados',
+            'rechazado' => 'Rechazados',
+        ];
+
+        $query = Comentario::with([
             'trabajo.presupuesto.solicitud.cliente',
             'trabajo.presupuesto.profesional',
-        ])
+        ]);
+
+        // Filtro por estado
+        if ($estado) {
+            $query->where('estado', $estado);
+        }
+
+        // Buscador
+        if ($q) {
+            $like = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($like) {
+
+                // Título de la solicitud
+                $sub->whereHas('trabajo.presupuesto.solicitud', function ($qSol) use ($like) {
+                    $qSol->where('titulo', 'like', $like);
+                })
+
+                    // Cliente: nombre, apellidos, email
+                    ->orWhereHas('trabajo.presupuesto.solicitud.cliente', function ($qCli) use ($like) {
+                        $qCli->where('nombre', 'like', $like)
+                            ->orWhere('apellidos', 'like', $like)
+                            ->orWhere('email', 'like', $like);
+                    })
+
+                    // Profesional: empresa, email empresa
+                    ->orWhereHas('trabajo.presupuesto.profesional', function ($qPro) use ($like) {
+                        $qPro->where('empresa', 'like', $like)
+                            ->orWhere('email_empresa', 'like', $like);
+                    })
+
+                    // Opinión del comentario
+                    ->orWhere('opinion', 'like', $like)
+
+                    // Estado del comentario (por si escribes "pendiente", etc.)
+                    ->orWhere('estado', 'like', $like);
+            });
+        }
+
+        $comentarios = $query
             ->orderByDesc('fecha')
-            ->paginate(5);
+            ->paginate(5)
+            ->withQueryString(); // mantiene estado + q en la paginación
 
-        return view('layouts.admin.comentarios.index', compact('comentarios'));
+        return view('layouts.admin.comentarios.index', compact(
+            'comentarios',
+            'estado',
+            'estados',
+            'q'
+        ));
     }
-
 
     /**
      * Detalle de un comentario para el modal Vue (JSON) o vista normal.

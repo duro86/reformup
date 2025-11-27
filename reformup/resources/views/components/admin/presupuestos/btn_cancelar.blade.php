@@ -10,7 +10,7 @@
     @csrf
     @method('PATCH')
 
-    <button type="button" class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+    <button type="button" class="btn btn-danger btn-sm w-100 d-flex justify-content-center align-items-center gap-1"
         onclick="{{ $fnName }}()">
         <i class="bi bi-slash-circle"></i>
         Cancelar

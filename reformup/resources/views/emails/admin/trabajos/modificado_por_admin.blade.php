@@ -5,7 +5,7 @@
 
 Se ha modificado un trabajo asociado a la solicitud
 @isset($solicitud)
-“**{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}**”
+“{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}”
 @endisset
 en la plataforma **ReformUp**.
 @else
@@ -13,70 +13,89 @@ en la plataforma **ReformUp**.
 
 Hemos actualizado la información de tu trabajo asociado a la solicitud
 @isset($solicitud)
-“**{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}**”
+“{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}”
 @endisset
 en **ReformUp**.
 @endif
 
+@php
+    // Normalizamos fechas antiguas a string (o null)
+    $fechaIniOld = $oldFechaIni ? $oldFechaIni->format('d/m/Y H:i') : null;
+    $fechaFinOld = $oldFechaFin ? $oldFechaFin->format('d/m/Y H:i') : null;
+
+    $fechaIniNew = $trabajo->fecha_ini ? $trabajo->fecha_ini->format('d/m/Y H:i') : null;
+    $fechaFinNew = $trabajo->fecha_fin ? $trabajo->fecha_fin->format('d/m/Y H:i') : null;
+
+    // ¿Merece la pena mostrar “estado anterior”?
+    $mostrarEstadoAnterior = $estadoHumanoOld && ($estadoHumanoOld !== $estadoHumanoNew);
+
+    // ¿Han cambiado las fechas?
+    $hayCambioFechaIni = $fechaIniOld && ($fechaIniOld !== $fechaIniNew);
+    $hayCambioFechaFin = $fechaFinOld && ($fechaFinOld !== $fechaFinNew);
+    $hayFechasAnteriores = $hayCambioFechaIni || $hayCambioFechaFin;
+
+    // ¿Ha cambiado la dirección?
+    $mostrarDirAnterior = $oldDirObra && ($oldDirObra !== $trabajo->dir_obra);
+@endphp
+
 @component('mail::panel')
 **Trabajo #{{ $trabajo->id }}**
 
-@isset($oldEstado)
-**Estado anterior:** {{ ucfirst(str_replace('_', ' ', $oldEstado)) }}  
-@endisset
-
-**Estado actual:** {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
-
-@php
-    $fechaIniOld = $oldFechaIni ? $oldFechaIni->format('d/m/Y H:i') : null;
-    $fechaFinOld = $oldFechaFin ? $oldFechaFin->format('d/m/Y H:i') : null;
-@endphp
-
-@isset($trabajo->fecha_ini)
-- Fecha inicio actual: {{ $trabajo->fecha_ini->format('d/m/Y H:i') }}
-@endisset
-
-@isset($trabajo->fecha_fin)
-- Fecha fin actual: {{ $trabajo->fecha_fin->format('d/m/Y H:i') }}
-@endisset
-
-@if($fechaIniOld || $fechaFinOld)
----
-**Fechas anteriores (a efectos informativos):**  
-@if($fechaIniOld)
-- Inicio anterior: {{ $fechaIniOld }}
-@endif
-@if($fechaFinOld)
-- Fin anterior: {{ $fechaFinOld }}
-@endif
+@if($mostrarEstadoAnterior)
+**Estado anterior:** {{ ucfirst($estadoHumanoOld) }}  
 @endif
 
-@if($oldDirObra || $trabajo->dir_obra)
----
-**Dirección de la obra**
+**Estado actual:** {{ ucfirst($estadoHumanoNew) }}
 
-@isset($oldDirObra)
-- Dirección anterior: {{ $oldDirObra }}
-@endisset
+@if($fechaIniNew || $fechaFinNew)
+<br>
+@endif
 
-@isset($trabajo->dir_obra)
-- Dirección actual: {{ $trabajo->dir_obra }}
-@endisset
+@if($fechaIniNew)
+**Fecha inicio actual:** {{ $fechaIniNew }}  
+@endif
+
+@if($fechaFinNew)
+**Fecha fin actual:** {{ $fechaFinNew }}  
+@endif
+
+@if($hayFechasAnteriores)
+<br>
+**Fechas anteriores (solo a modo informativo):**  
+    @if($hayCambioFechaIni)
+- Inicio anterior: {{ $fechaIniOld }}  
+    @endif
+    @if($hayCambioFechaFin)
+- Fin anterior: {{ $fechaFinOld }}  
+    @endif
+@endif
+
+@if($trabajo->dir_obra || $mostrarDirAnterior)
+<br>
+**Dirección de la obra**  
+
+    @if($mostrarDirAnterior)
+- Dirección anterior: {{ $oldDirObra }}  
+    @endif
+
+    @if($trabajo->dir_obra)
+- Dirección actual: {{ $trabajo->dir_obra }}  
+    @endif
 @endif
 @endcomponent
 
 @isset($presupuesto)
 **Presupuesto asociado:** #{{ $presupuesto->id }}
-@if(!is_null($presupuesto->total))
+    @if(!is_null($presupuesto->total))
  — Importe: {{ number_format($presupuesto->total, 2, ',', '.') }} €
-@endif  
+    @endif  
 @endisset
 
 @isset($perfilPro)
 **Profesional:** {{ $perfilPro->empresa }}
-@if($perfilPro->email_empresa)
+    @if($perfilPro->email_empresa)
  — {{ $perfilPro->email_empresa }}
-@endif  
+    @endif  
 @endisset
 
 @isset($cliente)

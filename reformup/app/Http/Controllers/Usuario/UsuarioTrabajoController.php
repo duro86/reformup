@@ -17,19 +17,55 @@ class UsuarioTrabajoController extends Controller
     public function index(Request $request)
     {
         $usuario = Auth::user();
-        $estado  = $request->query('estado'); // previsto, en_curso, finalizado, cancelado o null
+
+        if (! $usuario) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión para ver tus trabajos.');
+        }
+
+        $estado = $request->query('estado');              // previsto, en_curso, finalizado, cancelado o null
+        $q      = trim((string) $request->query('q'));    // texto de búsqueda
 
         $trabajos = Trabajo::with([
             'presupuesto.solicitud',
             'presupuesto.solicitud.cliente',
             'presupuesto.profesional',
-            'comentarios', // ya que lo usas en la vista
+            'comentarios',
         ])
-            ->whereHas('presupuesto.solicitud', function ($q) use ($usuario) {
-                $q->where('cliente_id', $usuario->id);
+            // trabajos del cliente autenticado
+            ->whereHas('presupuesto.solicitud', function ($sub) use ($usuario) {
+                $sub->where('cliente_id', $usuario->id);
             })
-            ->when($estado, function ($q) use ($estado) {
-                $q->where('estado', $estado);
+            // filtro por estado
+            ->when(! empty($estado), function ($query) use ($estado) {
+                $query->where('estado', $estado);
+            })
+            // filtro por buscador
+            ->when($q !== '', function ($query) use ($q) {
+                $like = '%' . $q . '%';
+
+                $query->where(function ($sub) use ($like) {
+                    // Por campos de la solicitud asociada
+                    $sub->whereHas('presupuesto.solicitud', function ($q2) use ($like) {
+                        $q2->where('titulo', 'like', $like)
+                            ->orWhere('ciudad', 'like', $like)
+                            ->orWhere('provincia', 'like', $like)
+                            ->orWhere('estado', 'like', $like);
+                    })
+                        // Por profesional (empresa / email)
+                        ->orWhereHas('presupuesto.profesional', function ($q3) use ($like) {
+                            $q3->where('empresa', 'like', $like)
+                                ->orWhere('email_empresa', 'like', $like);
+                        })
+                        // Por estado del trabajo
+                        ->orWhere('estado', 'like', $like)
+                        // Por dirección de obra
+                        ->orWhere('dir_obra', 'like', $like)
+                        // Por total del presupuesto (convertido a texto)
+                        ->orWhereHas('presupuesto', function ($q4) use ($like) {
+                            $q4->whereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
+                        });
+                });
             })
             ->orderByDesc('created_at')
             ->paginate(5)
@@ -39,9 +75,11 @@ class UsuarioTrabajoController extends Controller
             'trabajos' => $trabajos,
             'usuario'  => $usuario,
             'estado'   => $estado,
+            'q'        => $q,
             'estados'  => Trabajo::ESTADOS,
         ]);
     }
+
 
 
     /**
@@ -110,8 +148,6 @@ class UsuarioTrabajoController extends Controller
         return view('layouts.usuario.trabajos.mostrar', compact('trabajo'));
     }
 
-
-
     /**
      * Usuario cancela un trabajo que aún no ha comenzado.
      */
@@ -161,11 +197,6 @@ class UsuarioTrabajoController extends Controller
         return back()->with('success', 'Has cancelado el trabajo correctamente.');
     }
 
-
-
-
-
-
     /**
      * Método privado para asegurar que el trabajo pertenece al usuario logueado.
      */
@@ -178,7 +209,7 @@ class UsuarioTrabajoController extends Controller
             : null;
 
         if (!$solicitud || $solicitud->cliente_id !== $usuarioId) {
-            return back()->with('error', 'nO TIENES ACCESO A ESTA SECCIÓN.');
+            return back()->with('error', 'No tienes acceso a esta sección');
         }
     }
 }

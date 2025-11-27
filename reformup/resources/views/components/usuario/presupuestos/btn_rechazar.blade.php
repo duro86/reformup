@@ -1,8 +1,13 @@
-@props(['presupuesto'])
+@props([
+    'presupuesto',
+    'contexto' => 'desktop', // 'desktop' o 'mobile'
+])
 
 @php
-    $id = $presupuesto->id;
-    $formId = "form-rechazar-presupuesto-$id";
+    $idBase = $presupuesto->id;
+    $suffix = $contexto === 'mobile' ? '-m' : '';
+    $formId = "form-rechazar-presupuesto-{$idBase}{$suffix}";
+    $btnId  = "btn-rechazar-presu-{$idBase}{$suffix}";
 @endphp
 
 <form id="{{ $formId }}"
@@ -14,16 +19,17 @@
 </form>
 
 <button type="button"
-        class="btn btn-outline-danger btn-sm px-2 py-1 mx-1"
-        id="btn-rechazar-presu-{{ $id }}">
+        id="{{ $btnId }}"
+        class="btn btn-danger btn-sm w-100">
     Rechazar
 </button>
 
 @push('scripts')
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const btn = document.getElementById('btn-rechazar-presu-{{ $id }}');
-    if (!btn) return;
+    const btn  = document.getElementById('{{ $btnId }}');
+    const form = document.getElementById('{{ $formId }}');
+    if (!btn || !form) return;
 
     btn.addEventListener('click', function () {
         Swal.fire({
@@ -35,8 +41,7 @@ document.addEventListener('DOMContentLoaded', function () {
             cancelButtonText: 'No, volver',
         }).then((result) => {
             if (result.isConfirmed) {
-                const form = document.getElementById('{{ $formId }}');
-                if (form) form.submit();
+                form.submit();
             }
         });
     });

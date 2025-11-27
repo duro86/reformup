@@ -13,7 +13,7 @@
     @method('PATCH')
 
     <button type="button"
-            class="btn btn-sm btn-outline-danger d-inline-flex align-items-center gap-1"
+            class="btn btn-outline-danger btn-sm px-2 py-1 w-100"
             onclick="{{ $fnName }}()">
         <i class="bi bi-x-circle"></i> Cancelar
     </button>

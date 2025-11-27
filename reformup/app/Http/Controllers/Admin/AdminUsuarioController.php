@@ -22,7 +22,9 @@ use Exception;
 
 class AdminUsuarioController extends Controller
 {
-    // Método para listar usuarios (ejemplo adicional)
+    /**
+     * Listar y buscar todos los usuarios
+     */
     public function listarUsuarios(Request $request)
     {
         $q = $request->input('q'); // texto de búsqueda
@@ -346,34 +348,49 @@ class AdminUsuarioController extends Controller
             $avatarPath = $usuario->avatar;
         }
 
-        // --- Actualizar campos "normales" ---
-        $usuario->nombre    = $request->nombre;
-        $usuario->apellidos = $request->apellidos;
-        $usuario->email     = $request->email;
-        $usuario->telefono  = $request->telefono;
-        $usuario->ciudad    = $request->ciudad;
-        $usuario->provincia = $request->provincia;
-        $usuario->cp        = $request->cp;
-        $usuario->direccion = $request->direccion;
-        $usuario->avatar    = $avatarPath;
+        //Manejo de errores
+        try {
 
-        if ($request->filled('password')) {
-            $usuario->password = bcrypt($request->password);
+            // Guardamos la pagina actual de la paginacion
+            $paginaActual = $request->input('page', 1);
+
+            // --- Actualizar campos "normales" ---
+            $usuario->nombre    = $request->nombre;
+            $usuario->apellidos = $request->apellidos;
+            $usuario->email     = $request->email;
+            $usuario->telefono  = $request->telefono;
+            $usuario->ciudad    = $request->ciudad;
+            $usuario->provincia = $request->provincia;
+            $usuario->cp        = $request->cp;
+            $usuario->direccion = $request->direccion;
+            $usuario->avatar    = $avatarPath;
+
+            if ($request->filled('password')) {
+                $usuario->password = bcrypt($request->password);
+            }
+
+            $usuario->save();
+
+            // --- Gestionar roles ---
+
+            // Siempre queremos que tenga el rol 'usuario' aunque no venga en el form
+            $rolesFinales = array_unique(array_merge(['usuario'], $rolesSeleccionados));
+
+            // Sobrescribimos roles con: usuario + (admin/profesional según el form)
+            $usuario->syncRoles($rolesFinales);
+
+            return redirect()
+                ->route('admin.usuarios', ['page' => $paginaActual])
+                ->with('success', 'Usuario actualizado correctamente');
+        } catch (QueryException $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Ha ocurrido un problema al guardar los datos. Inténtalo de nuevo.');
+        } catch (\Throwable $e) {
+            return back()
+                ->withInput()
+                ->with('error', 'Ha ocurrido un error inesperado.');
         }
-
-        $usuario->save();
-
-        // --- Gestionar roles ---
-
-        // Siempre queremos que tenga el rol 'usuario' aunque no venga en el form
-        $rolesFinales = array_unique(array_merge(['usuario'], $rolesSeleccionados));
-
-        // Sobrescribimos roles con: usuario + (admin/profesional según el form)
-        $usuario->syncRoles($rolesFinales);
-
-        return redirect()
-            ->route('admin.usuarios')
-            ->with('success', 'Usuario actualizado correctamente');
     }
 
 
@@ -385,10 +402,10 @@ class AdminUsuarioController extends Controller
         $usuario = User::findOrFail($id);
 
         // Si tiene perfil profesional, lo eliminamos también
-        // Usa el nombre correcto de la relación:
+        // Usamos el nombre correcto de la relación:
         // perfilProfesional()  o  perfil_Profesional()
         if ($usuario->perfilProfesional) {
-            $usuario->perfilProfesional->delete();  // o ->forceDelete() si no usas SoftDeletes
+            $usuario->perfilProfesional->delete();  // o ->forceDelete() 
         }
 
         // Si quieres borrar también el avatar físico

@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Auth;
 use App\Models\Solicitud;
 use App\Models\Perfil_Profesional;
 use App\Models\Oficio;
-
+use Mews\Purifier\Facades\Purifier;
 
 class UsuarioSolicitudController extends Controller
 {
@@ -17,24 +17,146 @@ class UsuarioSolicitudController extends Controller
      */
     public function index(Request $request)
     {
-        $user   = Auth::user();
-        $estado = $request->query('estado'); // puede venir null
+        $user = Auth::user();
 
-        $query = Solicitud::with('profesional')   // 👈 importante
-            ->where('cliente_id', $user->id)
-            ->orderByDesc('fecha');
+        if (! $user) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión para ver tus solicitudes.');
+        }
 
-        if ($estado) {
+        $estado = $request->query('estado');             // abierta / en_revision / cerrada / cancelada / null
+        $q      = trim((string) $request->query('q'));   // texto buscador
+
+        // Base: solo solicitudes de ESTE cliente
+        $query = Solicitud::with(['profesional'])
+            ->where('cliente_id', $user->id);
+
+        // Filtro por estado
+        if (! empty($estado)) {
             $query->where('estado', $estado);
         }
 
-        $solicitudes = $query->paginate(5)->withQueryString();
+        // Filtro por buscador
+        if ($q !== '') {
+            $qLike = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($qLike) {
+                $sub->where('titulo', 'like', $qLike)
+                    ->orWhere('ciudad', 'like', $qLike)
+                    ->orWhere('provincia', 'like', $qLike)
+                    ->orWhere('estado', 'like', $qLike)
+                    ->orWhereHas('profesional', function ($q2) use ($qLike) {
+                        $q2->where('empresa', 'like', $qLike)
+                            ->orWhere('email_empresa', 'like', $qLike);
+                    });
+            });
+        }
+
+        $solicitudes = $query
+            ->orderByDesc('fecha')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('layouts.usuario.solicitudes.index', [
             'solicitudes' => $solicitudes,
             'estado'      => $estado,
-            'estados'      => Solicitud::ESTADOS,
+            'q'           => $q,
+            'estados'     => Solicitud::ESTADOS,
         ]);
+    }
+
+    /**
+     * Ver detalles de una solicitud del usuario (JSON para Vue o vista normal)
+     */
+    public function mostrar(Solicitud $solicitud)
+    {
+        $userId = Auth::id();
+
+        // 1) No autenticado
+        if (is_null($userId)) {
+            if (request()->ajax() || request()->wantsJson()) {
+                abort(401, 'No autenticado.');
+            }
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'Debes iniciar sesión para ver tus solicitudes.');
+        }
+
+        // 2) La solicitud NO es suya
+        if ($solicitud->cliente_id !== $userId) {
+            if (request()->ajax() || request()->wantsJson()) {
+                abort(403, 'No puedes acceder a esta solicitud.');
+            }
+
+            return back()->with('error', 'No puedes acceder a esta solicitud.');
+        }
+
+        // 3) Cargar relaciones necesarias
+        //    (asumiendo que en el modelo tienes:
+        //     cliente(), profesional(), presupuestos() y en Presupuesto -> trabajo())
+        $solicitud->load([
+            'cliente',
+            'profesional',
+            'presupuestos.trabajo',
+        ]);
+
+        $cliente   = $solicitud->cliente;
+        $perfilPro = $solicitud->profesional;
+
+        // Escogemos un presupuesto asociado "principal"
+        $presupuestoAsociado = $solicitud->presupuestos->first();
+        $trabajoAsociado     = $presupuestoAsociado?->trabajo;
+
+        // 4) Petición JSON (Axios desde el modal)
+        if (request()->ajax() || request()->wantsJson()) {
+            return response()->json([
+                'id'              => $solicitud->id,
+                'titulo'          => $solicitud->titulo,
+                'descripcion'     => $solicitud->descripcion,
+                'estado'          => $solicitud->estado,
+                'ciudad'          => $solicitud->ciudad,
+                'provincia'       => $solicitud->provincia,
+                'presupuesto_max' => $solicitud->presupuesto_max,
+
+                //Fechas
+                'fecha'           => $solicitud->fecha
+                    ? $solicitud->fecha->format('d/m/Y H:i')
+                    : null,
+
+                'cliente' => $cliente ? [
+                    'nombre'    => $cliente->nombre ?? $cliente->name ?? null,
+                    'apellidos' => $cliente->apellidos ?? null,
+                    'email'     => $cliente->email,
+                    'telefono'  => $cliente->telefono ?? null,
+                ] : null,
+
+                'profesional' => $perfilPro ? [
+                    'empresa'          => $perfilPro->empresa,
+                    'email_empresa'    => $perfilPro->email_empresa,
+                    'telefono_empresa' => $perfilPro->telefono_empresa,
+                    'ciudad'           => $perfilPro->ciudad,
+                    'provincia'        => $perfilPro->provincia,
+                ] : null,
+
+                'presupuesto' => $presupuestoAsociado ? [
+                    'id'     => $presupuestoAsociado->id,
+                    'estado' => $presupuestoAsociado->estado ?? null,
+                    'total'  => $presupuestoAsociado->total ?? null,
+                ] : null,
+
+                'trabajo' => $trabajoAsociado ? [
+                    'id'        => $trabajoAsociado->id,
+                    'estado'    => $trabajoAsociado->estado ?? null,
+                    'fecha_ini' => $trabajoAsociado->fecha_ini,
+                    'fecha_fin' => $trabajoAsociado->fecha_fin,
+                    'dir_obra'  => $trabajoAsociado->dir_obra,
+                ] : null,
+            ]);
+        }
+
+        // 5) Si entra sin AJAX, devuelves otra vista (si quieres tenerla)
+        return view('layouts.usuario.solicitudes.mostrar', compact('solicitud'));
     }
 
     /**
@@ -110,6 +232,7 @@ class UsuarioSolicitudController extends Controller
     {
         $user = Auth::user();
 
+        // Validamos
         $validated = $request->validate(
             [
                 'pro_id'          => ['required', 'integer', 'exists:perfiles_profesionales,id'],
@@ -134,12 +257,16 @@ class UsuarioSolicitudController extends Controller
             ]
         );
 
+        // Limpiamos con el purifier
+        $descripcion = $request->input('descripcion');
+        $descripcion_limpia = Purifier::clean($descripcion, 'solicitud');
+
         // Creamos la solicitud: el estado por defecto en BBDD ya es 'abierta'
         Solicitud::create([
             'pro_id'         => $validated['pro_id'],  // Asociada al profesional seleccionado
             'cliente_id'      => $user->id,
             'titulo'          => $validated['titulo'],
-            'descripcion'     => $validated['descripcion'],
+            'descripcion'     => $descripcion_limpia,
             'ciudad'          => $validated['ciudad'],
             'provincia'       => $validated['provincia'] ?? null,
             'dir_cliente'     => $validated['dir_cliente'] ?? null,

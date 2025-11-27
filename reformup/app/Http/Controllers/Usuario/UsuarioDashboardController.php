@@ -16,7 +16,16 @@ class UsuarioDashboardController extends Controller
     // Método para mostrar el dashboard admin
     public function index()
     {
-        return view('layouts.usuario.dashboard_usuario');
+        $user = Auth::user();
+
+    $isProfesional = $user->hasRole('profesional');
+    $perfilProfesional = $user->perfil_Profesional; // o ->perfil_Profesional()->first();
+
+    return view('layouts.usuario.dashboard_usuario', [
+        'user'              => $user,
+        'isProfesional'     => $isProfesional,
+        'perfilProfesional' => $perfilProfesional,
+    ]);
     }
 
     // Mostrar perfil del usuario logueado

@@ -14,32 +14,61 @@ class ProfesionalSolicitudController extends Controller
      */
     public function index(Request $request)
     {
-        $user   = Auth::user();
-        $perfil = $user->perfil_Profesional; // relación 1:1
+        $user = Auth::user();
+        $perfil = $user->perfil_Profesional; // relación 1:1 con Perfil_Profesional
 
+        // Si no tiene perfil profesional, fuera
         if (! $perfil) {
             return redirect()->route('home')
-                ->with('error', 'No puedes acceder a esta sección.');
+                ->with('error', 'No puedes acceder a las solicitudes sin un perfil profesional.');
         }
 
-        $estado = $request->query('estado'); // null | abierta | en_revision | cerrada | cancelada
+        // Filtros
+        $estado = $request->query('estado');            // abierta / en_revision / cerrada / cancelada / null
+        $q      = trim((string) $request->query('q'));  // texto buscador
 
-        $query = Solicitud::with(['cliente', 'profesional'])
-            ->where('pro_id', $perfil->id)
-            ->orderByDesc('fecha');
+        // Base: SOLO solicitudes dirigidas a este profesional
+        $query = Solicitud::with(['cliente'])           // aquí al pro le interesa ver al cliente
+            ->where('pro_id', $perfil->id);
 
-        if ($estado) {
+        // Filtro por estado
+        if (! empty($estado)) {
             $query->where('estado', $estado);
         }
 
-        $solicitudes = $query->paginate(5)->withQueryString();
+        // Filtro por buscador
+        if ($q !== '') {
+            $qLike = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($qLike) {
+                $sub->where('titulo', 'like', $qLike)
+                    ->orWhere('ciudad', 'like', $qLike)
+                    ->orWhere('provincia', 'like', $qLike)
+                    ->orWhere('estado', 'like', $qLike)
+                    ->orWhereHas('cliente', function ($q2) use ($qLike) {
+                        $q2->where('nombre', 'like', $qLike)
+                            ->orWhere('apellidos', 'like', $qLike)
+                            ->orWhere('email', 'like', $qLike);
+                    });
+            });
+        }
+
+        // Orden + paginación
+        $solicitudes = $query
+            ->orderByDesc('fecha')
+            ->paginate(5)
+            ->withQueryString();
 
         return view('layouts.profesional.solicitudes.index', [
             'solicitudes' => $solicitudes,
             'estado'      => $estado,
+            'q'           => $q,
+            'estados'     => Solicitud::ESTADOS, // mismo array que usas en la vista
             'perfil'      => $perfil,
         ]);
     }
+
+
 
     /**
      * Detalle de una solicitud (para modal Vue o vista normal).

@@ -5,7 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
-USE App\Http\Controllers\HomeController;
+use App\Http\Controllers\HomeController;
 
 //Rutas externas
 require __DIR__ . '/admin.php';
@@ -44,6 +44,12 @@ Route::get('/registro/profesional/empresa', [AuthProController::class, 'mostrarF
     ->name('registro.pro.empresa');
 
 Route::post('/registro/profesional/empresa', [AuthProController::class, 'registrarEmpresa'])->name('registrar.empresa');
+
+// Rutas comunes autenticadas para ver los pdf - seguridad
+Route::middleware(['auth.redirect'])->group(function () {
+    Route::get('/presupuestos/{presupuesto}/pdf', [AuthProController::class, 'verPdf'])
+        ->name('presupuestos.ver_pdf');
+});
 
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])

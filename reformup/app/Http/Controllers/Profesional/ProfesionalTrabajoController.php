@@ -33,27 +33,81 @@ class ProfesionalTrabajoController extends Controller
     /**
      * Listado de trabajos del profesional.
      */
-    public function index()
+    public function index(Request $request)
     {
         $user   = Auth::user();
-        $perfil = $user->perfil_profesional; // ojo al nombre real de la relación
+        // Ojo al nombre de la relación: ajusta a como la tengas en el modelo User
+        $perfil = $user->perfil_Profesional; // relación del profesional
 
         if (! $perfil) {
             return redirect()->route('home')
                 ->with('error', 'No puedes acceder a esta sección.');
         }
 
-        $trabajos = Trabajo::with([
+        // Filtros
+        $estado = $request->query('estado');                // previsto, en_curso, finalizado, cancelado o null
+        $q      = trim((string) $request->query('q'));      // texto del buscador
+
+        $trabajosQuery = Trabajo::with([
             'presupuesto.solicitud.cliente',
             'presupuesto.profesional',
         ])
-            ->whereHas('presupuesto', function ($q) use ($perfil) {
-                $q->where('pro_id', $perfil->id);
-            })
-            ->orderByDesc('created_at')
-            ->paginate(5);
+            ->whereHas('presupuesto', function ($q2) use ($perfil) {
+                $q2->where('pro_id', $perfil->id);
+            });
 
-        return view('layouts.profesional.trabajos.index', compact('trabajos', 'perfil'));
+        // Filtro por estado (solo si viene algo)
+        if ($estado !== null && $estado !== '') {
+            $trabajosQuery->where('estado', $estado);
+        }
+
+        // Filtro por buscador
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+
+            $trabajosQuery->where(function ($sub) use ($like) {
+
+                // Buscar por título / ciudad / provincia de la solicitud
+                $sub->whereHas('presupuesto.solicitud', function ($q3) use ($like) {
+                    $q3->where('titulo', 'like', $like)
+                        ->orWhere('ciudad', 'like', $like)
+                        ->orWhere('provincia', 'like', $like);
+                })
+                    // Buscar por datos del cliente
+                    ->orWhereHas('presupuesto.solicitud.cliente', function ($q4) use ($like) {
+                        $q4->where('nombre', 'like', $like)
+                            ->orWhere('apellidos', 'like', $like)
+                            ->orWhere('email', 'like', $like);
+                    })
+                    // Buscar por estado del trabajo
+                    ->orWhere('estado', 'like', $like)
+                    // Opcional: buscar por importe del presupuesto
+                    ->orWhereHas('presupuesto', function ($q5) use ($like) {
+                        $q5->whereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
+                    });
+            });
+        }
+
+        $trabajos = $trabajosQuery
+            ->orderByDesc('created_at')
+            ->paginate(5)
+            ->withQueryString(); // mantiene ?q= y ?estado= en la paginación
+
+        // Array de estados para las pills (o usa Trabajo::ESTADOS si lo tienes)
+        $estados = Trabajo::ESTADOS ?? [
+            'previsto'   => 'Previstos',
+            'en_curso'   => 'En curso',
+            'finalizado' => 'Finalizados',
+            'cancelado'  => 'Cancelados',
+        ];
+
+        return view('layouts.profesional.trabajos.index', [
+            'trabajos' => $trabajos,
+            'perfil'   => $perfil,
+            'estado'   => $estado,
+            'q'        => $q,
+            'estados'  => $estados,
+        ]);
     }
 
     /**

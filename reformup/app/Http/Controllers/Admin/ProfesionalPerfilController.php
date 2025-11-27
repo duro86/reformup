@@ -22,16 +22,39 @@ class ProfesionalPerfilController extends Controller
     /**
      * Listado de perfiles profesionales
      */
-    public function listarProfesionales()
+    public function listarProfesionales(Request $request)
     {
-        // Cargamos también el usuario y sus roles
-        $profesionales = Perfil_Profesional::with(['user' => function ($q) {
-            $q->with('roles'); // para Spatie
-        }])
-            ->orderBy('created_at', 'desc')
-            ->paginate(5);
+        $q = $request->input('q'); // texto de búsqueda
 
-        return view('layouts.admin.profesionales.profesionales', compact('profesionales'));
+        // Empezamos la query cargando también el user relacionado
+        $query = Perfil_Profesional::with('user');
+
+        if ($q) {
+            $qLike = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($qLike) {
+                // Campos del perfil profesional
+                $sub->where('empresa', 'like', $qLike)
+                    ->orWhere('cif', 'like', $qLike)
+                    ->orWhere('email_empresa', 'like', $qLike)
+                    ->orWhere('telefono_empresa', 'like', $qLike)
+                    ->orWhere('dir_empresa', 'like', $qLike);
+            })
+                // Campos del usuario asociado (nombre, apellidos, email…)
+                ->orWhereHas('user', function ($qUser) use ($qLike) {
+                    $qUser->where('nombre', 'like', $qLike)
+                        ->orWhere('apellidos', 'like', $qLike)
+                        ->orWhere('email', 'like', $qLike)
+                        ->orWhere('telefono', 'like', $qLike);
+                });
+        }
+
+        $profesionales = $query
+            ->orderBy('created_at', 'desc')
+            ->paginate(5)
+            ->withQueryString(); // mantiene ?q=... en la paginación
+
+        return view('layouts.admin.profesionales.profesionales', compact('profesionales', 'q'));
     }
 
     /**
@@ -59,9 +82,9 @@ class ProfesionalPerfilController extends Controller
                     );
                 } catch (\Throwable $e) {
                     return back()->with(
-                    'error',
-                    'El perfil se ha ocultado, pero el correo ha fallado: '
-                );
+                        'error',
+                        'El perfil se ha ocultado, pero el correo ha fallado: '
+                    );
                 }
             }
 
@@ -235,6 +258,10 @@ class ProfesionalPerfilController extends Controller
             $avatarPath = $perfil->avatar;
         }
 
+
+        // Página actual (por defecto 1)
+        $paginaActual = $request->input('page', 1);
+
         //Manejo de errores
         try {
             // ACTUALIZAR CAMPOS
@@ -258,19 +285,13 @@ class ProfesionalPerfilController extends Controller
             $perfil->oficios()->sync($request->oficios ?? []);
 
             return redirect()
-                ->route('admin.profesionales')
+                ->route('admin.profesionales', ['page' => $paginaActual])
                 ->with('success', 'Perfil profesional actualizado correctamente');
         } catch (QueryException $e) {
-            // Aquí podrías loguear el error técnico
-            // Log::error($e->getMessage());
-
             return back()
                 ->withInput()
                 ->with('error', 'Ha ocurrido un problema al guardar los datos. Inténtalo de nuevo.');
         } catch (\Throwable $e) {
-            // Para cualquier otra excepción inesperada
-            // Log::error($e->getMessage());
-
             return back()
                 ->withInput()
                 ->with('error', 'Ha ocurrido un error inesperado.');
@@ -284,9 +305,12 @@ class ProfesionalPerfilController extends Controller
     {
         $perfil = Perfil_Profesional::with('user')->findOrFail($id);
 
-        // Si quieres hacer algo especial si NO tiene usuario, lo detectas aquí:
+        // Si NO tiene usuario
         if (! $perfil->user) {
-            //
+            return redirect()
+                ->route('admin.profesionales')
+                ->with('error', 'El perfil profesional no tenía perfil de usuario. Ten cuidado la próxima vez');
+            $perfil->delete();
         }
 
         $perfil->delete(); // o soft delete

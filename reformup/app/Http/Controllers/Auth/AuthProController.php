@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\Perfil_Profesional;
 use App\Models\Oficio;
 use App\Models\User;
+use App\Models\Presupuesto;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
@@ -13,7 +14,7 @@ use Illuminate\Support\Str;
 use App\Mail\Admin\NuevoProfesionalRegistrado;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
-use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait
+use Spatie\Permission\Traits\HasRoles;
 
 
 use Illuminate\Http\Request;
@@ -21,11 +22,17 @@ use Illuminate\Support\Facades\Hash;
 
 class AuthProController extends Controller
 {
+    /**
+     * Mostrar opciones registrar profesional con o sin usuario previo
+     */
     public function mostrarOpcionesPro()
     {
         return view('auth.registro_pro');
     }
 
+    /**
+     * Mostramos el formulario de registro de usuario nuevo
+     */
     public function mostrarFormProNuevo()
     {
         return view('auth.registro_pro_nuevo');
@@ -96,7 +103,9 @@ class AuthProController extends Controller
     }
 
 
-    /**Registro por medio del ADMIN */
+    /**
+     * Validación y registro de un profesional
+     */
     public function registrarClientePro(Request $request)
     {
 
@@ -164,7 +173,7 @@ class AuthProController extends Controller
             $avatarPath = $dir . '/' . $file; // p.ej. imagenes/avatarUser/20251124/avatar-pepe-xxxx.png
         } else {
             // Ruta por defecto, también relativa al disco public
-            $avatarPath = 'imagenes/avatarUser/avatar_default.png';
+            $avatarPath = 'img/User/avatarUser/avatar_user_Hombre.webp';
         }
 
         // Insertamos en la tabla users y asignamos el rol de cliente
@@ -195,6 +204,9 @@ class AuthProController extends Controller
             ->with('success', 'Cuenta creada correctamente. Ahora completa los datos de tu empresa.');
     }
 
+    /**
+     * Validación y registro de un perfil profesional
+     */
     public function registrarEmpresa(Request $request)
     {
 
@@ -285,7 +297,7 @@ class AuthProController extends Controller
             $avatarPath = $dir . '/' . $file;                                     // p.ej. imagenes/avatarEmpresa/20251112/foto.png
         } else {
             // ruta por defecto (también relativa al disco public)
-            $avatarPath = 'imagenes/avatarEmpresa/avatar_default.png';
+            $avatarPath = null;
         }
 
         $userAuth   = Auth::user();
@@ -363,11 +375,17 @@ class AuthProController extends Controller
             ->with('success', 'Registro profesional completado correctamente. Se verificará la información y te avisaremos cuando esté disponible en la plataforma.');
     }
 
+    /**
+     * Mostrar formulario validación usuario y password
+     */
     public function mostrarValidarUsuario()
     {
         return view('auth.validar_usuario');
     }
 
+    /**
+     * Validar usuario y contraseña para crear empresa con usuario registrado
+     */
     public function validarUsuario(Request $request)
     {
         $creedenciales = $request->validate([
@@ -418,5 +436,41 @@ class AuthProController extends Controller
             return redirect()->route('registrar.profesional.opciones')
                 ->with('error', 'El usuario no tiene permisos adecuados para registrar una empresa. Póngase en contacto con el Administrador.');
         }
+    }
+
+    /**
+     * Ver pdf filtrando por usuarios y roles y denegar a no permitidos
+     */
+    public function verPdf(Presupuesto $presupuesto)
+    {
+        $user = Auth::user();
+
+        $presupuesto->load('solicitud');
+        $solicitud = $presupuesto->solicitud;
+
+        $esAdmin   = $user->hasRole('admin');
+        $esPro     = $user->hasRole('profesional')
+            && $user->perfil_Profesional
+            && $user->perfil_Profesional->id === $presupuesto->pro_id;
+        $esCliente = $solicitud && $user->hasRole('usuario') && $solicitud->cliente_id === $user->id;
+
+        if (! ($esAdmin || $esPro || $esCliente)) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'No tienes permiso para ver este presupuesto.');
+        }
+
+        if (! $presupuesto->docu_pdf) {
+            return back()->with('error', 'Este presupuesto no tiene ningún PDF asociado.');
+        }
+
+        if (! Storage::disk('private')->exists($presupuesto->docu_pdf)) {
+            return back()->with('error', 'No se ha encontrado el archivo PDF en el servidor.');
+        }
+
+        return response()->file(
+            Storage::disk('private')->path($presupuesto->docu_pdf),
+            ['Content-Type' => 'application/pdf']
+        );
     }
 }

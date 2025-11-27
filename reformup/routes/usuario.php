@@ -38,6 +38,10 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         Route::get('/solicitudes/seleccionar_profesional', [UsuarioSolicitudController::class, 'seleccionarProfesional'])
             ->name('solicitudes.seleccionar_profesional');
 
+        // Mostrar solicitud
+        Route::get('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'mostrar'])
+            ->name('solicitudes.mostrar');
+
         // Guardar nueva solicitud
         // PASO 2: formulario de solicitud con un profesional concreto
         Route::get('/solicitudes/crear/profesional/{pro}', [UsuarioSolicitudController::class, 'crearConProfesional'])
@@ -57,13 +61,15 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         Route::get('/presupuestos', [UsuarioPresupuestoController::class, 'index'])
             ->name('presupuestos.index');
 
-        // Aceptar presupuesto
-        Route::patch('/presupuestos/{presupuesto}/aceptar', [UsuarioPresupuestoController::class, 'aceptar'])
-            ->name('presupuestos.aceptar');
+        Route::post('/presupuestos/{presupuesto}/aceptar', [
+            UsuarioPresupuestoController::class,
+            'aceptar'
+        ])->name('presupuestos.aceptar');
 
-        // Rechazar presupuesto
-        Route::patch('/presupuestos/{presupuesto}/rechazar', [UsuarioPresupuestoController::class, 'rechazar'])
-            ->name('presupuestos.rechazar');
+        Route::post('/presupuestos/{presupuesto}/rechazar', [
+            UsuarioPresupuestoController::class,
+            'rechazar'
+        ])->name('presupuestos.rechazar');
 
 
         // ----- TRABAJOS -----
