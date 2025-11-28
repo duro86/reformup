@@ -19,9 +19,13 @@ use Illuminate\Validation\Rule;
 use Spatie\Permission\Models\Role;
 use Illuminate\Database\QueryException;
 use Exception;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class AdminUsuarioController extends Controller
 {
+    use FiltroRangoFechas;
+
     /**
      * Listar y buscar todos los usuarios
      */
@@ -31,6 +35,7 @@ class AdminUsuarioController extends Controller
 
         $query = User::query();
 
+        // --- Filtro por texto ---
         if ($q) {
             $qLike = '%' . $q . '%';
 
@@ -42,10 +47,14 @@ class AdminUsuarioController extends Controller
             });
         }
 
+        // --- Filtro por rango de fechas (usando created_at del usuario) ---
+        $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+
+        // --- Orden + paginación ---
         $usuarios = $query
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->paginate(5)
-            ->withQueryString(); // mantiene ?q=... en la paginación
+            ->withQueryString(); // mantiene q, fecha_desde, fecha_hasta
 
         return view('layouts.admin.usuarios.usuarios', compact('usuarios', 'q'));
     }
@@ -73,30 +82,29 @@ class AdminUsuarioController extends Controller
      */
     public function exportarUsuariosPaginaPdf(Request $request)
     {
-        // Página actual (si no viene, 1)
-        $pagina = (int) $request->input('page', 1);
+        $pagina    = (int) $request->input('page', 1);
         $porPagina = 5;
-
-        // Misma búsqueda que en listarUsuarios
-        $busqueda = $request->input('q');
+        $busqueda  = $request->input('q');
 
         $query = User::query();
 
         if ($busqueda) {
-            $query->where(function ($q) use ($busqueda) {
-                $q->where('nombre', 'like', '%' . $busqueda . '%')
-                    ->orWhere('apellidos', 'like', '%' . $busqueda . '%')
-                    ->orWhere('email', 'like', '%' . $busqueda . '%')
-                    ->orWhere('telefono', 'like', '%' . $busqueda . '%');
+            $like = '%' . $busqueda . '%';
+            $query->where(function ($q) use ($like) {
+                $q->where('nombre', 'like', $like)
+                    ->orWhere('apellidos', 'like', $like)
+                    ->orWhere('email', 'like', $like)
+                    ->orWhere('telefono', 'like', $like);
             });
         }
 
-        // Paginamos FORZANDO la página que queremos imprimir
+        //  Mismo filtro de fechas que en el listado
+        $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+
         $paginator = $query
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->paginate($porPagina, ['*'], 'page', $pagina);
 
-        // Elementos SOLO de esa página
         $usuarios = $paginator->items();
 
         $pdf = Pdf::loadView('layouts.admin.usuarios.pdf.usuarios_pdf_pagina', [
@@ -109,6 +117,7 @@ class AdminUsuarioController extends Controller
 
         return $pdf->stream($fileName);
     }
+
 
     /**
      * Mostrar formulario para crear nuevo usuario desde el panel admin
@@ -131,7 +140,7 @@ class AdminUsuarioController extends Controller
             'password' => ['required', 'confirmed', 'min:6'],
             'telefono' => ['required', 'regex:/^[6789]\d{8}$/', 'unique:users,telefono'],
             'ciudad' => ['nullable', 'string', 'max:100'],
-            'provincia' => ['nullable', 'string', 'max:100'],
+            'provincia' => ['required', 'string', 'max:100'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'cp' => ['nullable', 'regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'] // 2MB máximo
@@ -159,8 +168,9 @@ class AdminUsuarioController extends Controller
             'ciudad.string' => 'La ciudad debe ser un texto válido.',
             'ciudad.max' => 'La ciudad no puede superar los 100 caracteres.',
 
-            'provincia.string' => 'La provincia debe ser un texto válido.',
-            'provincia.max' => 'La provincia no puede superar los 100 caracteres.',
+            'provincia.required' => 'La provincia es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser un texto válido.',
+            'provincia.max'      => 'La provincia no puede superar los 100 caracteres.',
 
             'direccion.string' => 'La dirección debe ser un texto válido.',
             'direccion.max' => 'La dirección no puede superar los 255 caracteres.',
@@ -190,8 +200,8 @@ class AdminUsuarioController extends Controller
             // Guardamos solo la ruta relativa en BD
             $avatarPath = $dir . '/' . $file;
         } else {
-            // Si no sube nada, asignamos el avatar por defecto
-            $avatarPath = 'imagenes/avatarUser/avatar_default.png';
+            // Si no sube nada, dejamos nulo
+            $avatarPath = null;
         }
 
         // Insertamos en la tabla users y asignamos el rol de cliente
@@ -276,7 +286,7 @@ class AdminUsuarioController extends Controller
             'roles'   => ['nullable', 'array'],
             'roles.*' => ['string', Rule::in($validRoles)],
             'ciudad'     => ['nullable', 'string', 'max:100'],
-            'provincia'  => ['nullable', 'string', 'max:100'],
+            'provincia' => ['required', 'string', 'max:100'],
             'direccion'  => ['nullable', 'string', 'max:255'],
             'cp'         => ['nullable', 'regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'],
             'avatar'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'],
@@ -296,6 +306,9 @@ class AdminUsuarioController extends Controller
             'avatar.mimes'       => 'Sólo se permiten archivos JPG, PNG, JPEG, GIF o SVG.',
             'avatar.max'         => 'La imagen no debe superar los 2MB.',
             'avatar.uploaded'    => 'La subida de la imagen ha fallado. Por favor, inténtalo de nuevo.',
+            'provincia.required' => 'La provincia es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser un texto válido.',
+            'provincia.max'      => 'La provincia no puede superar los 100 caracteres.',
 
             // Mensajes de roles (si quieres alguno, aunque ahora es nullable)
             'roles.*.in'         => 'Alguno de los roles seleccionados no es válido.',

@@ -25,8 +25,9 @@
 
                     {{-- Imagen centrada y responsive justo debajo de la lista --}}
                     <div class="text-center mt-3">
-                        <img src="{{ asset('img/User/panel_registro/panel_registro_user.png') }}" alt="Reformas" class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
-                    </div>                    
+                        <img src="{{ asset('img/User/panel_registro/panel_registro_user.png') }}" alt="Reformas"
+                            class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
+                    </div>
                 </div>
             </div>
 
@@ -44,7 +45,8 @@
                     @endif
 
                     {{-- Formulario de registro --}}
-                    <form method="POST" action="{{ route('admin.admin.registrar.cliente') }}" novalidate enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('admin.registrar.cliente') }}" novalidate
+                        enctype="multipart/form-data">
                         @csrf
 
                         <div class="row">
@@ -101,22 +103,33 @@
                                 @enderror
                             </div>
 
+                            {{-- Provincia --}}
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Ciudad</label>
-                                <input type="text" name="ciudad" value="{{ old('ciudad') }}"
-                                    class="form-control @error('ciudad') is-invalid @enderror">
-                                @error('ciudad')
+                                <label class="form-label">Provincia<span class="text-danger">*</span></label>
+                                <select name="provincia" id="provincia"
+                                    class="form-control @error('provincia') is-invalid @enderror">
+                                    <option value="">Selecciona una provincia</option>
+                                    <option value="Huelva" {{ old('provincia') == 'Huelva' ? 'selected' : '' }}>Huelva
+                                    </option>
+                                    <option value="Sevilla" {{ old('provincia') == 'Sevilla' ? 'selected' : '' }}>Sevilla
+                                    </option>
+                                </select>
+                                @error('provincia')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
                         </div>
 
                         <div class="row">
+                            {{-- Ciudad / Municipio --}}
                             <div class="col-md-6 mb-3">
-                                <label class="form-label">Provincia <span class="text-danger"></span></label>
-                                <input type="text" name="provincia" value="{{ old('provincia') }}"
-                                    class="form-control @error('provincia') is-invalid @enderror">
-                                @error('provincia')
+                                <label class="form-label"> Municipio</label>
+                                <select name="ciudad" id="ciudad"
+                                    class="form-control @error('ciudad') is-invalid @enderror">
+                                    <option value="">Selecciona primero una provincia</option>
+                                    {{-- Opciones se rellenan por JS --}}
+                                </select>
+                                @error('ciudad')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -133,7 +146,8 @@
 
                         <div class="mb-3">
                             <label class="form-label">Dirección</label>
-                            <input type="text" name="direccion" placeholder="Avd/Cabezo de la Joya 3, escalera 3, 4ºA" value="{{ old('direccion') }}"
+                            <input type="text" name="direccion" placeholder="Avd/Cabezo de la Joya 3, escalera 3, 4ºA"
+                                value="{{ old('direccion') }}"
                                 class="form-control @error('direccion') is-invalid @enderror">
                             @error('direccion')
                                 <div class="invalid-feedback">{{ $message }}</div>
@@ -159,11 +173,9 @@
             </div>
         </div>
     </div>
+    <x-ciudadProvincia.ciudades_provincias :oldProvincia="old('provincia')" :oldCiudad="old('ciudad')" />
 
     {{-- Footer  --}}
     <x-footer />
 
 @endsection
-
-
-

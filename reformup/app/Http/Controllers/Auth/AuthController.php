@@ -7,6 +7,13 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
+use App\Models\Solicitud;
+use App\Models\Presupuesto;
+use App\Models\Trabajo;
+use App\Models\Comentario;
+use Illuminate\Support\Facades\Mail;
+use Mews\Purifier\Facades\Purifier;
+use App\Mail\ContactoWebMailable;
 
 //Controlador para la autenticación usando Laravel Sanctum
 class AuthController extends Controller
@@ -27,7 +34,7 @@ class AuthController extends Controller
             'password' => ['required', 'confirmed', 'min:6'],
             'telefono' => ['required', 'regex:/^[6789]\d{8}$/', 'unique:users,telefono'],
             'ciudad' => ['nullable', 'string', 'max:100'],
-            'provincia' => ['nullable', 'string', 'max:100'],
+            'provincia' => ['required', 'string', 'max:100'],
             'direccion' => ['nullable', 'string', 'max:255'],
             'cp' => ['nullable', 'regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'] // 2MB máximo
@@ -55,8 +62,9 @@ class AuthController extends Controller
             'ciudad.string' => 'La ciudad debe ser un texto válido.',
             'ciudad.max' => 'La ciudad no puede superar los 100 caracteres.',
 
-            'provincia.string' => 'La provincia debe ser un texto válido.',
-            'provincia.max' => 'La provincia no puede superar los 100 caracteres.',
+            'provincia.required' => 'La provincia es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser un texto válido.',
+            'provincia.max'      => 'La provincia no puede superar los 100 caracteres.',
 
             'direccion.string' => 'La dirección debe ser un texto válido.',
             'direccion.max' => 'La dirección no puede superar los 255 caracteres.',
@@ -193,4 +201,85 @@ class AuthController extends Controller
 
         return redirect()->route('home')->with('success', 'Usuario administrador registrado correctamente.');
     }*/
+
+    /**
+     * Paso a paso, indicar a los usuarios el funcionamiento de la web
+     */
+    public function pasoAPaso()
+    {
+        // Traemos los estados
+
+        $estadosSolicitud   = Solicitud::ESTADOS;
+        $estadosPresupuesto = Presupuesto::ESTADOS;
+        $estadosTrabajo     = Trabajo::ESTADOS;
+        $estadosComentario  = Comentario::ESTADOS;
+
+        return view('layouts.public.paso_a_paso', compact(
+            'estadosSolicitud',
+            'estadosPresupuesto',
+            'estadosTrabajo',
+            'estadosComentario'
+        ));
+    }
+
+    /**
+     * Mostrar pagina contacto sobre nosotros
+     */
+    public function contacto()
+    {
+        return view('layouts.public.contacto');
+    }
+
+    /**
+     * Recibir email de informacion de sobre nosotros
+     */
+    public function contactoEnviar(Request $request)
+    {
+        // 1) Validación básica del formulario
+        $validated = $request->validate(
+            [
+                'nombre'     => 'required|string|max:255',
+                'email'      => 'required|email',
+                'asunto'     => 'required|string|max:255',
+                'mensaje'    => 'required|string|max:2000',
+                'privacidad' => 'accepted',
+            ],
+            [
+                'nombre.required'     => 'Por favor, indica tu nombre.',
+                'email.required'      => 'El email es obligatorio.',
+                'email.email'         => 'El formato de email no es válido.',
+                'asunto.required'     => 'Indica un asunto para tu mensaje.',
+                'mensaje.required'    => 'El mensaje no puede estar vacío.',
+                'privacidad.accepted' => 'Debes aceptar la política de privacidad.',
+            ]
+        );
+
+        // 2) Sanitizar / limpiar datos sensibles
+        // Nombre y asunto: mejor sin HTML
+        $nombre  = strip_tags($validated['nombre']);
+        $asunto  = strip_tags($validated['asunto']);
+        $email   = $validated['email'];
+
+        // Mensaje: lo limpiamos con Purifier usando el perfil "solicitud" que ya tienes
+        $mensajeLimpio = Purifier::clean($validated['mensaje'], 'solicitud');
+
+        // 3) Enviar email al administrador (pon tu correo real)
+        try {
+            Mail::to('admin@reformup.es') // cámbialo por tu email real
+                ->send(new ContactoWebMailable(
+                    $nombre,
+                    $email,
+                    $asunto,
+                    $mensajeLimpio
+                ));
+
+            // 4) Respuesta con flash para SweetAlert
+            return back()->with('success', 'Tu mensaje se ha enviado correctamente. El administrador revisará tu correo en breve.');
+        } catch (\Throwable $e) {
+            // Si algo revienta (SMTP, etc.)
+            return back()
+                ->withInput()
+                ->with('error', 'Ha ocurrido un problema al enviar el mensaje. Inténtalo de nuevo más tarde.');
+        }
+    }
 }

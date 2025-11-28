@@ -10,6 +10,11 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Database\QueryException;
+use App\Models\Perfil_Profesional;
+use App\Models\User;
+use Spatie\Permission\Models\Role;
+use App\Models\Oficio;
+use Exception;
 
 class UsuarioDashboardController extends Controller
 {
@@ -18,14 +23,14 @@ class UsuarioDashboardController extends Controller
     {
         $user = Auth::user();
 
-    $isProfesional = $user->hasRole('profesional');
-    $perfilProfesional = $user->perfil_Profesional; // o ->perfil_Profesional()->first();
+        $isProfesional = $user->hasRole('profesional');
+        $perfilProfesional = $user->perfil_Profesional; // o ->perfil_Profesional()->first();
 
-    return view('layouts.usuario.dashboard_usuario', [
-        'user'              => $user,
-        'isProfesional'     => $isProfesional,
-        'perfilProfesional' => $perfilProfesional,
-    ]);
+        return view('layouts.usuario.dashboard_usuario', [
+            'user'              => $user,
+            'isProfesional'     => $isProfesional,
+            'perfilProfesional' => $perfilProfesional,
+        ]);
     }
 
     // Mostrar perfil del usuario logueado
@@ -64,7 +69,7 @@ class UsuarioDashboardController extends Controller
                 Rule::unique('users', 'telefono')->ignore($usuario->id),
             ],
             'ciudad'     => ['nullable', 'string', 'max:100'],
-            'provincia'  => ['nullable', 'string', 'max:100'],
+            'provincia'  => ['required', 'string', 'max:100'],
             'cp'         => ['nullable', 'regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'],
             'direccion'  => ['nullable', 'string', 'max:255'],
             'avatar'     => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
@@ -95,6 +100,9 @@ class UsuarioDashboardController extends Controller
             'avatar.max'         => 'La imagen no debe superar los 2MB.',
             'password.confirmed' => 'La confirmación de la contraseña no coincide.',
             'password.min'       => 'La contraseña debe tener al menos 6 caracteres.',
+            'ciudad.string'     => 'La ciudad debe ser texto válido.',
+            'provincia.required' => 'La provincia de la empresa es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser texto válido.',
         ];
 
         $validated = $request->validate($rules, $messages);
@@ -115,11 +123,8 @@ class UsuarioDashboardController extends Controller
         }
 
 
-        // --- AVATAR ---
+        // --- Manejo imagen avatar al usuario ---
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
-            if ($usuario->avatar && $usuario->avatar !== 'imagenes/avatarUser/avatar_default.png') {
-                Storage::disk('public')->delete($usuario->avatar);
-            }
 
             $dir  = 'imagenes/avatarUser/' . now()->format('Ymd');
             $ext  = $request->file('avatar')->getClientOriginalExtension();
@@ -127,12 +132,17 @@ class UsuarioDashboardController extends Controller
             $safe = Str::slug($base);
             $file = $safe . '-' . Str::random(8) . '.' . $ext;
 
+            // Creamos el directorio si no existe
             Storage::disk('public')->makeDirectory($dir);
+
+            // Guardamos el archivo en storage/app/public/...
             $request->file('avatar')->storeAs($dir, $file, 'public');
 
+            // Guardamos solo la ruta relativa en BD
             $avatarPath = $dir . '/' . $file;
         } else {
-            $avatarPath = $usuario->avatar;
+            // Si no sube nada, dejamos nulo
+            $avatarPath = null;
         }
 
 

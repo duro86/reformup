@@ -132,7 +132,7 @@
 
                   <div class="mt-auto pt-2">
                     <a
-                      :href="`/profesionales/${pro.id}`"
+                      :href="`/profesionales/${pro.id}`" 
                       class="btn btn-sm btn-outline-primary w-100"
                     >
                       Ver perfil

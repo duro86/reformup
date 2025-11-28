@@ -80,11 +80,17 @@
         @enderror
     </div>
 
+    {{-- Provincia --}}
     <div class="col-md-6 mb-3">
-        <label class="form-label">Ciudad</label>
-        <input type="text" name="ciudad" value="{{ old('ciudad', $usuario->ciudad) }}"
-            class="form-control @error('ciudad') is-invalid @enderror">
-        @error('ciudad')
+        <label class="form-label">Provincia<span class="text-danger">*</span></label>
+        <select name="provincia" id="provincia" class="form-control @error('provincia') is-invalid @enderror">
+            <option value="">Selecciona una Provincia</option>
+            <option value="Huelva" {{ old('provincia', $usuario->provincia) == 'Huelva' ? 'selected' : '' }}>Huelva
+            </option>
+            <option value="Sevilla" {{ old('provincia', $usuario->provincia) == 'Sevilla' ? 'selected' : '' }}>Sevilla
+            </option>
+        </select>
+        @error('provincia')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
@@ -92,11 +98,14 @@
 
 {{-- Provincia y código postal --}}
 <div class="row">
+    {{-- Ciudad / Municipio --}}
     <div class="col-md-6 mb-3">
-        <label class="form-label">Provincia</label>
-        <input type="text" name="provincia" value="{{ old('provincia', $usuario->provincia) }}"
-            class="form-control @error('provincia') is-invalid @enderror">
-        @error('provincia')
+        <label class="form-label">Municipio</label>
+        <select name="ciudad" id="ciudad" class="form-control @error('ciudad') is-invalid @enderror">
+            <option value="">Selecciona primero un Municipio</option>
+            {{-- Aquí JS meterá las opciones --}}
+        </select>
+        @error('ciudad')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
@@ -136,7 +145,8 @@
         <span class="text-muted small">Avatar actual</span>
     </div>
 
-    <input type="file" name="avatar" accept="image/*" class="form-control @error('avatar') is-invalid @enderror">
+    <input type="file" name="avatar" accept="image/*"
+        class="form-control @error('avatar') is-invalid @enderror">
     @error('avatar')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
@@ -144,3 +154,8 @@
         Si no seleccionas nada, se mantendrá el avatar actual.
     </small>
 </div>
+{{-- Editar usuario --}}
+<x-ciudadProvincia.ciudades_provincias
+    :oldProvincia="old('provincia', $usuario->provincia)"
+    :oldCiudad="old('ciudad', $usuario->ciudad)"
+/>

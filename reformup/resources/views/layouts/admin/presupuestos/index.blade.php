@@ -28,29 +28,29 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
-
-            {{-- Buscador --}}
+            {{-- Buscador combinado: campos + fechas --}}
             <form method="GET" action="{{ route('admin.presupuestos') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
                         placeholder="Buscar por ref., solicitud, cliente, profesional o ubicación...">
                 </div>
 
+                {{-- Rango de fechas reutilizable --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
                     <button type="submit" class="btn btn-sm btn-primary">
                         <i class="bi bi-search"></i> Buscar
                     </button>
                 </div>
 
+                {{-- Botón Limpiar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    @if (request('q') || request('estado'))
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
                         <a href="{{ route('admin.presupuestos') }}" class="btn btn-sm btn-outline-secondary">
                             Limpiar
                         </a>
@@ -58,7 +58,8 @@
                 </div>
             </form>
 
-            {{-- Filtros por estado (opcional, como ya tenías) --}}
+
+            {{-- Filtros por estado --}}
             @if (isset($estados) && is_array($estados))
                 <ul class="nav nav-pills mb-3">
                     @foreach ($estados as $valor => $texto)
@@ -218,7 +219,7 @@
                                                 {{-- Cancelar --}}
                                                 <x-admin.presupuestos.btn_cancelar :presupuesto="$presupuesto" />
                                             @endif
-                                            
+
                                             {{-- Botón ELIMINAR para admin --}}
                                             @if (in_array($presupuesto->estado, ['aceptado', 'rechazado']))
                                                 <x-admin.presupuestos.btn_eliminar :presupuesto="$presupuesto" />

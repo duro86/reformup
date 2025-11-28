@@ -13,13 +13,15 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Database\QueryException;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
 
 
 class AdminPresupuestoController extends Controller
 {
+    use FiltroRangoFechas;
 
     /**
-     * Listado presupuesto + informacion adicional solicitud
+     * Listado presupuesto + información adicional solicitud
      */
     public function index(Request $request)
     {
@@ -35,43 +37,55 @@ class AdminPresupuestoController extends Controller
             'caducado'   => 'Caducados',
         ];
 
-        $presupuestos = Presupuesto::with(['solicitud.cliente', 'profesional'])
-            // Filtro por estado si llega
-            ->when($estado, function ($query) use ($estado) {
-                $query->where('estado', $estado);
-            })
-            // Filtro por búsqueda libre
-            ->when($q, function ($query) use ($q) {
-                $query->where(function ($sub) use ($q) {
-                    $sub
-                        // Buscar por id exacto si escribe un número
-                        ->orWhere('id', $q)
-                        // Por total aproximado (si metiera un número con coma o punto)
-                        ->orWhere('total', 'like', '%' . str_replace(',', '.', $q) . '%')
-                        // Por datos de la solicitud
-                        ->orWhereHas('solicitud', function ($q2) use ($q) {
-                            $q2->where('titulo', 'like', "%{$q}%")
-                                ->orWhere('ciudad', 'like', "%{$q}%")
-                                ->orWhere('provincia', 'like', "%{$q}%");
-                        })
-                        // Por cliente
-                        ->orWhereHas('solicitud.cliente', function ($q3) use ($q) {
-                            $q3->where('nombre', 'like', "%{$q}%")
-                                ->orWhere('apellidos', 'like', "%{$q}%")
-                                ->orWhere('email', 'like', "%{$q}%");
-                        })
-                        // Por profesional
-                        ->orWhereHas('profesional', function ($q4) use ($q) {
-                            $q4->where('empresa', 'like', "%{$q}%")
-                                ->orWhere('email_empresa', 'like', "%{$q}%")
-                                ->orWhere('ciudad', 'like', "%{$q}%")
-                                ->orWhere('provincia', 'like', "%{$q}%");
-                        });
-                });
-            })
-            ->orderByDesc('created_at')
+        // Empezamos la consulta base
+        $query = Presupuesto::with(['solicitud.cliente', 'profesional']);
+
+        // ----- Filtro por estado -----
+        if ($estado) {
+            $query->where('estado', $estado);
+        }
+
+        // ----- Filtro por búsqueda libre (tu lógica tal cual) -----
+        if ($q) {
+            $query->where(function ($sub) use ($q) {
+                $sub
+                    // Buscar por id exacto si escribe un número
+                    ->orWhere('id', $q)
+                    // Por total aproximado (si metiera un número con coma o punto)
+                    ->orWhere('total', 'like', '%' . str_replace(',', '.', $q) . '%')
+                    // Por datos de la solicitud
+                    ->orWhereHas('solicitud', function ($q2) use ($q) {
+                        $q2->where('titulo', 'like', "%{$q}%")
+                            ->orWhere('ciudad', 'like', "%{$q}%")
+                            ->orWhere('provincia', 'like', "%{$q}%");
+                    })
+                    // Por cliente
+                    ->orWhereHas('solicitud.cliente', function ($q3) use ($q) {
+                        $q3->where('nombre', 'like', "%{$q}%")
+                            ->orWhere('apellidos', 'like', "%{$q}%")
+                            ->orWhere('email', 'like', "%{$q}%");
+                    })
+                    // Por profesional
+                    ->orWhereHas('profesional', function ($q4) use ($q) {
+                        $q4->where('empresa', 'like', "%{$q}%")
+                            ->orWhere('email_empresa', 'like', "%{$q}%")
+                            ->orWhere('ciudad', 'like', "%{$q}%")
+                            ->orWhere('provincia', 'like', "%{$q}%");
+                    });
+            });
+        }
+
+        // ----- Filtro por rango de fechas (usando el trait) -----
+        // Aquí puedes usar 'created_at' o 'fecha', según lo que te interese
+        $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+        // Si prefieres por la columna 'fecha' del presupuesto:
+        // $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+
+        // ----- Paginación -----
+        $presupuestos = $query
+            ->orderByDesc('created_at')   // o 'fecha' si has usado 'fecha' arriba
             ->paginate(6)
-            ->withQueryString(); // conserva q y estado en la paginación
+            ->withQueryString();          // conserva q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.presupuestos.index', [
             'presupuestos' => $presupuestos,

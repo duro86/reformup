@@ -8,6 +8,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\Admin\TrabajoModificadoPorAdminMailable;
 use App\Mail\Admin\TrabajoCanceladoPorAdminMailable;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class AdminTrabajoController extends Controller
 {
@@ -15,10 +17,12 @@ class AdminTrabajoController extends Controller
      * Listado de trabajos (ADMIN)
      * Filtros por estado: previsto, en_curso, finalizado, cancelado
      */
+    use FiltroRangoFechas;
+
     public function index(Request $request)
     {
         // Filtros
-        $estado = $request->query('estado');          // previsto, en_curso, finalizado, cancelado o null
+        $estado = $request->query('estado');           // previsto, en_curso, finalizado, cancelado o null
         $q      = trim((string) $request->query('q')); // texto buscador
 
         $query = Trabajo::with([
@@ -32,7 +36,7 @@ class AdminTrabajoController extends Controller
             $query->where('estado', $estado);
         }
 
-        // Filtro por buscador
+        // Filtro por buscador de texto
         if ($q !== '') {
             $like = '%' . $q . '%';
 
@@ -56,7 +60,7 @@ class AdminTrabajoController extends Controller
                             ->orWhere('ciudad', 'like', $like)
                             ->orWhere('provincia', 'like', $like);
                     })
-                    // (Por si usas profesional en la solicitud también)
+                    // Profesional de la solicitud (si lo usas)
                     ->orWhereHas('presupuesto.solicitud.profesional', function ($q5) use ($like) {
                         $q5->where('empresa', 'like', $like)
                             ->orWhere('email_empresa', 'like', $like)
@@ -68,10 +72,14 @@ class AdminTrabajoController extends Controller
             });
         }
 
+        // 🔹 Filtro por rango de fechas (reutilizable)
+        // Aquí tiene sentido usar 'fecha_ini' como referencia del trabajo
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha_ini');
+
         $trabajos = $query
-            ->orderByDesc('created_at')
+            ->orderByDesc('fecha_ini')  
             ->paginate(6)
-            ->withQueryString(); // mantiene ?q=... &estado=... en la paginación
+            ->withQueryString();         // mantiene q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.trabajos.index', [
             'trabajos' => $trabajos,

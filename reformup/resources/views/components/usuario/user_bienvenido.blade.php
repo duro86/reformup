@@ -1,40 +1,38 @@
 @php
     use Illuminate\Support\Facades\Auth;
+    use Illuminate\Support\Facades\Storage;
 
     $user = Auth::user();
-    $nombre = $user?->nombre ?? 'Invitado';
-    $defaultAvatar = asset('img\User\avatarUser\avatar_user_Hombre.webp');
 
-    $isProfesional = $user?->hasRole('profesional');
-    $perfilProfesional = $isProfesional ? $user->perfil_Profesional()->first() : null;
+    $nombre = $user?->nombre ?? 'Usuario';
+
+    $defaultAvatarUser = asset('img/User/avatarUser/avatarHombreUser.png');
+    $avatarUrl = $user?->avatar
+        ? Storage::url($user->avatar)
+        : $defaultAvatarUser;
 @endphp
 
-<div class="w-100 border-bottom bg-light">
+<div class="w-100 border-bottom bg-primary text-white">
     <div class="container-fluid">
         <div class="d-flex flex-column flex-sm-row align-items-end justify-content-end py-2 gap-2">
-            <div class="text-end">
-                <div class="small text-muted mb-1">
+            <div class="text-start">
+                <div class="small text-light mb-1 fade-zoom">
                     Panel usuario
                 </div>
                 <div class="fw-semibold">
-                    Bienvenido, {{ $nombre }} {{ $user->apellidos }}
+                    Bienvenido, {{ $nombre }}
                 </div>
             </div>
 
             <div class="d-flex align-items-center gap-2">
+                <img src="{{ $avatarUrl }}"
+                     alt="avatar usuario"
+                     class="rounded-circle"
+                     style="width: 36px; height: 36px; object-fit: cover;">
 
-                @if ($user->avatar)
-                    <img src="{{ Storage::url($user->avatar) }}" alt="avatar" class="rounded-circle"
-                        style="width:40px;height:40px;object-fit:cover">
-                @else
-                    <img src="{{ $defaultAvatar }}" alt="avatar por defecto" class="rounded-circle"
-                        style="width:40px;height:40px;object-fit:cover">
-                @endif
-
-                {{-- Botón para acceder al panel profesional --}}
-                @if ($isProfesional && $perfilProfesional)
+                @if($user?->hasRole('profesional') && $user?->perfil_Profesional)
                     <a href="{{ route('profesional.dashboard') }}"
-                        class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1">
+                       class="btn btn-outline-light btn-sm rounded-pill px-3 py-1">
                         Ir a Panel profesional
                     </a>
                 @endif
@@ -42,5 +40,3 @@
         </div>
     </div>
 </div>
-
-

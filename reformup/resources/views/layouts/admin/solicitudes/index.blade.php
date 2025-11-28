@@ -28,35 +28,36 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
-
-            {{-- Buscador --}}
+            {{-- Buscador texto + fechas --}}
             <form method="GET" action="{{ route('admin.solicitudes') }}" class="row g-2 mb-3">
+                {{-- Búsqueda libre --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
                         placeholder="Buscar por título, cliente, profesional, ciudad, provincia o estado...">
                 </div>
 
+                {{-- Rango de fechas reutilizable (usa fecha_desde / fecha_hasta) --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
                     <button type="submit" class="btn btn-sm btn-primary">
                         <i class="bi bi-search"></i> Buscar
                     </button>
                 </div>
 
+                {{-- Botón Limpiar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    @if (request('q'))
+                    @if (request('q') || request('fecha_desde') || request('fecha_hasta'))
                         <a href="{{ route('admin.solicitudes') }}" class="btn btn-sm btn-outline-secondary">
                             Limpiar
                         </a>
                     @endif
                 </div>
             </form>
+
 
             @if ($solicitudes->isEmpty())
                 <div class="alert alert-info">

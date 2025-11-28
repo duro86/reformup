@@ -15,10 +15,14 @@ use Illuminate\Support\Str;
 use App\Models\Oficio;
 use Illuminate\Validation\Rule;
 use Illuminate\Database\QueryException;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class ProfesionalPerfilController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de perfiles profesionales
      */
@@ -49,12 +53,82 @@ class ProfesionalPerfilController extends Controller
                 });
         }
 
+        // 🔹 Filtro por rango de fechas (alta del perfil profesional)
+        $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+
         $profesionales = $query
-            ->orderBy('created_at', 'desc')
+            ->orderByDesc('created_at')
             ->paginate(5)
-            ->withQueryString(); // mantiene ?q=... en la paginación
+            ->withQueryString(); // mantiene q, fecha_desde, fecha_hasta en la paginación
 
         return view('layouts.admin.profesionales.profesionales', compact('profesionales', 'q'));
+    }
+
+
+    /**
+     * Exportar TODOS los profesionales a PDF 
+     * */
+    public function exportarProfesionalesPdf()
+    {
+        // Sacamos TODOS los profesionales, con su usuario asociado
+        $profesionales = Perfil_Profesional::with('user')
+            ->orderBy('created_at', 'asc')
+            ->get();
+
+        // Cargamos la vista específica para PDF
+        $pdf = Pdf::loadView('layouts.admin.profesionales.pdf.profesionales_pdf', [
+            'profesionales' => $profesionales,
+        ])->setPaper('a4', 'landscape'); // landscape porque hay muchas columnas
+
+        $fileName = 'profesionales-' . now()->format('Ymd-His') . '.pdf';
+
+        // return $pdf->download($fileName); // si quisieras descargar
+        return $pdf->stream($fileName); // abrir en el navegador
+    }
+
+    /**
+     * Exporta a PDF la página actual de profesionales (con la misma búsqueda)
+     */
+    public function exportarProfesionalesPaginaPdf(Request $request)
+    {
+        $pagina    = (int) $request->input('page', 1);
+        $porPagina = 10; // o 5, lo que uses
+        $busqueda  = $request->input('q');
+
+        $query = Perfil_Profesional::with('user');
+
+        if ($busqueda) {
+            $query->where(function ($q) use ($busqueda) {
+                $q->where('empresa', 'like', '%' . $busqueda . '%')
+                    ->orWhere('cif', 'like', '%' . $busqueda . '%')
+                    ->orWhere('email_empresa', 'like', '%' . $busqueda . '%')
+                    ->orWhere('telefono_empresa', 'like', '%' . $busqueda . '%')
+                    ->orWhereHas('user', function ($q2) use ($busqueda) {
+                        $q2->where('nombre', 'like', '%' . $busqueda . '%')
+                            ->orWhere('apellidos', 'like', '%' . $busqueda . '%')
+                            ->orWhere('email', 'like', '%' . $busqueda . '%');
+                    });
+            });
+        }
+
+        // Mismo filtro de fechas que el listado
+        $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+
+        $paginator = $query
+            ->orderByDesc('created_at')
+            ->paginate($porPagina, ['*'], 'page', $pagina);
+
+        $profesionales = $paginator->items();
+
+        $pdf = Pdf::loadView('layouts.admin.profesionales.pdf.profesionales_pdf_pagina', [
+            'profesionales' => $profesionales,
+            'page'          => $pagina,
+            'busqueda'      => $busqueda,
+        ])->setPaper('a4', 'landscape');
+
+        $fileName = 'profesionales-pagina-' . $pagina . '-' . now()->format('Ymd-His') . '.pdf';
+
+        return $pdf->stream($fileName);
     }
 
     /**
@@ -179,7 +253,7 @@ class ProfesionalPerfilController extends Controller
             ],
 
             'ciudad'     => ['nullable', 'string', 'max:120'],
-            'provincia'  => ['nullable', 'string', 'max:120'],
+            'provincia'  => ['required', 'string', 'max:120'],
             'dir_empresa' => ['nullable', 'string', 'max:255'],
 
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
@@ -210,7 +284,9 @@ class ProfesionalPerfilController extends Controller
             'telefono_empresa.unique'   => 'Este teléfono de empresa ya está registrado.',
 
             'ciudad.string'     => 'La ciudad debe ser texto válido.',
-            'provincia.string'  => 'La provincia debe ser texto válido.',
+            'provincia.required' => 'La provincia de la empresa es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser texto válido.',
+            'provincia.max'      => 'La provincia no puede superar los 120 caracteres.',
             'dir_empresa.string' => 'La dirección de la empresa debe ser texto válido.',
 
             'web.url'  => 'Debes introducir una URL válida para la web.',
@@ -237,25 +313,26 @@ class ProfesionalPerfilController extends Controller
             'oficios.required' => 'Debes seleccionar al menos un oficio.',
         ]);
 
-        // AVATAR
+        // --- Manejo imagen avatar al CREAR usuario ---
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
 
-            if ($perfil->avatar) {
-                Storage::disk('public')->delete($perfil->avatar);
-            }
-
-            $dir  = 'imagenes/avatarProfesional/' . now()->format('Ymd');
+            $dir  = 'imagenes/avatarUser/' . now()->format('Ymd');
             $ext  = $request->file('avatar')->getClientOriginalExtension();
             $base = pathinfo($request->file('avatar')->getClientOriginalName(), PATHINFO_FILENAME);
             $safe = Str::slug($base);
             $file = $safe . '-' . Str::random(8) . '.' . $ext;
 
+            // Creamos el directorio si no existe
             Storage::disk('public')->makeDirectory($dir);
+
+            // Guardamos el archivo en storage/app/public/...
             $request->file('avatar')->storeAs($dir, $file, 'public');
 
+            // Guardamos solo la ruta relativa en BD
             $avatarPath = $dir . '/' . $file;
         } else {
-            $avatarPath = $perfil->avatar;
+            // Si no sube nada, dejamos nulo
+            $avatarPath = null;
         }
 
 

@@ -134,7 +134,8 @@
                             </div>
 
                             <div class="card-footer bg-transparent border-top-0">
-                                <a href="#" class="btn btn-primary w-100">
+                                <a href="{{ route('public.profesionales.mostrar', $perfil) }}"
+                                    class="btn btn-primary w-100">
                                     Ver perfil
                                 </a>
                             </div>
@@ -166,7 +167,7 @@
     @endphp
 
     <section class="py-5">
-        <div class="container">
+        <div class="container" id="comentarios_valoraciones">
             <h2 class="text-center fw-bold mb-2">Comentarios y valoraciones</h2>
             <p class="text-center text-muted mb-4">
                 Opiniones y valoración de nuestros clientes y profesionales.

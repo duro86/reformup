@@ -153,6 +153,9 @@ class ProfesionalPresupuestoController extends Controller
             $total = $validated['total'];
             $notas = $validated['notas'] ?? null;
 
+            // Eliminar etiquetas por si acaso (no hace falta Purifier)
+            $notas_limpias = $notas ? strip_tags($notas) : null;
+
             $file = $request->file('docu_pdf'); // Cogemos el archivo del formulario
             $dir  = 'presupuestos/documentos/' . now()->format('Ymd'); // Ponemos ficha al documento(carpeta)
 
@@ -160,7 +163,8 @@ class ProfesionalPresupuestoController extends Controller
             $ext  = $file->getClientOriginalExtension();
             $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $safe = Str::slug($base); // Version segura quitando paramentros raros
-            $name = $safe . '-' . Str::random(8) . '.' . $ext; // Añade un código aleatorio de 8 caracteres (Str::random(8))
+            $name = $safe . '-' . Str::random(8) . '.' . $ext; 
+            // Añade un código aleatorio de 8 caracteres (Str::random(8))
 
             // Creamos el directorio en el disco privado (si no existe)
             Storage::disk('private')->makeDirectory($dir);
@@ -196,6 +200,9 @@ class ProfesionalPresupuestoController extends Controller
             $conceptos  = $validated['concepto'];
             $cantidades = $validated['cantidad'];
             $precios    = $validated['precio_unitario'];
+
+            // Eliminar etiquetas por si acaso (no hace falta Purifier)
+            $notas_limpias = $notas ? strip_tags($notas) : null;
 
             foreach ($conceptos as $i => $concepto) {
                 $concepto = trim($concepto ?? '');
@@ -239,7 +246,7 @@ class ProfesionalPresupuestoController extends Controller
                 'ivaPorcentaje' => $ivaPorcentaje,
                 'ivaImporte'    => $ivaImporte,
                 'total'         => $total,
-                'notas'         => $notas,
+                'notas'         => $notas_limpias,
                 'presupuestoNumero' => null, // si luego quieres numerarlos
             ]);
 
@@ -272,7 +279,7 @@ class ProfesionalPresupuestoController extends Controller
                 'pro_id'       => $perfil->id,
                 'solicitud_id' => $solicitud->id,
                 'total'        => $total,
-                'notas'        => $notas,
+                'notas'        => $notas_limpias,
                 'estado'       => 'enviado',
                 'docu_pdf'     => $rutaPdf,
                 'fecha'        => now(),

@@ -14,28 +14,32 @@
             <div class="col-6 col-md-3 mb-4 mb-md-0">
                 <h6 class="fw-bold mb-2">ENLACES RÁPIDOS</h6>
                 <ul class="list-unstyled">
-                    <li><a href="#" class="footer-link">Búsqueda de profesionales</a></li>
-                    <li><a href="#" class="footer-link">Registro de Profesionales</a></li>
-                    <li><a href="#" class="footer-link">Contacto</a></li>
+
+                    <li><a href="{{ route('public.profesionales.index') }}" class="footer-link">Búsqueda de
+                            profesionales</a></li>
+                    <li><a href="{{ route('registrar.profesional.opciones') }}"class="footer-link">Registro de
+                            Profesionales</a></li>
+                    <li><a href="#comentarios_valoraciones" class="footer-link">Comentarios</a></li>
                 </ul>
             </div>
             <!-- Legal -->
             <div class="col-6 col-md-3 mb-4 mb-md-0">
                 <h6 class="fw-bold mb-2">LEGAL</h6>
                 <ul class="list-unstyled">
-                    <li><a href="#" class="footer-link">Política de privacidad</a></li>
-                    <li><a href="#" class="footer-link">Condiciones de uso</a></li>
+                    <li><a href="{{ route('privacidad') }}" class="footer-link">Política de privacidad</a></li>
+                    <li><a href="{{ route('public.contacto') }}" class="footer-link">Contacto</a></li>
                 </ul>
             </div>
             <!-- Redes sociales -->
             <div class="col-12 col-md-2 d-flex flex-column align-items-center align-items-md-start">
                 <h6 class="fw-bold mb-2 justify-content-center">SÍGANOS</h6>
                 <div>
-                    <a href="#" class="me-4"><i class="bi bi-facebook fs-3 text-white"></i></a>
-                    <a href="#" class="me-4">
+                    <a href="https://www.facebook.com/?locale=es_ES" target="_blank" class="me-4"><i
+                            class="bi bi-facebook fs-3 text-white"></i></a>
+                    <a href="https://www.instagram.com/?hl=es" class="me-4">
                         <i class="bi bi-instagram fs-3 text-white"></i>
                     </a>
-                    <a href="#">
+                    <a href="https://es.linkedin.com/">
                         <i class="bi bi-linkedin fs-3 text-white"></i>
                     </a>
                 </div>

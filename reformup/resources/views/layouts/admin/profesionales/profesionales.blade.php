@@ -32,38 +32,54 @@
 
                         <div class="d-flex flex-wrap gap-2 justify-content-center">
                             <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm"
-                               style="background-color:#718355;color:white">
+                                style="background-color:#718355;color:white">
                                 <i class="bi bi-plus-lg"></i> Añadir profesional
                             </a>
 
-                            <a href="#" class="btn btn-sm" style="background-color:#B5C99A;color:black">
-                                Exportar PDF
+                            <a href="{{ route('admin.profesionales.exportar_todos_pdf') }}" class="btn btn-sm bg-secondary"
+                                target="_blank">
+                                Exportar PDF todos profesionales
                             </a>
+                            <a href="{{ route(
+                                'admin.profesionales.exportar_pdf_pagina',
+                                array_merge(request()->only('q', 'fecha_desde', 'fecha_hasta'), ['page' => $profesionales->currentPage()]),
+                            ) }}"
+                                class="btn btn-sm bg-light" target="_blank">
+                                Exportar PDF esta página
+                            </a>
+
                         </div>
                     </h1>
 
-                    {{-- Buscador --}}
+                    {{-- Buscador combinado: texto + fechas --}}
                     <form method="GET" action="{{ route('admin.profesionales') }}" class="row g-2 mb-3">
+                        {{-- Búsqueda por texto --}}
                         <div class="col-12 col-md-6 col-lg-4">
                             <input type="text" name="q" value="{{ request('q') }}"
-                                   class="form-control form-control-sm"
-                                   placeholder="Buscar por empresa, CIF, email, teléfono o usuario...">
+                                class="form-control form-control-sm"
+                                placeholder="Buscar por empresa, CIF, email, teléfono o usuario...">
                         </div>
 
+                        {{-- Rango de fechas (creación del perfil profesional) --}}
+                        @include('partials.filtros.rango_fechas')
+
+                        {{-- Botón Buscar --}}
                         <div class="col-6 col-md-3 col-lg-2 d-grid">
                             <button type="submit" class="btn btn-sm btn-primary">
                                 <i class="bi bi-search"></i> Buscar
                             </button>
                         </div>
 
+                        {{-- Botón Limpiar --}}
                         <div class="col-6 col-md-3 col-lg-2 d-grid">
-                            @if (request('q'))
+                            @if (request('q') || request('fecha_desde') || request('fecha_hasta'))
                                 <a href="{{ route('admin.profesionales') }}" class="btn btn-sm btn-outline-secondary">
                                     Limpiar
                                 </a>
                             @endif
                         </div>
                     </form>
+
 
                     {{-- ========================= --}}
                     {{-- TABLA (solo en lg+)      --}}
@@ -105,9 +121,8 @@
                                             <div class="d-flex align-items-center gap-2">
                                                 {{-- Avatar --}}
                                                 @if ($perfil->avatar)
-                                                    <img src="{{ Storage::url($perfil->avatar) }}"
-                                                         class="rounded-circle"
-                                                         style="width:32px;height:32px;object-fit:cover">
+                                                    <img src="{{ Storage::url($perfil->avatar) }}" class="rounded-circle"
+                                                        style="width:32px;height:32px;object-fit:cover">
                                                 @else
                                                     <i class="bi bi-person-circle fs-4"></i>
                                                 @endif
@@ -159,15 +174,15 @@
                                         {{-- VISIBLE + TOGGLE (md+) --}}
                                         <td class="d-none d-md-table-cell text-center">
                                             <form action="{{ route('admin.profesionales.toggle_visible', $perfil) }}"
-                                                  method="POST" class="d-inline">
+                                                method="POST" class="d-inline">
                                                 @csrf
                                                 @method('PATCH')
 
                                                 <div class="d-flex flex-column align-items-center">
                                                     <div class="form-check form-switch d-flex align-items-center gap-1">
                                                         <input class="form-check-input" type="checkbox"
-                                                               onChange="this.form.submit()"
-                                                               {{ $perfil->visible ? 'checked' : '' }}>
+                                                            onChange="this.form.submit()"
+                                                            {{ $perfil->visible ? 'checked' : '' }}>
 
                                                         <label class="form-check-label small">
                                                             {{ $perfil->visible ? 'Visible' : 'Oculto' }}
@@ -182,20 +197,20 @@
                                             <div class="d-flex flex-row gap-1 justify-content-end">
                                                 {{-- VER --}}
                                                 <button class="btn btn-info btn-sm px-2 py-1"
-                                                        @click="openProfessionalModal({{ $perfil->id }})">
+                                                    @click="openProfessionalModal({{ $perfil->id }})">
                                                     Ver
                                                 </button>
 
                                                 {{-- EDITAR (con page) --}}
                                                 <a href="{{ route('admin.profesionales.editar', [$perfil->id, 'page' => $profesionales->currentPage()]) }}"
-                                                   class="btn btn-warning btn-sm px-2 py-1">
+                                                    class="btn btn-warning btn-sm px-2 py-1">
                                                     Editar
                                                 </a>
 
                                                 {{-- ELIMINAR --}}
                                                 <form id="delete-prof-{{ $perfil->id }}"
-                                                      action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
-                                                      method="POST" class="d-inline">
+                                                    action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
 
@@ -231,9 +246,8 @@
                                     {{-- Cabecera: avatar + nombre --}}
                                     <div class="d-flex align-items-center gap-2 mb-2">
                                         @if ($perfil->avatar)
-                                            <img src="{{ Storage::url($perfil->avatar) }}"
-                                                 class="rounded-circle"
-                                                 style="width:40px;height:40px;object-fit:cover">
+                                            <img src="{{ Storage::url($perfil->avatar) }}" class="rounded-circle"
+                                                style="width:40px;height:40px;object-fit:cover">
                                         @else
                                             <i class="bi bi-person-circle fs-3"></i>
                                         @endif
@@ -279,14 +293,13 @@
                                     {{-- Toggle visible --}}
                                     <div class="mb-2">
                                         <form action="{{ route('admin.profesionales.toggle_visible', $perfil) }}"
-                                              method="POST">
+                                            method="POST">
                                             @csrf
                                             @method('PATCH')
 
                                             <div class="form-check form-switch d-flex align-items-center gap-2">
                                                 <input class="form-check-input" type="checkbox"
-                                                       onChange="this.form.submit()"
-                                                       {{ $perfil->visible ? 'checked' : '' }}>
+                                                    onChange="this.form.submit()" {{ $perfil->visible ? 'checked' : '' }}>
                                                 <label class="form-check-label small">
                                                     {{ $perfil->visible ? 'Visible' : 'Oculto' }}
                                                 </label>
@@ -297,24 +310,23 @@
                                     {{-- Acciones --}}
                                     <div class="d-grid gap-2">
                                         <button class="btn btn-info btn-sm"
-                                                @click="openProfessionalModal({{ $perfil->id }})">
+                                            @click="openProfessionalModal({{ $perfil->id }})">
                                             Ver
                                         </button>
 
                                         {{-- EDITAR (con page) --}}
                                         <a href="{{ route('admin.profesionales.editar', [$perfil->id, 'page' => $profesionales->currentPage()]) }}"
-                                           class="btn btn-warning btn-sm">
+                                            class="btn btn-warning btn-sm">
                                             Editar
                                         </a>
 
                                         <form id="delete-prof-mobile-{{ $perfil->id }}"
-                                              action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
-                                              method="POST" class="d-grid">
+                                            action="{{ route('admin.profesionales.eliminar', $perfil->id) }}"
+                                            method="POST" class="d-grid">
                                             @csrf
                                             @method('DELETE')
 
-                                            <delete-professional-button
-                                                class="btn btn-danger btn-sm w-100"
+                                            <delete-professional-button class="btn btn-danger btn-sm w-100"
                                                 form-id="delete-prof-mobile-{{ $perfil->id }}"
                                                 empresa="{{ $perfil->empresa }}"
                                                 :tiene-user="{{ $user ? 'true' : 'false' }}"

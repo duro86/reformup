@@ -29,48 +29,55 @@
                         <span>Listado de Usuarios</span>
 
                         <div class="d-flex flex-wrap gap-2 justify-content-center">
-                            <a href="{{ route('admin.admin.form.registrar.cliente') }}" class="btn btn-sm"
-                               style="background-color: #718355; color: white;">
+                            <a href="{{ route('admin.form.registrar.cliente') }}" class="btn btn-sm"
+                                style="background-color: #718355; color: white;">
                                 <i class="bi bi-plus-lg"></i> Añadir usuario
                             </a>
 
                             <a href="{{ route('admin.usuarios.exportar.pdf') }}" class="btn btn-sm bg-secondary"
-                               target="_blank">
+                                target="_blank">
                                 Exportar PDF todos usuarios
                             </a>
                             <a href="{{ route(
                                 'admin.usuarios.exportarPaginaPdf',
-                                array_merge(
-                                    request()->only('q'),
-                                    ['page' => $usuarios->currentPage()],
-                                ),
+                                array_merge(request()->only('q', 'fecha_desde', 'fecha_hasta'), ['page' => $usuarios->currentPage()]),
                             ) }}"
-                               class="btn btn-sm bg-light" target="_blank">
+                                class="btn btn-sm bg-light" target="_blank">
                                 Exportar PDF esta página
                             </a>
+
                         </div>
                     </h1>
 
-                    {{-- Buscador --}}
+                    {{-- Buscador combinado: texto + fechas --}}
                     <form method="GET" action="{{ route('admin.usuarios') }}" class="row g-2 mb-3">
+                        {{-- Búsqueda por texto --}}
                         <div class="col-12 col-md-6 col-lg-4">
                             <input type="text" name="q" value="{{ request('q') }}"
-                                   class="form-control form-control-sm"
-                                   placeholder="Buscar por nombre, email o teléfono...">
+                                class="form-control form-control-sm"
+                                placeholder="Buscar por nombre, apellidos, email o teléfono...">
                         </div>
+
+                        {{-- Rango de fechas (alta de usuario) --}}
+                        @include('partials.filtros.rango_fechas')
+
+                        {{-- Botón Buscar --}}
                         <div class="col-6 col-md-3 col-lg-2 d-grid">
                             <button type="submit" class="btn btn-sm btn-primary">
                                 <i class="bi bi-search"></i> Buscar
                             </button>
                         </div>
+
+                        {{-- Botón Limpiar --}}
                         <div class="col-6 col-md-3 col-lg-2 d-grid">
-                            @if (request('q'))
+                            @if (request('q') || request('fecha_desde') || request('fecha_hasta'))
                                 <a href="{{ route('admin.usuarios') }}" class="btn btn-sm btn-outline-secondary">
                                     Limpiar
                                 </a>
                             @endif
                         </div>
                     </form>
+
 
                     {{-- ====================== --}}
                     {{-- TABLA (solo en lg+)   --}}
@@ -94,8 +101,8 @@
                                             <div class="d-flex align-items-center gap-2">
                                                 @if ($usuario->avatar)
                                                     <img src="{{ Storage::url($usuario->avatar) }}" alt="avatar"
-                                                         class="rounded-circle"
-                                                         style="width:30px;height:30px;object-fit:cover">
+                                                        class="rounded-circle"
+                                                        style="width:30px;height:30px;object-fit:cover">
                                                 @else
                                                     <i class="bi bi-person-circle" style="font-size: 1.4rem;"></i>
                                                 @endif
@@ -130,23 +137,22 @@
                                         <td class="text-center">
                                             <div class="d-flex flex-row gap-1 justify-content-center acciones-usuario">
                                                 <button class="btn btn-info btn-sm px-2 py-1"
-                                                        @click="openUserModal({{ $usuario->id }})">
+                                                    @click="openUserModal({{ $usuario->id }})">
                                                     Ver
                                                 </button>
 
                                                 <a href="{{ route('admin.usuarios.editar', [$usuario->id, 'page' => $usuarios->currentPage()]) }}"
-                                                   class="btn btn-warning btn-sm px-2 py-1">
+                                                    class="btn btn-warning btn-sm px-2 py-1">
                                                     Editar
                                                 </a>
 
                                                 <form id="delete-user-{{ $usuario->id }}"
-                                                      action="{{ route('admin.usuarios.eliminar', $usuario->id) }}"
-                                                      method="POST" class="d-inline">
+                                                    action="{{ route('admin.usuarios.eliminar', $usuario->id) }}"
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('DELETE')
 
-                                                    <delete-user-button
-                                                        form-id="delete-user-{{ $usuario->id }}"
+                                                    <delete-user-button form-id="delete-user-{{ $usuario->id }}"
                                                         user-nombre="{{ $usuario->nombre }} {{ $usuario->apellidos }}"
                                                         user-email="{{ $usuario->email }}"
                                                         :tiene-perfil="{{ $usuario->perfil_Profesional ? 'true' : 'false' }}">
@@ -172,8 +178,7 @@
                                     <div class="d-flex align-items-center gap-2 mb-2">
                                         @if ($usuario->avatar)
                                             <img src="{{ Storage::url($usuario->avatar) }}" alt="avatar"
-                                                 class="rounded-circle"
-                                                 style="width:40px;height:40px;object-fit:cover">
+                                                class="rounded-circle" style="width:40px;height:40px;object-fit:cover">
                                         @else
                                             <i class="bi bi-person-circle" style="font-size: 2rem;"></i>
                                         @endif
@@ -195,8 +200,10 @@
                                         @endif
 
                                         @if ($usuario->perfil_Profesional)
-                                            <div><strong>Empresa:</strong> {{ $usuario->perfil_Profesional->empresa }}</div>
-                                            <div><strong>Email pro:</strong> {{ $usuario->perfil_Profesional->email_empresa }}</div>
+                                            <div><strong>Empresa:</strong> {{ $usuario->perfil_Profesional->empresa }}
+                                            </div>
+                                            <div><strong>Email pro:</strong>
+                                                {{ $usuario->perfil_Profesional->email_empresa }}</div>
                                         @endif
 
                                         <div class="mt-1">
@@ -207,19 +214,17 @@
 
                                     {{-- Acciones en columna, ancho completo --}}
                                     <div class="d-grid gap-2">
-                                        <button class="btn btn-info btn-sm"
-                                                @click="openUserModal({{ $usuario->id }})">
+                                        <button class="btn btn-info btn-sm" @click="openUserModal({{ $usuario->id }})">
                                             Ver
                                         </button>
 
                                         <a href="{{ route('admin.usuarios.editar', [$usuario->id, 'page' => $usuarios->currentPage()]) }}"
-                                           class="btn btn-warning btn-sm">
+                                            class="btn btn-warning btn-sm">
                                             Editar
                                         </a>
 
                                         <form id="delete-user-mobile-{{ $usuario->id }}"
-                                              action="{{ route('admin.usuarios.eliminar', $usuario->id) }}"
-                                              method="POST">
+                                            action="{{ route('admin.usuarios.eliminar', $usuario->id) }}" method="POST">
                                             @csrf
                                             @method('DELETE')
 

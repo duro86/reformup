@@ -51,6 +51,28 @@ Route::middleware(['auth.redirect'])->group(function () {
         ->name('presupuestos.ver_pdf');
 });
 
+// Ruta publica para ver el perfil de los profesionales
+Route::get('/profesionales/{perfil}', [AuthProController::class, 'mostrar'])
+    ->name('public.profesionales.mostrar');
+
+// Ruta para contratar al profesional
+Route::get('/profesionales/{perfil}/contratar', [AuthProController::class, 'contratar'])
+    ->name('public.profesionales.contratar');
+
+// Mostrar funcionamiento web
+Route::get('/paso-a-paso', [AuthController::class, 'pasoAPaso'])
+    ->name('public.paso_a_paso');
+
+// Mostrar funcionamiento web
+Route::get('/contacto', [AuthController::class, 'contacto'])
+    ->name('public.contacto');
+Route::post('/contacto', [AuthController::class, 'contactoEnviar'])->name('contacto.enviar');
+
+//Politica de privacidad
+Route::view('/politica-de-privacidad', 'legal.privacidad')->name('privacidad');
+
+
+
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
     ->name('admin.prueba');*/

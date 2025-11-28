@@ -117,8 +117,7 @@ class AuthProController extends Controller
             'password' => ['required', 'confirmed', 'min:6'],
             'telefono' => ['required', 'regex:/^[6789]\d{8}$/', 'unique:users,telefono'],
             'ciudad' => ['nullable', 'string', 'max:100'],
-            'provincia' => ['nullable', 'string', 'max:100'],
-            'direccion' => ['nullable', 'string', 'max:255'],
+            'provincia' => ['required', 'string', 'max:100'],
             'cp' => ['nullable', 'regex:/^(?:0[1-9]|[1-4]\d|5[0-2])\d{3}$/'],
             'avatar' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg', 'max:2048'] // 2MB máximo
         ], [
@@ -147,6 +146,7 @@ class AuthProController extends Controller
 
             'provincia.string' => 'La provincia debe ser un texto válido.',
             'provincia.max' => 'La provincia no puede superar los 100 caracteres.',
+            'provincia.required' => 'La provincia es obligatoria.',
 
             'direccion.string' => 'La dirección debe ser un texto válido.',
             'direccion.max' => 'La dirección no puede superar los 255 caracteres.',
@@ -241,8 +241,8 @@ class AuthProController extends Controller
                 'unique:perfiles_profesionales,telefono_empresa',
             ],
 
-            'ciudad_empresa'     => ['nullable', 'string', 'max:120'],
-            'provincia_empresa'  => ['nullable', 'string', 'max:120'],
+            'ciudad'     => ['nullable', 'string', 'max:120'],
+            'provincia' => ['required', 'string', 'max:100'],
             'direccion_empresa'  => ['nullable', 'string', 'max:255'],
 
             'avatar_empresa' => ['nullable', 'image', 'mimes:jpeg,png,jpg,gif,svg,webp', 'max:2048'],
@@ -267,6 +267,10 @@ class AuthProController extends Controller
             'bio.max'  => 'La descripción es demasiado larga.',
 
             'web.url' => 'La web no es una URL válida.',
+
+            'provincia.required' => 'La provincia es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser un texto válido.',
+            'provincia.max'      => 'La provincia no puede superar los 100 caracteres.',
 
             'telefono_empresa.required' => 'El teléfono de la empresa es obligatorio.',
             'telefono_empresa.regex'    => 'El teléfono de la empresa no tiene el formato correcto.',
@@ -294,7 +298,7 @@ class AuthProController extends Controller
             $request->file('avatar_empresa')->storeAs($dir, $file, 'public');
 
             // >>> Guarda en BD SOLO la ruta relativa dentro del disco public:
-            $avatarPath = $dir . '/' . $file;                                     // p.ej. imagenes/avatarEmpresa/20251112/foto.png
+            $avatarPath = $dir . '/' . $file;                                     
         } else {
             // ruta por defecto (también relativa al disco public)
             $avatarPath = null;
@@ -472,5 +476,61 @@ class AuthProController extends Controller
             Storage::disk('private')->path($presupuesto->docu_pdf),
             ['Content-Type' => 'application/pdf']
         );
+    }
+
+    //Mostrar perfiles profesionales publicos
+    public function mostrar(Perfil_Profesional $perfil)
+    {
+        // Si no está visible, no lo mostramos
+        if (! $perfil->visible) {
+            abort(404);
+        }
+
+        // Cargar trabajos FINALIZADOS de ese profesional + comentarios + solicitud
+        $perfil->load(['trabajos' => function ($q) {
+            $q->where('trabajos.estado', 'finalizado')   // << clave
+                ->with([
+                    'comentarios' => function ($q2) {
+                        $q2->orderByDesc('fecha'); // o created_at
+                    },
+                    'presupuesto.solicitud',
+                ])
+                ->orderByDesc('trabajos.fecha_fin');       // por claridad también
+        }]);
+
+        // Si quieres tener una colección plana de comentarios (todas las reseñas)
+        $comentarios = $perfil->trabajos
+            ->flatMap(function ($trabajo) {
+                return $trabajo->comentarios;
+            })
+            ->sortByDesc('fecha') // o created_at
+            ->values();
+
+        return view('layouts.profesionales.mostrar', [
+            'perfil'      => $perfil,
+            'trabajos'    => $perfil->trabajos,
+            'comentarios' => $comentarios,
+        ]);
+    }
+
+    /**
+     * Funcion para ebviar al loguin al invitado que quiere contratar servicios
+     */
+    public function contratar(Perfil_Profesional $perfil)
+    {
+        // Si NO está logueado: mandamos a login con mensaje
+        if (!Auth::check()) {
+            // Guardar la URL a la que quería ir, por si luego quieres usar intended()
+            session(['url.intended' => route('public.profesionales.mostrar', $perfil)]);
+
+            return redirect()
+                ->route('registrar.cliente')
+                ->with('info', 'Debes registrarte o iniciar sesión para contratar a un profesional.');
+        }
+
+        // Si está logueado: crear la solicitud (ajusta la ruta a la tuya real)
+        return redirect()->route('usuario.solicitudes.seleccionar_profesional', [
+            'profesional' => $perfil->id,
+        ]);
     }
 }

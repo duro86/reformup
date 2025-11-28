@@ -21,17 +21,18 @@ class ProfesionalDashboardController extends Controller
     public function index()
     {
         $user = Auth::user();
-        $perfil = $user->perfil_Profesional()->first();
+        $isProfesional = $user->hasRole('profesional');
+        $perfil_profesional = $user->perfil_Profesional;
 
         // Si NO tiene perfil profesional, redirigimos al panel de usuario
-        if (! $perfil) {
+        if (! $perfil_profesional) {
             return redirect()
                 ->route('usuario.dashboard')
                 ->with('error', 'No tienes un perfil profesional creado. Accede a tu panel de usuario o crea primero tu perfil profesional.');
         }
 
         // Si tiene perfil profesional, mostramos el dashboard pro
-        return view('layouts.profesional.dashboard_profesional', compact('user', 'perfil'));
+        return view('layouts.profesional.dashboard_profesional', compact('user', 'perfil_profesional'));
     }
 
     /**
@@ -40,10 +41,10 @@ class ProfesionalDashboardController extends Controller
     public function mostrarPerfil()
     {
         $user   = Auth::user();
-        $perfil = $user->perfil_Profesional;
+        $perfil_profesional = $user->perfil_Profesional;
 
         // Si por lo que sea tiene rol profesional pero aún no tiene perfil
-        if (!$perfil) {
+        if (!$perfil_profesional) {
             // Podrías redirigir a tu flujo de creación de perfil
             return redirect()
                 ->route('registrar.profesional.opciones')
@@ -54,9 +55,9 @@ class ProfesionalDashboardController extends Controller
         $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre', 'slug']);
 
         // IDs de oficios seleccionados
-        $oficiosSeleccionados = $perfil->oficios->pluck('id')->toArray();
+        $oficiosSeleccionados = $perfil_profesional->oficios->pluck('id')->toArray();
 
-        return view('layouts.profesional.perfil.perfil_profesional', compact('perfil', 'oficios', 'oficiosSeleccionados'));
+        return view('layouts.profesional.perfil.perfil_profesional', compact('perfil_profesional', 'oficios', 'oficiosSeleccionados'));
     }
 
     /**
@@ -65,9 +66,9 @@ class ProfesionalDashboardController extends Controller
     public function actualizarPerfil(Request $request)
     {
         $user   = Auth::user();
-        $perfil = $user->perfil_Profesional;
+        $perfil_profesional = $user->perfil_Profesional;
 
-        if (!$perfil) {
+        if (!$perfil_profesional) {
             return redirect()
                 ->route('registrar.profesional.opciones')
                 ->with('warning', 'Primero debes crear tu perfil profesional.');
@@ -82,25 +83,25 @@ class ProfesionalDashboardController extends Controller
                 'string',
                 'max:15',
                 'regex:/^[ABCDEFGHJNPQRSUVW]\d{7}[0-9A-J]$/',
-                Rule::unique('perfiles_profesionales', 'cif')->ignore($perfil->id),
+                Rule::unique('perfiles_profesionales', 'cif')->ignore($perfil_profesional->id),
             ],
 
             'email_empresa' => [
                 'required',
                 'email',
                 'email:rfc,dns',
-                Rule::unique('perfiles_profesionales', 'email_empresa')->ignore($perfil->id),
+                Rule::unique('perfiles_profesionales', 'email_empresa')->ignore($perfil_profesional->id),
             ],
 
             'telefono_empresa' => [
                 'required',
                 'regex:/^(\\+34|0034|34)?[ -]*([6|7|8|9])[ -]*([0-9][ -]*){8}$/',
-                Rule::unique('perfiles_profesionales', 'telefono_empresa')->ignore($perfil->id),
+                Rule::unique('perfiles_profesionales', 'telefono_empresa')->ignore($perfil_profesional->id),
             ],
 
             // Ojo: en el form usas ciudad_empresa / provincia_empresa / direccion_empresa
-            'ciudad_empresa'    => ['nullable', 'string', 'max:120'],
-            'provincia_empresa' => ['nullable', 'string', 'max:120'],
+            'ciudad'    => ['nullable', 'string', 'max:120'],
+            'provincia' => ['required', 'string', 'max:120'],
             'direccion_empresa' => ['nullable', 'string', 'max:255'],
 
             'web' => ['nullable', 'url', 'max:255'],
@@ -113,6 +114,9 @@ class ProfesionalDashboardController extends Controller
             'oficios.*' => ['exists:oficios,id'],
         ], [
             'empresa.required' => 'El nombre de la empresa es obligatorio.',
+            'provincia.required' => 'La provincia de la empresa es obligatoria.',
+            'provincia.string'   => 'La provincia debe ser texto válido.',
+            'ciudad.string'     => 'La ciudad debe ser texto válido.',
 
             'cif.required' => 'El CIF es obligatorio.',
             'cif.regex'    => 'El CIF no tiene un formato válido.',
@@ -140,11 +144,13 @@ class ProfesionalDashboardController extends Controller
             'oficios.*.exists' => 'Alguno de los oficios seleccionados no es válido.',
         ]);
 
-        // GESTIÓN AVATAR (mismo patrón que en admin)
+        // GESTIÓN AVATAR (mismo patrón que en admin, pero sin pisar si no hay nuevo)
+        $avatarPath = $perfil_profesional->avatar; // por defecto, mantenemos el actual
+
         if ($request->hasFile('avatar_profesional') && $request->file('avatar_profesional')->isValid()) {
             // Borramos anterior si existía
-            if ($perfil->avatar) {
-                Storage::disk('public')->delete($perfil->avatar);
+            if ($perfil_profesional->avatar) {
+                Storage::disk('public')->delete($perfil_profesional->avatar);
             }
 
             $dir  = 'imagenes/avatarProfesional/' . now()->format('Ymd');
@@ -156,30 +162,28 @@ class ProfesionalDashboardController extends Controller
             Storage::disk('public')->makeDirectory($dir);
             $request->file('avatar_profesional')->storeAs($dir, $file, 'public');
 
-            $avatarPath = $dir . '/' . $file;
-        } else {
-            $avatarPath = $perfil->avatar;
+            $avatarPath = $dir . '/' . $file; // solo cambiamos si ha subido uno nuevo
         }
 
         try {
-            // Asignamos datos al modelo (mapeando nombres del form -> columnas reales)
-            $perfil->empresa          = $validated['empresa'];
-            $perfil->cif              = $validated['cif'];
-            $perfil->email_empresa    = $validated['email_empresa'];
-            $perfil->telefono_empresa = $validated['telefono_empresa'];
+            // Asignamos datos al modelo
+            $perfil_profesional->empresa          = $validated['empresa'];
+            $perfil_profesional->cif              = $validated['cif'];
+            $perfil_profesional->email_empresa    = $validated['email_empresa'];
+            $perfil_profesional->telefono_empresa = $validated['telefono_empresa'];
 
-            $perfil->ciudad      = $validated['ciudad_empresa']    ?? null;
-            $perfil->provincia   = $validated['provincia_empresa'] ?? null;
-            $perfil->dir_empresa = $validated['direccion_empresa'] ?? null;
+            $perfil_profesional->ciudad      = $validated['ciudad']            ?? null;
+            $perfil_profesional->provincia   = $validated['provincia']         ?? null;
+            $perfil_profesional->dir_empresa = $validated['direccion_empresa'] ?? null;
 
-            $perfil->web   = $validated['web'] ?? null;
-            $perfil->bio   = $validated['bio'] ?? null;
-            $perfil->avatar  = $avatarPath;
+            $perfil_profesional->web   = $validated['web'] ?? null;
+            $perfil_profesional->bio   = $validated['bio'] ?? null;
+            $perfil_profesional->avatar = $avatarPath; // mantiene el anterior si no se ha tocado
 
-            $perfil->save();
+            $perfil_profesional->save();
 
             // Oficios (relación many-to-many)
-            $perfil->oficios()->sync($validated['oficios'] ?? []);
+            $perfil_profesional->oficios()->sync($validated['oficios'] ?? []);
 
             return redirect()
                 ->route('profesional.perfil')

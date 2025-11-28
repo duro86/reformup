@@ -51,7 +51,7 @@
     </div>
 @endif
 
-{{-- Mostramos Script en la parte inferior derecha --}}
+{{-- Mostramos Script en la parte inferior derecha Registrar Empresa--}}
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         const el = document.getElementById('toastTestReformup');

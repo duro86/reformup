@@ -18,7 +18,7 @@
         $perfilRoute = route('admin.perfil');
     } elseif ($roles->contains('profesional')) {
         $panelRoute = route('profesional.dashboard');
-        $perfilRoute = route('usuario.perfil'); 
+        $perfilRoute = route('usuario.perfil');
     } elseif ($roles->contains('usuario')) {
         $panelRoute = route('usuario.dashboard');
         $perfilRoute = route('usuario.perfil');
@@ -48,20 +48,20 @@
             <ul class="navbar-nav justify-content-end flex-grow-1 me-5">
                 <li class="nav-item">
                     <a class="nav-link @if ($active === 'buscar') active fw-semibold @endif"
-                        href="{{ route('home') }}#buscar-profesionales">
+                        href="{{ route('public.profesionales.index') }}">
                         Buscar profesionales
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @if ($active === 'pasos') active fw-semibold @endif"
-                        href="{{ route('home') }}#como-funciona">
+                        href="{{ route('public.paso_a_paso') }} ">
                         Paso a paso
                     </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link @if ($active === 'valoraciones') active fw-semibold @endif"
-                        href="{{ route('home') }}#valoraciones">
-                        Valoraciones
+                        href="{{ route('public.contacto') }}">
+                        Sobre Nosotros
                     </a>
                 </li>
             </ul>

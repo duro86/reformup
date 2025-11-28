@@ -12,9 +12,11 @@ use App\Mail\Admin\SolicitudCanceladaClienteMailable;
 use App\Mail\Admin\SolicitudCanceladaProfesionalMailable;
 use App\Mail\Admin\SolicitudModificadaPorAdminMailable;
 use Illuminate\Support\Facades\Validator;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
 
 class AdminSolicitudController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de todas las solicitudes (admin).
      */
@@ -24,6 +26,7 @@ class AdminSolicitudController extends Controller
 
         $query = Solicitud::with(['cliente', 'profesional']);
 
+        // --- Filtro por texto (tu lógica actual) ---
         if ($q) {
             $qLike = '%' . $q . '%';
 
@@ -44,10 +47,16 @@ class AdminSolicitudController extends Controller
             });
         }
 
+        // --- Filtro por rango de fechas (reutilizable) ---
+        // Aquí usamos la columna fecha de la solicitud
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+        
+
+        // --- Orden y paginación ---
         $solicitudes = $query
-            ->orderByDesc('created_at')
+            ->orderByDesc('fecha')
             ->paginate(6)
-            ->withQueryString(); // conserva ?q= en la paginación
+            ->withQueryString(); // conserva ?q, ?fecha_desde, ?fecha_hasta
 
         return view('layouts.admin.solicitudes.index', compact('solicitudes', 'q'));
     }

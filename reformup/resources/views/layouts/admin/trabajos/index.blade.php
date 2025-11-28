@@ -22,16 +22,37 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Buscador combinado: texto + fechas --}}
+            <form method="GET" action="{{ route('admin.trabajos') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por solicitud, cliente, profesional, ciudad, provincia o estado...">
+                </div>
+
+                {{-- Rango de fechas (por fecha_ini del trabajo, por ejemplo) --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
+                        <a href="{{ route('admin.trabajos') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
 
             @php
-                // Si prefieres, esto puede venir del controlador
                 $estados = [
                     'previsto' => 'Previstos',
                     'en_curso' => 'En curso',
@@ -40,10 +61,7 @@
                 ];
             @endphp
 
-            {{-- Buscador --}}
-            <x-buscador-q :action="route('admin.trabajos')" placeholder="Buscar por título, cliente, profesional, ciudad, estado..." />
-
-            {{-- Filtros por estado --}}
+            {{-- Filtros por estado Buscador por estado --}}
             <ul class="nav nav-pills mb-3">
                 {{-- Todos --}}
                 <li class="nav-item">
@@ -52,6 +70,8 @@
                             'admin.trabajos',
                             array_filter([
                                 'q' => request('q'),
+                                'fecha_desde' => request('fecha_desde'),
+                                'fecha_hasta' => request('fecha_hasta'),
                             ]),
                         );
                     @endphp
@@ -68,6 +88,8 @@
                             array_filter([
                                 'estado' => $valor,
                                 'q' => request('q'),
+                                'fecha_desde' => request('fecha_desde'),
+                                'fecha_hasta' => request('fecha_hasta'),
                             ]),
                         );
                     @endphp
@@ -77,6 +99,7 @@
                         </a>
                     </li>
                 @endforeach
+
             </ul>
 
             @if ($trabajos->isEmpty())

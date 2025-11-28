@@ -96,23 +96,30 @@
                         @enderror
                     </div>
 
-                    {{-- Ciudad --}}
-                    <div class="mb-3">
-                        <label class="form-label" for="ciudad_empresa">Ciudad</label>
-                        <input type="text" id="ciudad_empresa" name="ciudad_empresa" value="{{ old('ciudad_empresa') }}"
-                            class="form-control @error('ciudad_empresa') is-invalid @enderror">
-                        @error('ciudad_empresa')
+                    {{-- Provincia --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Provincia<span class="text-danger">*</span></label>
+                        <select name="provincia" id="provincia"
+                            class="form-control @error('provincia') is-invalid @enderror">
+                            <option value="">Selecciona una provincia</option>
+                            <option value="Huelva" {{ old('provincia') == 'Huelva' ? 'selected' : '' }}>Huelva
+                            </option>
+                            <option value="Sevilla" {{ old('provincia') == 'Sevilla' ? 'selected' : '' }}>Sevilla
+                            </option>
+                        </select>
+                        @error('provincia')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
 
-                    {{-- Provincia --}}
-                    <div class="mb-3">
-                        <label class="form-label" for="provincia_empresa">Provincia</label>
-                        <input type="text" id="provincia_empresa" name="provincia_empresa"
-                            value="{{ old('provincia_empresa') }}"
-                            class="form-control @error('provincia_empresa') is-invalid @enderror">
-                        @error('provincia_empresa')
+                    {{-- Ciudad / Municipio --}}
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label"> Municipio</label>
+                        <select name="ciudad" id="ciudad" class="form-control @error('ciudad') is-invalid @enderror">
+                            <option value="">Selecciona primero una provincia</option>
+
+                        </select>
+                        @error('ciudad')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
                     </div>
@@ -171,7 +178,7 @@
             </div>
         </form>
     </div>
-
+    <x-ciudadProvincia.ciudades_provincias :oldProvincia="old('provincia')" :oldCiudad="old('ciudad')" />
     {{-- Footer  --}}
     <x-footer />
 
