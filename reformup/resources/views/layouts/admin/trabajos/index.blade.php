@@ -6,6 +6,8 @@
 
     <x-navbar />
     <x-admin.admin_sidebar />
+    {{-- Bienvenida --}}
+    <x-admin.admin_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
         {{-- NAV MÓVIL ADMIN --}}
@@ -240,6 +242,10 @@
 
                                                 <x-admin.trabajos.btn_cancelar :trabajo="$trabajo" />
                                             @endif
+                                            @if ($trabajo->estado === 'cancelado' || $trabajo->estado === 'finalizado')
+                                                <x-admin.trabajos.btn_eliminar :trabajo="$trabajo" />
+                                            @endif
+
 
                                         </div>
                                     </td>
@@ -269,8 +275,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
 
                                 {{-- Título / refs --}}
                                 <div class="mb-2">
@@ -369,6 +375,9 @@
                                         </a>
 
                                         <x-admin.trabajos.btn_cancelar :trabajo="$trabajo" contexto="mobile" />
+                                    @endif
+                                    @if ($trabajo->estado === 'cancelado' || $trabajo->estado === 'finalizado')
+                                        <x-admin.trabajos.btn_eliminar :trabajo="$trabajo" />
                                     @endif
                                 </div>
 

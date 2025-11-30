@@ -1,18 +1,23 @@
+
 @php
     use Illuminate\Support\Facades\Auth;
     use Illuminate\Support\Facades\Storage;
 
     $user = Auth::user();
-
     $nombre = $user?->nombre ?? 'Usuario';
 
-    $defaultAvatarUser = asset('img/User/avatarUser/avatarHombreUser.png');
-    $avatarUrl = $user?->avatar
-        ? Storage::url($user->avatar)
-        : $defaultAvatarUser;
+    // Avatar por defecto
+    $defaultAvatarUser = asset('img/User/avatarUser/avatar_default.webp');
+
+    // Avatar real si el perfil tiene uno en storage
+    if ($user?->avatar) {
+        $avatarUrl = Storage::url($user->avatar); // /storage/...
+    } else {
+        $avatarUrl = $defaultAvatarUser;
+    }
 @endphp
 
-<div class="w-100 border-bottom bg-primary text-white">
+<div class="w-100 border-bottom bg-user-primary text-white">
     <div class="container-fluid">
         <div class="d-flex flex-column flex-sm-row align-items-end justify-content-end py-2 gap-2">
             <div class="text-start">

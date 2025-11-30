@@ -33,14 +33,10 @@ return [
          | Editamos los formatos permitidos.
          */
         'solicitud' => [
-
             'HTML.Allowed' => implode(',', [
-                // Texto básico
                 'p',
                 'br',
                 'span',
-
-                // Formato
                 'strong',
                 'b',
                 'em',
@@ -48,28 +44,16 @@ return [
                 'u',
                 'blockquote',
                 'code',
-
-                // Listas
                 'ul',
                 'ol',
                 'li',
-
-                // Títulos
                 'h1',
                 'h2',
                 'h3',
                 'h4',
-
-                // Enlaces seguros
                 'a[href|title|target]',
-
-                // Imágenes 
-                //'img[src|alt|width|height]',
-
-                // Separadores
                 'hr'
             ]),
-
             'CSS.AllowedProperties' => implode(',', [
                 'font-weight',
                 'font-style',
@@ -78,14 +62,12 @@ return [
                 'background-color',
                 'text-align'
             ]),
-
-            // Limpieza automática
             'AutoFormat.AutoParagraph' => true,
             'AutoFormat.RemoveEmpty'   => true,
 
-            // Importante: bloquear scripts y cosas raras
-            'HTML.ForbiddenElements' => ['script', 'style', 'iframe'],
-            'HTML.ForbiddenAttributes' => ['onerror', 'onclick', 'onload']
+            // MUY IMPORTANTE, mantenlo:
+            'HTML.ForbiddenElements'   => ['script', 'style', 'iframe'],
+            'HTML.ForbiddenAttributes' => ['onerror', 'onclick', 'onload'],
         ],
 
 

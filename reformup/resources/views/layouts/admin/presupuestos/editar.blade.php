@@ -31,7 +31,7 @@
 
                     @php
                         $cliente = $presupuesto->solicitud->cliente;
-                        $pro     = $presupuesto->solicitud->profesional;
+                        $pro = $presupuesto->solicitud->profesional;
                     @endphp
 
                     <p class="mb-1">
@@ -65,11 +65,8 @@
             <div class="card">
                 <div class="card-body">
 
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
+                    {{-- Mensajes flash --}}
+                    <x-alertas.alertasFlash />
 
                     <form method="POST" action="{{ route('admin.presupuestos.actualizar', $presupuesto) }}">
                         @csrf
@@ -78,10 +75,9 @@
                         {{-- Total --}}
                         <div class="mb-3">
                             <label class="form-label">Importe total (€)</label>
-                            <input type="number" step="0.01" min="0"
-                                   name="total"
-                                   value="{{ old('total', $presupuesto->total) }}"
-                                   class="form-control @error('total') is-invalid @enderror">
+                            <input type="number" step="0.01" min="0" name="total"
+                                value="{{ old('total', $presupuesto->total) }}"
+                                class="form-control @error('total') is-invalid @enderror">
                             @error('total')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -90,8 +86,7 @@
                         {{-- Estado --}}
                         <div class="mb-3">
                             <label class="form-label">Estado del presupuesto</label>
-                            <select name="estado"
-                                    class="form-select @error('estado') is-invalid @enderror">
+                            <select name="estado" class="form-select @error('estado') is-invalid @enderror">
                                 @foreach (['enviado', 'aceptado', 'rechazado', 'caducado'] as $estado)
                                     <option value="{{ $estado }}"
                                         {{ old('estado', $presupuesto->estado) === $estado ? 'selected' : '' }}>
@@ -107,9 +102,7 @@
                         {{-- Notas --}}
                         <div class="mb-3">
                             <label class="form-label">Notas internas / Notas para el cliente</label>
-                            <textarea name="notas" rows="4"
-                                      class="form-control @error('notas') is-invalid @enderror"
-                                      style="resize:none;">{{ old('notas', $presupuesto->notas) }}</textarea>
+                            <textarea name="notas" rows="4" class="form-control @error('notas') is-invalid @enderror" style="resize:none;">{{ old('notas', $presupuesto->notas) }}</textarea>
                             @error('notas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror

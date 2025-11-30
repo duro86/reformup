@@ -19,35 +19,85 @@
                 </h1>
             </div>
 
-            {{-- Flash messages --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Mensajes flash --}}
+            <x-alertas.alertasFlash />
 
-            {{-- Buscador --}}
-            <form method="GET" action="{{ route('usuario.comentarios.index') }}" class="row g-2 mb-3">
-                <div class="col-12 col-md-6 col-lg-4">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
-                        placeholder="Buscar por trabajo, profesional, opinión o estado...">
+            {{-- Buscador combinado: texto + fechas + estado + puntuación --}}
+            <form method="GET" action="{{ route('usuario.comentarios.index') }}" class="mb-3">
+
+                {{-- ===== FILA 1: texto + fechas + estado + botones ===== --}}
+                <div class="row g-2 mb-1">
+
+                    {{-- Texto libre --}}
+                    <div class="col-12 col-md-4 col-lg-3">
+                        <input type="text" name="q" value="{{ request('q') }}"
+                            class="form-control form-control-sm"
+                            placeholder="Buscar por trabajo, profesional, opinión o estado...">
+                    </div>
+
+                    {{-- Rango de fechas reutilizable --}}
+                    @include('partials.filtros.rango_fechas')
+
+                    {{-- Estado --}}
+                    <div class="col-6 col-md-2 col-lg-2">
+                        <select name="estado" class="form-select form-select-sm">
+                            <option value="">Todos los estados</option>
+                            <option value="pendiente" {{ request('estado') === 'pendiente' ? 'selected' : '' }}>Pendiente
+                            </option>
+                            <option value="publicado" {{ request('estado') === 'publicado' ? 'selected' : '' }}>Publicado
+                            </option>
+                            <option value="rechazado" {{ request('estado') === 'rechazado' ? 'selected' : '' }}>Rechazado
+                            </option>
+                        </select>
+                    </div>
+
+                    {{-- Botón Buscar --}}
+                    <div class="col-6 col-md-2 col-lg-2 d-grid">
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-search"></i> Buscar
+                        </button>
+                    </div>
+
+                    {{-- Botón Limpiar --}}
+                    <div class="col-6 col-md-2 col-lg-2 d-grid">
+                        @if (request('q') ||
+                                request('estado') ||
+                                request('fecha_desde') ||
+                                request('fecha_hasta') ||
+                                request('puntuacion_min') ||
+                                request('puntuacion_max'))
+                            <a href="{{ route('usuario.comentarios.index') }}" class="btn btn-sm btn-outline-secondary">
+                                Limpiar
+                            </a>
+                        @endif
+                    </div>
                 </div>
 
-                <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    <button type="submit" class="btn btn-sm btn-primary">
-                        <i class="bi bi-search"></i> Buscar
-                    </button>
-                </div>
+                {{-- ===== FILA 2: filtros de puntuación ===== --}}
+                <div class="row g-2">
 
-                <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    @if (request('q'))
-                        <a href="{{ route('usuario.comentarios.index') }}" class="btn btn-sm btn-outline-secondary">
-                            Limpiar
-                        </a>
-                    @endif
+                    <div class="col-12 col-md-3 col-lg-2 d-flex align-items-center">
+                        <small class="text-muted">
+                            Filtrar por puntuación:
+                        </small>
+                    </div>
+
+                    {{-- Puntuación mínima --}}
+                    <div class="col-6 col-md-2 col-lg-1">
+                        <input type="number" name="puntuacion_min" value="{{ request('puntuacion_min') }}"
+                            class="form-control form-control-sm" min="1" max="5" placeholder="Mín">
+                    </div>
+
+                    {{-- Puntuación máxima --}}
+                    <div class="col-6 col-md-2 col-lg-1">
+                        <input type="number" name="puntuacion_max" value="{{ request('puntuacion_max') }}"
+                            class="form-control form-control-sm" min="1" max="5" placeholder="Máx">
+                    </div>
+
                 </div>
             </form>
+
+
 
             @if ($comentarios->isEmpty())
                 <div class="alert alert-info">
@@ -139,8 +189,7 @@
                                     {{-- Acciones --}}
                                     <td class="text-end">
                                         @if ($comentario->opinion)
-                                            <button type="button" class="btn btn-sm btn-info mb-1"
-                                                data-bs-toggle="modal"
+                                            <button type="button" class="btn btn-sm btn-info mb-1" data-bs-toggle="modal"
                                                 data-bs-target="#comentarioUserModal{{ $comentario->id }}">
                                                 Ver
                                             </button>
@@ -178,8 +227,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body">
 
                                 {{-- Cabecera: trabajo --}}
                                 <div class="mb-2">
@@ -241,7 +290,7 @@
                                     @if ($comentario->opinion)
                                         <div class="mb-1">
                                             <strong>Opinión:</strong>
-                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 120, '...') }}
+                                            {{ \Illuminate\Support\Str::limit(strip_tags($comentario->opinion), 120, '...') }}
                                         </div>
                                     @endif
                                 </div>
@@ -249,8 +298,7 @@
                                 {{-- Acciones --}}
                                 <div class="d-grid gap-2">
                                     @if ($comentario->opinion)
-                                        <button type="button" class="btn btn-sm btn-info"
-                                            data-bs-toggle="modal"
+                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
                                             data-bs-target="#comentarioUserModal{{ $comentario->id }}">
                                             Ver
                                         </button>
@@ -285,7 +333,7 @@
                                     <div class="modal-body">
                                         <p><strong>Puntuación:</strong> {{ $comentario->puntuacion }} / 5</p>
                                         <p><strong>Estado:</strong> {{ ucfirst($comentario->estado) }}</p>
-                                        <p><strong>Opinión:</strong><br>{{ $comentario->opinion }}</p>
+                                        <p><strong>Opinión:</strong><br>{!! $comentario->opinion !!}</p>
                                     </div>
                                     <div class="modal-footer">
                                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">

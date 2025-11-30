@@ -19,7 +19,7 @@
     }
 @endphp
 
-<div class="w-100 border-bottom bg-secondary text-white">
+<div class="w-100 border-bottom text-white bg-pro-primary">
     <div class="container-fluid">
         <div class="d-flex flex-column flex-sm-row align-items-end justify-content-end py-2 gap-2">
             <div class="text-start">
@@ -36,7 +36,7 @@
                     style="width: 36px; height: 36px; object-fit: cover;">
 
                 @if ($user?->hasRole('usuario'))
-                    <a href="{{ route('usuario.dashboard') }}"
+                    <a  href="{{ route('usuario.dashboard') }}"
                         class="btn btn-outline-primary btn-sm rounded-pill px-3 py-1">
                         Ir a Panel usuario
                     </a>

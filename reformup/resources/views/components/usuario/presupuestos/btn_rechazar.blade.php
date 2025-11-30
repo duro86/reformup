@@ -20,7 +20,7 @@
 
 <button type="button"
         id="{{ $btnId }}"
-        class="btn btn-danger btn-sm w-100">
+        class="btn btn-danger btn-sm w-auto">
     Rechazar
 </button>
 

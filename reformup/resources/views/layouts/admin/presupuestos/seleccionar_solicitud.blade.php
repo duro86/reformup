@@ -24,9 +24,8 @@
                 </a>
             </div>
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Mensajes flash --}}
+            <x-alertas.alertasFlash />
 
             @if ($solicitudes->isEmpty())
                 <div class="alert alert-info">

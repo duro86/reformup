@@ -95,17 +95,4 @@ class Solicitud extends Model
         return $this->hasMany(Presupuesto::class, 'solicitud_id');
     }
 
-    /**
-     * Relación polimórfica uno a muchos con el modelo Solicitud.
-     * 
-     * Permite asociar archivos (imágenes, documentos, PDFs, etc.) a cada solicitud
-     * sin necesidad de crear tablas específicas para cada tipo de entidad.
-     * 
-     * Los campos `model_type` y `model_id` de la tabla `medios` indican a qué
-     * modelo pertenece cada archivo.
-     */
-    public function medios()
-    {
-        return $this->morphMany(Medio::class, 'model');
-    }
 }

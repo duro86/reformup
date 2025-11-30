@@ -28,29 +28,46 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Buscador combinado: texto + fechas --}}
+            <form method="GET" action="{{ route('usuario.trabajos.index') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, empresa, ciudad, estado o importe...">
+                </div>
 
-            <x-buscador-q :action="route('usuario.trabajos.index')" placeholder="Buscar por título, empresa, ciudad, estado o importe..." />
+                {{-- Rango de fechas reutilizable (inicio del trabajo) --}}
+                @include('partials.filtros.rango_fechas')
 
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
+                        <a href="{{ route('usuario.trabajos.index') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
 
             {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
+                @php
+                    // Conservamos q + fechas al cambiar de estado
+                    $paramsBase = request()->except('page', 'estado');
+                    $urlTodos = route('usuario.trabajos.index', $paramsBase);
+                @endphp
+
                 {{-- Todos --}}
                 <li class="nav-item">
-                    @php
-                        $urlTodos = route(
-                            'usuario.trabajos.index',
-                            array_filter([
-                                'q' => request('q'),
-                            ]),
-                        );
-                    @endphp
                     <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ $urlTodos }}">
                         Todos
                     </a>
@@ -59,13 +76,8 @@
                 {{-- ESTADOS DEL MODELO --}}
                 @foreach ($estados as $valor => $texto)
                     @php
-                        $urlEstado = route(
-                            'usuario.trabajos.index',
-                            array_filter([
-                                'estado' => $valor,
-                                'q' => request('q'),
-                            ]),
-                        );
+                        $paramsEstado = array_merge($paramsBase, ['estado' => $valor]);
+                        $urlEstado = route('usuario.trabajos.index', $paramsEstado);
                     @endphp
                     <li class="nav-item">
                         <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
@@ -74,6 +86,7 @@
                     </li>
                 @endforeach
             </ul>
+
 
             {{-- Si no hay trabajos --}}
             @if ($trabajos->isEmpty())
@@ -277,8 +290,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
 
                                 {{-- Título / referencia --}}
                                 <div class="mb-2">
@@ -318,7 +331,7 @@
                                         @endif
                                     </div>
 
-                                    {{-- Estado --}}
+                                    {{-- Estado + Info estados --}}
                                     <div class="mb-1">
                                         <strong>Estado:</strong>
                                         <span class="badge {{ $badgeClass }}">
@@ -419,13 +432,8 @@
         <div class="mt-3">
             {{ $trabajos->links('pagination::bootstrap-5') }}
         </div>
-
         @endif
-
-
     </div>
-    </div>
-
 @endsection
 
 <x-alertas_sweet />

@@ -41,15 +41,17 @@
                         Un proyecto nacido en Huelva para hacer las reformas más sencillas
                     </h2>
                     <p class="text-muted">
-                        ReformUp es una plataforma desarrollada desde Huelva, donde vivo y desde donde
-                        he ido dando forma a esta idea con una visión muy clara: acercar la tecnología
-                        a las personas que necesitan reformar su hogar o su negocio sin complicaciones.
+                        ReformUp es una plataforma desarrollada desde Huelva, mi tierra, el lugar donde he ido dando forma a
+                        esta idea con una visión muy clara: acercar la tecnología a quienes necesitan reformar su hogar o su
+                        negocio sin complicaciones.
                     </p>
                     <p class="text-muted mb-0">
-                        Cada hora de planificación, cada línea de código y cada prueba se ha hecho aquí,
-                        con la calma, la cercanía y la forma de entender las cosas que tiene Huelva:
-                        directo, sencillo y pensando en que la aplicación sea fácil por fuera, aunque
-                        por dentro lleve mucho trabajo.
+                        Todo se ha creado aquí: la planificación, las líneas de código y las pruebas. Y lo he hecho con esa
+                        manera de trabajar tan nuestra, directa y sencilla, buscando que la aplicación sea fácil por fuera
+                        aunque por dentro lleve muchísimas horas detrás. Hablo mucho de Huelva porque, aunque emprender aquí
+                        no siempre es fácil, seguimos quedando jóvenes que apostamos por crear proyectos, mover la ciudad y
+                        ponerla en el mapa. A la derecha puedes ver un vídeo que muestra un pedacito de esa Huelva que llevo
+                        metida en el proyecto.
                     </p>
 
                 </div>

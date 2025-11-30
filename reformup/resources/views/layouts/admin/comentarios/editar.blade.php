@@ -22,14 +22,6 @@
                 Editar comentario #{{ $comentario->id }} del usuario {{ $cliente->nombre }} {{ $cliente->apellidos }}
             </h1>
 
-            {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
-
             {{-- Errores de validación --}}
             @if ($errors->any())
                 <div class="alert alert-danger">
@@ -105,21 +97,28 @@
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
-
+                
+                {{-- Opinion ckeditor --}}
                 <div class="mb-3">
                     <label class="form-label">
                         Opinión del usuario
                         <span class="text-muted small d-block">
-                            Puedes corregir lenguaje inapropiado, faltas ortográficas o ajustar el texto para cumplir las
-                            normas de la plataforma.
+                            Puedes corregir lenguaje inapropiado, faltas ortográficas o ajustar el texto
+                            para cumplir las normas de la plataforma.
                         </span>
                     </label>
-                    <textarea style="resize: none;" name="opinion" rows="5"
-                        class="form-control @error('opinion') is-invalid @enderror">{{ old('opinion', $comentario->opinion) }}</textarea>
+
+                    <textarea id="opinion_admin" {{-- ID para CKEditor --}} name="opinion" rows="5" style="resize: none;"
+                        class="form-control @error('opinion') is-invalid @enderror">{!! old('opinion', $comentario->opinion) !!}</textarea>
+
                     @error('opinion')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+                {{-- Inicializar CKEditor sobre este textarea --}}
+                <x-ckeditor.ckeditor_descripcion for="opinion_admin" />
+
 
                 <div class="alert alert-info small">
                     Vas a modificar el comentario de un usuario.

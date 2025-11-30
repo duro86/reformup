@@ -10,7 +10,7 @@
     $perfilVisible = $isProfesional && $user->perfilProfesional && $user->perfilProfesional->visible;
 @endphp
 
-<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
+<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-user-secondary">
 
     {{-- Botón para plegar/desplegar --}}
     <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
@@ -19,10 +19,11 @@
     </button>
 
     {{-- Título Sidebar Roles --}}
+    <h4 class="fs-3 text-primary fst-italic">PERFILES</h4>
     @if ($isAdmin)
-        <h4 class="m-2" style="color: #000000;">Administrador</h4>
+        <h4 class="m-2 color-black">Administrador</h4>
 
-        <div class="ms-3 mt-1" style="color: #B5C99A;">
+        <div class="ms-3">
             @if ($isUsuario)
                 <div>Usuario</div>
             @endif
@@ -32,15 +33,15 @@
         </div>
     @else
         @if ($isUsuario)
-            <h4 class="m-2 fs-3" style="color: #718355;">Usuario</h4>
+            <h4 class="m-2 fs-3 color-black">Usuario</h4>
         @endif
         @if ($isProfesional)
-            <h4 class="m-2 text-secondary fs-5" style="color: #B5C99A;">Profesional</h4>
+            <h4 class="m-2 text-secondary fs-6 text-muted">Profesional</h4>
         @endif
     @endif
-
-    <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
-        <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
+    <hr>
+    <nav class="d-flex flex-column" id="user-sidebar">
+        <ul class="nav flex-column ">
             <li class="nav-item">
                 {{-- Listado Solicitudes --}}
                 <a class="nav-link" href="{{ route('usuario.solicitudes.index') }}"><i
@@ -93,8 +94,7 @@
                             <p class="mb-2 text-muted">
                                 Tienes el rol de profesional, pero aún no has creado tu perfil de empresa.
                             </p>
-                            <a href="{{ route('registrar.profesional.opciones') }}"
-                                class="btn btn-sm btn-warning w-100">
+                            <a href="{{ route('registro.pro.empresa') }}" class="btn btn-sm btn-warning w-100">
                                 Crear perfil profesional
                             </a>
                         </div>
@@ -108,7 +108,7 @@
         </ul>
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
-        <ul class="nav flex-column mt-auto admin-sidebar">
+        <ul class="nav flex-column mt-5  admin-sidebar">
             {{-- Si es usuario y no tiene perfil profesional --}}
             @if ($isUsuario && !$isProfesional)
                 <li class="nav-item">
@@ -128,7 +128,7 @@
             <li class="nav-item">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
-                    <button type="submit" class="nav-link p-0 text-success" style="background:none; border:none;">
+                    <button type="submit" class="nav-link p-2">
                         <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                     </button>
                 </form>

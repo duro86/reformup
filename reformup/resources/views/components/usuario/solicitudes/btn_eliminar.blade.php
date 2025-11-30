@@ -1,12 +1,12 @@
+{{-- resources/views/components/usuario/solicitudes/btn_eliminar.blade.php --}}
 @props([
-    'solicitud', // instancia de App\Models\Solicitud
-    'route' => null, // opcional, para sobreescribir la ruta
+    'solicitud',
+    'route' => null,
 ])
 
 @php
     $action = $route ? $route : route('usuario.solicitudes.eliminar', $solicitud);
-
-    $titulo = $solicitud->titulo ?? 'esta solicitud'; //si la solicitud está “abierta”.
+    $titulo = $solicitud->titulo ?? 'esta solicitud';
 @endphp
 
 @if ($solicitud->estado === 'abierta')
@@ -14,9 +14,11 @@
         @csrf
         @method('DELETE')
 
+        <input type="hidden" name="motivo_eliminacion" value="">
+
         <button type="button"
-            class="btn btn-danger btn-sm w-100 w-md-auto d-flex justify-content-center align-items-center gap-1"
-            data-titulo="{{ $titulo }}">
+                class="btn btn-danger btn-sm w-auto d-flex justify-content-center align-items-center gap-1 btn-confirmar-eliminar"
+                data-titulo="{{ $titulo }}">
             <i class="bi bi-trash"></i>
             <span class="d-none d-md-inline">Eliminar</span>
         </button>
@@ -25,7 +27,6 @@
     <span class="text-muted small d-none d-md-inline"></span>
 @endif
 
-{{-- @once asegura que el JS de SweetAlert se inyecta una sola vez --}}
 @once
     @push('scripts')
         <script>
@@ -34,7 +35,7 @@
 
                 botones.forEach(boton => {
                     boton.addEventListener('click', function() {
-                        const form = this.closest('form');
+                        const form   = this.closest('form');
                         const titulo = this.dataset.titulo || 'esta solicitud';
 
                         Swal.fire({
@@ -47,8 +48,15 @@
                             confirmButtonColor: '#d33',
                             cancelButtonColor: '#6c757d',
                             focusCancel: true,
+                            input: 'textarea',
+                            inputLabel: 'Motivo (opcional)',
+                            inputPlaceholder: 'Puedes indicar un motivo para informar al profesional...'
                         }).then((result) => {
                             if (result.isConfirmed) {
+                                const hidden = form.querySelector('input[name="motivo_eliminacion"]');
+                                if (hidden) {
+                                    hidden.value = (result.value || '').trim();
+                                }
                                 form.submit();
                             }
                         });

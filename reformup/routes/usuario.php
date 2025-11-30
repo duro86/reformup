@@ -14,7 +14,7 @@ use App\Http\Controllers\Usuario\UsuarioTrabajoController;
 use App\Http\Controllers\Usuario\UsuarioComentarioController;
 
 // --- USUARIO ---
-Route::middleware(['auth', 'rol.redirigir:usuario'])
+Route::middleware(['rol.redirigir:usuario'])
     ->prefix('usuario')->name('usuario.')
     ->group(function () {
         // Usuario dashboard
@@ -50,6 +50,11 @@ Route::middleware(['auth', 'rol.redirigir:usuario'])
         // Guardar solicitud
         Route::post('/solicitudes', [UsuarioSolicitudController::class, 'guardar'])
             ->name('solicitudes.guardar');
+
+        // Cancelar una solicitud del cliente (cambia a estado "cancelada")
+        Route::patch('/solicitudes/{solicitud}/cancelar', [UsuarioSolicitudController::class, 'cancelar'])
+            ->name('solicitudes.cancelar');
+
 
         // Eliminar una solicitud del cliente
         Route::delete('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'eliminar'])

@@ -5,8 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use App\Models\Perfil_Profesional; 
-use Spatie\Permission\Models\Role;
 
 class TienePerfilProfesional
 {
@@ -15,24 +13,14 @@ class TienePerfilProfesional
      */
     public function handle(Request $request, Closure $next)
     {
-        $user = Auth::user();
+        $user = $request->user(); // ya validado por 'rol.redirigir:profesional'
 
-        // Si no está logueado por si acaso
-        if (!$user) {
-            return redirect()->route('login');
-        }
+        // Si no tiene perfil_profesional asociado, mandamos a completar el perfil
+        $perfilProfesional = $user->perfil_Profesional()->first(); // hasOne en User
 
-        // Si no tiene rol profesional, fuera
-        if (!$user->hasRole('profesional')) {
-            abort(403, 'No tienes permisos de profesional.');
-        }
-
-        // Si no tiene perfil_profesional asociado, mandamos a completar perfil
-        $perfilProfesional = $user->perfil_Profesional()->first(); // relación hasOne en User
-
-        if (!$perfilProfesional) {
+        if (! $perfilProfesional) {
             return redirect()
-                ->route('usuario.dashboard') // tu rVamos al perfil de usuario
+                ->route('profesional.perfil') // lo mandamos a la página para completarlo
                 ->with('warning', 'Debes completar tu perfil profesional antes de acceder al panel de profesional.');
         }
 

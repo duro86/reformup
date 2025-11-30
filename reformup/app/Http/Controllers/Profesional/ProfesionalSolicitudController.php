@@ -6,15 +6,18 @@ use App\Http\Controllers\Controller;
 use App\Models\Solicitud;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class ProfesionalSolicitudController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de solicitudes recibidas por el profesional logueado.
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $user   = Auth::user();
         $perfil = $user->perfil_Profesional; // relación 1:1 con Perfil_Profesional
 
         // Si no tiene perfil profesional, fuera
@@ -24,11 +27,12 @@ class ProfesionalSolicitudController extends Controller
         }
 
         // Filtros
-        $estado = $request->query('estado');            // abierta / en_revision / cerrada / cancelada / null
+        $estado = $request->query('estado');            
+        // abierta / en_revision / cerrada / cancelada / null
         $q      = trim((string) $request->query('q'));  // texto buscador
 
         // Base: SOLO solicitudes dirigidas a este profesional
-        $query = Solicitud::with(['cliente'])           // aquí al pro le interesa ver al cliente
+        $query = Solicitud::with(['cliente']) // al pro le interesa ver al cliente
             ->where('pro_id', $perfil->id);
 
         // Filtro por estado
@@ -53,9 +57,14 @@ class ProfesionalSolicitudController extends Controller
             });
         }
 
+        // Filtro por rango de fechas 
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+        // Si alguna solicitud no tiene 'fecha' y solo usar created_at:
+        // $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+
         // Orden + paginación
         $solicitudes = $query
-            ->orderByDesc('fecha')
+            ->orderByDesc('fecha')   // o 'created_at' si cambias arriba
             ->paginate(5)
             ->withQueryString();
 
@@ -63,11 +72,10 @@ class ProfesionalSolicitudController extends Controller
             'solicitudes' => $solicitudes,
             'estado'      => $estado,
             'q'           => $q,
-            'estados'     => Solicitud::ESTADOS, // mismo array que usas en la vista
+            'estados'     => Solicitud::ESTADOS ?? [], // por si usamos la constante
             'perfil'      => $perfil,
         ]);
     }
-
 
 
     /**

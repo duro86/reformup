@@ -161,7 +161,7 @@
                                                     </span>
                                                 @endif
 
-                                                {{-- Nombre del cliente si quieres mostrarlo --}}
+                                                {{-- Nombre del cliente --}}
                                                 @if ($comentario->cliente)
                                                     <small class="text-muted">
                                                         {{ $comentario->cliente->name ?? 'Cliente' }}
@@ -169,14 +169,50 @@
                                                 @endif
                                             </div>
 
+                                            {{-- Opinión con formato CKEditor --}}
                                             @if ($comentario->opinion)
-                                                <p class="mb-0 small">
-                                                    {{ $comentario->opinion }}
-                                                </p>
+                                                <div class="mb-2 small">
+                                                    {!! $comentario->opinion !!}
+                                                </div>
                                             @endif
+
+                                            {{-- Fotos asociadas al comentario --}}
+                                            @if ($comentario->imagenes->isNotEmpty())
+                                                <div id="carouselComentario{{ $comentario->id }}"
+                                                    class="carousel slide mt-2" data-bs-ride="carousel">
+                                                    <div class="carousel-inner rounded-3 overflow-hidden">
+                                                        @foreach ($comentario->imagenes as $idx => $img)
+                                                            <div
+                                                                class="carousel-item @if ($idx === 0) active @endif">
+                                                                <img src="{{ Storage::url($img->ruta) }}"
+                                                                    class="d-block w-100"
+                                                                    alt="Foto del trabajo asociado al comentario #{{ $comentario->id }}"
+                                                                    style="object-fit: cover; max-height: 260px;">
+                                                            </div>
+                                                        @endforeach
+                                                    </div>
+
+                                                    @if ($comentario->imagenes->count() > 1)
+                                                        <button class="carousel-control-prev" type="button"
+                                                            data-bs-target="#carouselComentario{{ $comentario->id }}"
+                                                            data-bs-slide="prev">
+                                                            <span class="carousel-control-prev-icon"></span>
+                                                            <span class="visually-hidden">Anterior</span>
+                                                        </button>
+                                                        <button class="carousel-control-next" type="button"
+                                                            data-bs-target="#carouselComentario{{ $comentario->id }}"
+                                                            data-bs-slide="next">
+                                                            <span class="carousel-control-next-icon"></span>
+                                                            <span class="visually-hidden">Siguiente</span>
+                                                        </button>
+                                                    @endif
+                                                </div>
+                                            @endif
+
                                         </div>
                                     @endforeach
                                 @endif
+
                             </div>
                         </article>
                     @endforeach

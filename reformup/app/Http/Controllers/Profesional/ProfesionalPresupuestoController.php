@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class ProfesionalPresupuestoController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de presupuestos del profesional logueado.
      */
@@ -23,11 +26,13 @@ class ProfesionalPresupuestoController extends Controller
         $perfil = $user->perfil_Profesional;
 
         if (! $perfil) {
-            abort(403, 'No tienes perfil profesional.');
+            return redirect()
+                ->back()
+                ->with('error', 'No tienes permisos para esta sección');
         }
 
-        $estado = $request->query('estado');             // enviado, aceptado, rechazado, caducado, null
-        $q      = trim((string) $request->query('q'));   // texto buscador
+        $estado = $request->query('estado');            // enviado, aceptado, rechazado, caducado, null
+        $q      = trim((string) $request->query('q'));  // texto buscador
 
         $query = Presupuesto::with(['solicitud.cliente'])
             ->where('pro_id', $perfil->id);
@@ -57,13 +62,18 @@ class ProfesionalPresupuestoController extends Controller
                     })
                     // Por estado
                     ->orWhere('estado', 'like', $like)
-                    // Por total
+                    // Por total (cast a texto)
                     ->orWhereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
             });
         }
 
+        // 🔹 Filtro por rango de fechas: ar 'fecha' 
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+        // Si created_at:
+        // $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
+
         $presupuestos = $query
-            ->orderByDesc('created_at')
+            ->orderByDesc('fecha')     // o 'created_at' 
             ->paginate(6)
             ->withQueryString();
 
@@ -75,7 +85,6 @@ class ProfesionalPresupuestoController extends Controller
             'perfil'       => $perfil,
         ]);
     }
-
 
     /**
      * Formulario para crear un presupuesto a partir de una solicitud concreta.
@@ -163,7 +172,7 @@ class ProfesionalPresupuestoController extends Controller
             $ext  = $file->getClientOriginalExtension();
             $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
             $safe = Str::slug($base); // Version segura quitando paramentros raros
-            $name = $safe . '-' . Str::random(8) . '.' . $ext; 
+            $name = $safe . '-' . Str::random(8) . '.' . $ext;
             // Añade un código aleatorio de 8 caracteres (Str::random(8))
 
             // Creamos el directorio en el disco privado (si no existe)

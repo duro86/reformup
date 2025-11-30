@@ -33,30 +33,44 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Buscador combinado: campos + fechas --}}
+            <form method="GET" action="{{ route('usuario.solicitudes.index') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, profesional, ciudad, provincia o estado...">
+                </div>
 
-            {{-- Buscador --}}
-            <x-buscador-q :action="route('usuario.solicitudes.index')" placeholder="Buscar por título, profesional, ciudad o estado..." />
+                {{-- Rango de fechas reutilizable (fecha de la solicitud) --}}
+                @include('partials.filtros.rango_fechas')
 
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
+                        <a href="{{ route('usuario.solicitudes.index') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
 
             {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
-                {{-- Opción "Todas" --}}
+                {{-- Todas --}}
+                @php
+                    $paramsBase = request()->except('page', 'estado');
+                    $urlTodas = route('usuario.solicitudes.index', $paramsBase);
+                @endphp
                 <li class="nav-item">
-                    @php
-                        $urlTodas = route(
-                            'usuario.solicitudes.index',
-                            array_filter([
-                                'q' => request('q'),
-                            ]),
-                        );
-                    @endphp
                     <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ $urlTodas }}">
                         Todas
                     </a>
@@ -65,13 +79,10 @@
                 {{-- ESTADOS DEL MODELO --}}
                 @foreach ($estados as $valor => $texto)
                     @php
-                        $urlEstado = route(
-                            'usuario.solicitudes.index',
-                            array_filter([
-                                'estado' => $valor,
-                                'q' => request('q'),
-                            ]),
-                        );
+                        $params = request()->except('page', 'estado');
+                        $params['estado'] = $valor;
+
+                        $urlEstado = route('usuario.solicitudes.index', $params);
                     @endphp
                     <li class="nav-item">
                         <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
@@ -80,6 +91,7 @@
                     </li>
                 @endforeach
             </ul>
+
 
             @if ($solicitudes->isEmpty())
                 <div class="alert alert-info">
@@ -93,13 +105,13 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th>Título / Ref</th>
-                                <th>Profesional</th>
-                                <th>Ciudad / Provincia</th>
-                                <th class="text-center">Estado</th>
-                                <th>Presupuesto máx.</th>
-                                <th>Fecha</th>
-                                <th class="text-center">Acciones</th>
+                                <th class="bg-secondary">Título / Ref</th>
+                                <th class="bg-secondary">Profesional</th>
+                                <th class="bg-secondary">Provincia / Municipio</th>
+                                <th class="text-center bg-secondary">Estado</th>
+                                <th class="bg-secondary">Presupuesto máx.</th>
+                                <th class="bg-secondary">Fecha</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -140,10 +152,12 @@
                                         @endif
                                     </td>
 
-                                    {{-- Ciudad / provincia --}}
+                                    {{--  provincia / municipio --}}
                                     <td>
-                                        {{ $solicitud->ciudad }}
-                                        {{ $solicitud->provincia ? ' - ' . $solicitud->provincia : '' }}
+                                        {{ $solicitud->provincia ? ' ' . $solicitud->provincia : '' }}
+                                        @if ($solicitud->ciudad)
+                                            - {{ $solicitud->ciudad }}
+                                        @endif                                  
                                     </td>
 
                                     {{-- Estado --}}
@@ -199,6 +213,11 @@
                                                 Ver
                                             </button>
 
+                                            @if ($solicitud->estado == 'abierta')
+                                                {{-- Versión escritorio --}}
+                                                <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="desktop" />
+                                            @endif
+
                                             {{-- Eliminar --}}
                                             <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />
                                         </div>
@@ -225,9 +244,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
-
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
                                 {{-- Título + ref --}}
                                 <div class="mb-2">
                                     <div class="fw-semibold">
@@ -255,9 +273,9 @@
                                     {{-- Ubicación --}}
                                     <div class="mt-1">
                                         <strong>Ubicación:</strong>
-                                        {{ $solicitud->ciudad ?? 'No indicada' }}
-                                        @if ($solicitud->provincia)
-                                            - {{ $solicitud->provincia }}
+                                        {{ $solicitud->provincia ?? 'No indicada' }}
+                                        @if ($solicitud->ciudad)
+                                            - {{ $solicitud->ciudad }}
                                         @endif
                                     </div>
 
@@ -314,6 +332,10 @@
                                         @click="openSolicitudUsuarioModal({{ $solicitud->id }})">
                                         Ver
                                     </button>
+
+
+                                    {{-- Versión móvil --}}
+                                    <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
 
                                     {{-- Eliminar --}}
                                     <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />

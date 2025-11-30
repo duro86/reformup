@@ -29,33 +29,45 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Buscador combinado: campos + fechas --}}
+            <form method="GET" action="{{ route('usuario.presupuestos.index') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, profesional, ciudad, estado o importe...">
+                </div>
 
-            {{-- Buscador reutilizable --}}
-            <x-buscador-q :action="route('usuario.presupuestos.index')" placeholder="Buscar por título, profesional, ciudad, estado o importe..." />
+                {{-- Rango de fechas reutilizable (fecha del presupuesto) --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
+                        <a href="{{ route('usuario.presupuestos.index') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
 
             {{-- Filtros por estado --}}
-            @php
-                // $estados viene del controlador (Presupuesto::ESTADOS)
-                // Ejemplo: ['enviado' => 'Enviados', ...]
-            @endphp
-
             <ul class="nav nav-pills mb-3">
-                {{-- Opción "Todas" --}}
                 @php
-                    $urlTodas = route(
-                        'usuario.presupuestos.index',
-                        array_filter([
-                            'q' => request('q'),
-                        ]),
-                    );
+                    // Conservamos q + fechas al cambiar de estado
+                    $paramsBase = request()->except('page', 'estado');
+                    $urlTodas = route('usuario.presupuestos.index', $paramsBase);
                 @endphp
+
+                {{-- Opción "Todas" --}}
                 <li class="nav-item">
                     <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ $urlTodas }}">
                         Todas
@@ -65,13 +77,8 @@
                 {{-- ESTADOS DEL MODELO --}}
                 @foreach ($estados as $valor => $texto)
                     @php
-                        $urlEstado = route(
-                            'usuario.presupuestos.index',
-                            array_filter([
-                                'estado' => $valor,
-                                'q' => request('q'),
-                            ]),
-                        );
+                        $paramsEstado = array_merge($paramsBase, ['estado' => $valor]);
+                        $urlEstado = route('usuario.presupuestos.index', $paramsEstado);
                     @endphp
                     <li class="nav-item">
                         <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
@@ -80,6 +87,7 @@
                     </li>
                 @endforeach
             </ul>
+
 
             {{-- Lista de presupuestos --}}
             @if ($presupuestos->isEmpty())
@@ -202,12 +210,10 @@
 
                                             {{-- Aceptar / Rechazar solo si está ENVIADO --}}
                                             @if ($presu->estado === 'enviado')
-                                                <div class="d-flex flex-row gap-2">
-                                                    <x-usuario.presupuestos.btn_rechazar :presupuesto="$presu"
-                                                        contexto="desktop" />
-                                                    <x-usuario.presupuestos.btn_aceptar :presupuesto="$presu"
-                                                        contexto="desktop" />
-                                                </div>
+                                                <x-usuario.presupuestos.btn_aceptar :presupuesto="$presu" contexto="desktop"
+                                                    :tiene-direccion="(bool) optional($presu->solicitud)->dir_cliente" :direccion-obra="optional($presu->solicitud)->dir_cliente" />
+
+                                                <x-usuario.presupuestos.btn_rechazar :presupuesto="$presu" contexto="desktop" />
                                             @endif
                                         </div>
                                     </td>
@@ -233,8 +239,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
 
                                 {{-- Título solicitud + refs --}}
                                 <div class="mb-2">

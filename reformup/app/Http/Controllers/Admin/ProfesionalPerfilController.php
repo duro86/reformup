@@ -64,7 +64,6 @@ class ProfesionalPerfilController extends Controller
         return view('layouts.admin.profesionales.profesionales', compact('profesionales', 'q'));
     }
 
-
     /**
      * Exportar TODOS los profesionales a PDF 
      * */

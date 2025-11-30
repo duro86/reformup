@@ -13,7 +13,7 @@ use App\Http\Controllers\Profesional\ProfesionalTrabajoController;
 use App\Http\Controllers\Profesional\ProfesionalComentarioController;
 
 // --- PROFESIONAL ---
-Route::middleware(['auth', 'rol.redirigir:profesional'])
+Route::middleware(['rol.redirigir:profesional', 'tiene.perfil.profesional'])
     ->prefix('profesional')->name('profesional.')
     ->group(function () {
         Route::get('/dashboard', [ProfesionalDashboardController::class, 'index'])

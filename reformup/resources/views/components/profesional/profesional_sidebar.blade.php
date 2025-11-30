@@ -15,7 +15,7 @@
     $perfilVisible = $isProfesional && $user->perfilProfesional && $user->perfilProfesional->visible;
 @endphp
 
-<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
+<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-pro-primary">
     {{-- Botón para plegar/desplegar --}}
     <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
         aria-label="Contraer/expandir menú">
@@ -24,14 +24,9 @@
 
     {{-- BLOQUE AVATAR + NOMBRE EMPRESA --}}
     @if ($perfilProfesional)
-        <div class="text-center mb-3 p-3 rounded" style="background-color: #E9F5DB;">
+        <div class="text-center mb-3 p-3 rounded">
             <div class="mb-2 d-flex justify-content-center">
-                @if ($perfilProfesional->avatar)
-                    <img src="{{ asset('storage/' . $perfilProfesional->avatar) }}" alt="Logo empresa"
-                        class="rounded-circle" style="width:60px;height:60px;object-fit:cover;">
-                @else
-                    <i class="bi bi-building rounded-circle" style="font-size: 2.5rem;"></i>
-                @endif
+                <i class="bi bi-building rounded-circle fs-2"></i>
             </div>
             <div class="fw-semibold small">
                 {{ $perfilProfesional->empresa ?? 'Tu empresa' }}
@@ -45,19 +40,6 @@
                     {{ $perfilProfesional->provincia }}
                 </div>
             @endif
-        </div>
-    @else
-        {{-- Añadir Perfil Profesional --}}
-        <div class="text-center mb-3 p-3 rounded" style="background-color:#FFF3CD;">
-            <div class="mb-2">
-                <i class="bi bi-exclamation-triangle" style="font-size:1.8rem;"></i>
-            </div>
-            <div class="small fw-semibold text-warning">
-                Aún no has creado tu perfil profesional
-            </div>
-            <a href="{{ route('registrar.profesional.opciones') }}" class="btn btn-sm btn-warning mt-2 w-100">
-                Crear perfil
-            </a>
         </div>
     @endif
 
@@ -83,8 +65,8 @@
     @endif
 
     {{-- NAV PRINCIPAL --}}
-    <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
-        <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
+    <nav class="mt-3 d-flex flex-column" id="pro-sidebar">
+        <ul class="nav flex-column admin-sidebar">
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('profesional.solicitudes.index') }}">
                     <i class="bi bi-file-earmark-text"></i> Solicitudes
@@ -121,8 +103,8 @@
 
         </ul>
 
-        {{-- Zona inferior PERFIL Y CERRAR SESION--}}
-        <ul class="nav flex-column mt-auto admin-sidebar">
+        {{-- Zona inferior PERFIL Y CERRAR SESION --}}
+        <ul class="nav flex-column mt-5 admin-sidebar">
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('home') }}">
                     <i class="bi bi-house-door"></i> Inicio
@@ -138,7 +120,7 @@
             <li class="nav-item">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
-                    <button type="submit" class="nav-link p-0 text-success" style="background:none; border:none;">
+                    <button type="submit" class="nav-link p-2">
                         <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                     </button>
                 </form>

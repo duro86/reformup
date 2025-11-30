@@ -6,6 +6,8 @@
 
     <x-navbar />
     <x-admin.admin_sidebar />
+    {{-- Bienvenida --}}
+    <x-admin.admin_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
 
@@ -57,6 +59,34 @@
                     @endif
                 </div>
             </form>
+
+            {{-- Filtros por estado --}}
+            @if (isset($estados) && is_array($estados))
+                <ul class="nav nav-pills mb-3">
+                    @foreach ($estados as $valor => $texto)
+                        @php
+                            // $estado viene del controlador
+                            $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
+
+                            // Conservamos la query 'q' y el resto de filtros al cambiar de estado
+                            $url =
+                                $valor !== null && $valor !== ''
+                                    ? route(
+                                        'admin.solicitudes', // <- OJO, aquí ruta de solicitudes
+                                        array_merge(request()->except('page'), ['estado' => $valor]),
+                                    )
+                                    : route('admin.solicitudes', request()->except('page', 'estado'));
+                        @endphp
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
+                                {{ $texto }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
 
 
             @if ($solicitudes->isEmpty())
@@ -172,6 +202,10 @@
                                                     <i class="bi bi-pencil"></i> Editar
                                                 </a>
                                             @endif
+                                            @if ($solicitud->estado)
+                                                <x-admin.solicitudes.btn_eliminar :solicitud="$solicitud" />
+                                            @endif
+
 
                                         </div>
                                     </td>
@@ -198,9 +232,9 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
+                        <div class="card mb-3 shadow-sm bg-light">
                             {{-- mismo tono que usas en otros listados --}}
-                            <div class="card-body bg-light">
+                            <div class="card-body ">
 
                                 {{-- Título + ref --}}
                                 <div class="mb-2">
@@ -246,10 +280,10 @@
                                     {{-- Ubicación --}}
                                     <div class="mt-1">
                                         <strong>Ubicación:</strong>
-                                        {{ $solicitud->ciudad ?? 'No indicada' }}
                                         @if ($solicitud->provincia)
-                                            - {{ $solicitud->provincia }}
+                                            {{ $solicitud->provincia }} -
                                         @endif
+                                        {{ $solicitud->ciudad ?? 'No indicada' }}
                                     </div>
 
                                     {{-- Estado (SOLO AQUÍ EN MÓVIL, no en otra parte) --}}
@@ -282,6 +316,12 @@
                                             Editar
                                         </a>
                                     @endif
+
+                                    {{-- Eliminar --}}
+                                    @if ($solicitud->estado)
+                                        <x-admin.solicitudes.btn_eliminar :solicitud="$solicitud" />
+                                    @endif
+
                                 </div>
 
                             </div>

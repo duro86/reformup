@@ -6,23 +6,36 @@ namespace App\Http\Controllers\Usuario;
 use App\Http\Controllers\Controller;
 use App\Models\Trabajo;
 use App\Models\User;
+use App\Models\Perfil_Profesional;
 use App\Models\Comentario;
 use App\Mail\Admin\ComentarioPendienteMailable;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Illuminate\Support\Facades\DB;
 
 class UsuarioComentarioController extends Controller
 {
 
+    use FiltroRangoFechas;
     /**
      * Listado de comentarios del usuario.
      */
     public function index(Request $request)
     {
         $user = Auth::user();
-        $q    = $request->input('q');
+
+        if (! $user) {
+            return redirect()->route('login')
+                ->with('error', 'Debes iniciar sesión para ver tus comentarios.');
+        }
+
+        $q              = trim((string) $request->input('q'));
+        $estado         = $request->input('estado');        // pendiente | publicado | rechazado | null
+        $puntuacionMin  = $request->input('puntuacion_min');
+        $puntuacionMax  = $request->input('puntuacion_max');
 
         $query = Comentario::with([
             'trabajo.presupuesto.solicitud',
@@ -30,7 +43,13 @@ class UsuarioComentarioController extends Controller
         ])
             ->where('cliente_id', $user->id);
 
-        if ($q) {
+        //  Filtro por estado (si lo envían)
+        if (! empty($estado)) {
+            $query->where('estado', $estado);
+        }
+
+        //  Buscador de texto
+        if ($q !== '') {
             $like = '%' . $q . '%';
 
             $query->where(function ($sub) use ($like) {
@@ -39,7 +58,7 @@ class UsuarioComentarioController extends Controller
                     ->whereHas('trabajo.presupuesto.solicitud', function ($qSol) use ($like) {
                         $qSol->where('titulo', 'like', $like);
                     })
-                    // Profesional (empresa)
+                    // Profesional (empresa / email)
                     ->orWhereHas('trabajo.presupuesto.profesional', function ($qPro) use ($like) {
                         $qPro->where('empresa', 'like', $like)
                             ->orWhere('email_empresa', 'like', $like);
@@ -51,12 +70,39 @@ class UsuarioComentarioController extends Controller
             });
         }
 
+        //  Filtro por puntuación mínima / máxima
+        if ($puntuacionMin !== null && $puntuacionMin !== '') {
+            $query->where('puntuacion', '>=', (int) $puntuacionMin);
+        }
+
+        if ($puntuacionMax !== null && $puntuacionMax !== '') {
+            $query->where('puntuacion', '<=', (int) $puntuacionMax);
+        }
+
+        // Filtro por rango de fechas (usamos la columna fecha del comentario)
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+
         $comentarios = $query
-            ->orderByDesc('fecha')
+            ->orderByDesc('fecha')   // si a veces es null, podrías usar created_at
             ->paginate(5)
             ->withQueryString();
 
-        return view('layouts.usuario.comentarios.index', compact('comentarios', 'user', 'q'));
+        // Para poder pintar un select/pills de estados en la vista 
+        $estados = [
+            'pendiente' => 'Pendientes',
+            'publicado' => 'Publicados',
+            'rechazado' => 'Rechazados',
+        ];
+
+        return view('layouts.usuario.comentarios.index', [
+            'comentarios'     => $comentarios,
+            'user'            => $user,
+            'q'               => $q,
+            'estado'          => $estado,
+            'estados'         => $estados,
+            'puntuacionMin'   => $puntuacionMin,
+            'puntuacionMax'   => $puntuacionMax,
+        ]);
     }
 
     /**
@@ -126,45 +172,73 @@ class UsuarioComentarioController extends Controller
             return back()->with('error', 'Ya has dejado un comentario para este trabajo.');
         }
 
-        // 4) Validación
-        $validated = $request->validate([
-            'puntuacion' => 'required|integer|min:1|max:5',
-            'opinion'    => 'nullable|string|max:2000',
-        ]);
+        // 4) Validación (puntuación, opinión y hasta 3 imágenes)
+        $validated = $request->validate(
+            [
+                'puntuacion'   => 'required|integer|min:1|max:5',
+                'opinion'      => 'nullable|string|max:200',
 
+                // imágenes opcionales, máximo 3
+                'imagenes'     => 'nullable|array|max:3',
+                'imagenes.*'   => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            ],
+            [
+                'imagenes.array'   => 'El formato de las imágenes no es válido.',
+                'imagenes.max'     => 'Solo puedes subir hasta 3 imágenes por comentario.',
+                'opinion.max'     => 'Maximo 200 caracteres en la opinión',
+                'imagenes.*.image' => 'Cada archivo debe ser una imagen.',
+                'imagenes.*.mimes' => 'Formatos permitidos: JPG, PNG o WEBP.',
+                'imagenes.*.max'   => 'Cada imagen no puede superar los 2MB.',
+            ]
+        );
 
         // Limpiamos con el purifier
-        $opinion = $validated['opinion'];
+        $opinion = $validated['opinion'] ?? null;
 
         $opinion_limpia = $opinion
             ? Purifier::clean($opinion, 'solicitud')
             : null;
 
-        $comentario = Comentario::create([
-            'trabajo_id' => $trabajo->id,
-            'cliente_id' => $user->id,
-            'puntuacion' => $validated['puntuacion'],
-            'opinion'    => $opinion_limpia,
-            'estado'     => 'pendiente',
-            'visible'    => false,
-            'fecha'      => now(),
-        ]);
+        try {
+            // 5) Crear comentario
+            $comentario = Comentario::create([
+                'trabajo_id' => $trabajo->id,
+                'cliente_id' => $user->id,
+                'puntuacion' => $validated['puntuacion'],
+                'opinion'    => $opinion_limpia,
+                'estado'     => 'pendiente',
+                'visible'    => false,
+                'fecha'      => now(),
+            ]);
 
-        // 5) Crear comentario
-        $comentario = Comentario::create([
-            'trabajo_id' => $trabajo->id,
-            'cliente_id' => $user->id,
-            'puntuacion' => $validated['puntuacion'],
-            'opinion'    => $opinion_limpia ?? null,
-            'estado'     => 'pendiente',
-            'visible'    => false,
-            'fecha'      => now(),
-        ]);
+            // 6) Guardar imágenes (si las hay)
+            if ($request->hasFile('imagenes')) {
+                $orden = 1;
+
+                foreach ($request->file('imagenes') as $imagen) {
+                    if (! $imagen || ! $imagen->isValid()) {
+                        continue;
+                    }
+
+                    // carpeta por comentario: public/comentarios/{id}
+                    $dir  = 'comentarios/' . $comentario->id;
+                    $ruta = $imagen->store($dir, 'public');
+
+                    $comentario->imagenes()->create([
+                        'ruta'  => $ruta,
+                        'orden' => $orden++,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // \Log::error('Error creando comentario: '.$e->getMessage());
+            return back()->with('error', 'Fallo al crear su comentario, póngase en contacto con el administrador');
+        }
 
         // Cargamos profesional (perfil) por si lo quieres usar en el correo
         $profesional = $presupuesto?->profesional ?? null;
 
-        // 6) Enviar mail a todos los admins avisando del nuevo comentario pendiente
+        // 7) Enviar mail a todos los admins avisando del nuevo comentario pendiente
         $admins = User::role('admin')->get();
 
         foreach ($admins as $admin) {
@@ -177,9 +251,7 @@ class UsuarioComentarioController extends Controller
                     new ComentarioPendienteMailable($comentario, $trabajo, $user, $profesional)
                 );
             } catch (\Throwable $e) {
-                // Redirigimos con error:
                 return back()->with('error', 'Fallo al notificar al administrador sobre el nuevo comentario.');
-                // \Log::error('Error enviando mail comentario pendiente: '.$e->getMessage());
             }
         }
 
@@ -187,6 +259,7 @@ class UsuarioComentarioController extends Controller
             ->route('usuario.trabajos.index')
             ->with('success', 'Tu comentario se ha enviado y está pendiente de revisión por el administrador.');
     }
+
 
     /**
      * Formulario para editar un comentario propio.
@@ -207,13 +280,12 @@ class UsuarioComentarioController extends Controller
                 ->with('error', 'Solo puedes editar comentarios pendientes.');
         }
 
-
-
-        // Cargar relaciones necesarias
-        $comentario->load('trabajo.presupuesto.solicitud');
+        // Cargar relaciones necesarias (añadimos imagenes)
+        $comentario->load('trabajo.presupuesto.solicitud', 'imagenes');
 
         return view('layouts.usuario.comentarios.editar', compact('comentario'));
     }
+
 
     /**
      * Actualizar comentario propio.
@@ -235,37 +307,89 @@ class UsuarioComentarioController extends Controller
                 ->with('error', 'Solo puedes editar comentarios pendientes o rechazados.');
         }
 
-        // 3) Validación
-        $validated = $request->validate([
-            'puntuacion' => 'required|integer|min:1|max:5',
-            'opinion'    => 'nullable|string|max:2000',
-        ]);
+        // 3) Validación (igual que en guardar)
+        $validated = $request->validate(
+            [
+                'puntuacion'   => 'required|integer|min:1|max:5',
+                'opinion'      => 'nullable|string|max:2000',
 
-        // 4) Actualizar comentario
-        $comentario->puntuacion = $validated['puntuacion'];
-        $comentario->opinion    = $validated['opinion'] ?? null;
-        $comentario->estado     = 'pendiente';  // vuelve a revisión
-        $comentario->visible    = false;
-        $comentario->fecha      = now();
-        $comentario->save();
+                'imagenes'     => 'nullable|array|max:3',
+                'imagenes.*'   => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+            ],
+            [
+                'imagenes.array'   => 'El formato de las imágenes no es válido.',
+                'imagenes.max'     => 'Solo puedes subir hasta 3 imágenes por comentario.',
+                'imagenes.*.image' => 'Cada archivo debe ser una imagen.',
+                'imagenes.*.mimes' => 'Formatos permitidos: JPG, PNG o WEBP.',
+                'imagenes.*.max'   => 'Cada imagen no puede superar los 2MB.',
+            ]
+        );
 
-        // 5) Cargamos el trabajo y el profesional para el correo
-        $trabajo = $comentario->trabajo; // relación comentario -> trabajo
+        // 4) Limpiamos la opinión con Purifier (igual que en guardar)
+        $opinion = $validated['opinion'] ?? null;
 
-        $presupuesto  = null;
-        $profesional  = null;
+        $opinion_limpia = $opinion
+            ? Purifier::clean($opinion, 'solicitud')
+            : null;
 
-        // Cargamos relaciones necesarias
+        try {
+            // 5) Actualizar comentario
+            $comentario->puntuacion = $validated['puntuacion'];
+            $comentario->opinion    = $opinion_limpia;
+            $comentario->estado     = 'pendiente';  // vuelve a revisión
+            $comentario->visible    = false;
+            $comentario->fecha      = now();
+            $comentario->save();
+
+            // 6) Si el usuario ha subido nuevas imágenes, reemplazamos las anteriores
+            if ($request->hasFile('imagenes')) {
+                // 6.1) Borrar ficheros anteriores del disco
+                foreach ($comentario->imagenes as $img) {
+                    if ($img->ruta && Storage::disk('public')->exists($img->ruta)) {
+                        Storage::disk('public')->delete($img->ruta);
+                    }
+                }
+
+                // 6.2) Borrar registros de BD
+                $comentario->imagenes()->delete();
+
+                // 6.3) Guardar las nuevas
+                $orden = 1;
+
+                foreach ($request->file('imagenes') as $imagen) {
+                    if (! $imagen || ! $imagen->isValid()) {
+                        continue;
+                    }
+
+                    $dir  = 'comentarios/' . $comentario->id;
+                    $ruta = $imagen->store($dir, 'public');
+
+                    $comentario->imagenes()->create([
+                        'ruta'  => $ruta,
+                        'orden' => $orden++,
+                    ]);
+                }
+            }
+        } catch (\Throwable $e) {
+            // \Log::error('Error actualizando comentario: '.$e->getMessage());
+            return back()->with('error', 'Ha ocurrido un error al actualizar tu comentario.');
+        }
+
+        // 7) Cargamos el trabajo y el profesional para el correo
+        $trabajo = $comentario->trabajo;
+
+        $presupuesto = null;
+        $profesional = null;
+
         if ($trabajo) {
             $trabajo->load('presupuesto.profesional', 'presupuesto.solicitud');
             $presupuesto = $trabajo->presupuesto;
             $profesional = $presupuesto?->profesional;
         }
 
-        // 6) Enviar mail a todos los admins avisando de comentario editado y pendiente
+        // 8) Notificar a admins de que hay comentario editado pendiente
         $admins = User::role('admin')->get();
 
-        // Enviar email a todos los admins avisando del nuevo comentario pendiente
         foreach ($admins as $admin) {
             if (! $admin->email) {
                 continue;

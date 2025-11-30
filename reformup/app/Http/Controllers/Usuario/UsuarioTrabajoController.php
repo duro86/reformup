@@ -8,9 +8,12 @@ use App\Models\Trabajo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\TrabajoCanceladoMailable;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
 
 class UsuarioTrabajoController extends Controller
 {
+    use FiltroRangoFechas;
+    
     /**
      * Listado de trabajos del usuario (cliente).
      */
@@ -23,51 +26,59 @@ class UsuarioTrabajoController extends Controller
                 ->with('error', 'Debes iniciar sesión para ver tus trabajos.');
         }
 
-        $estado = $request->query('estado');              // previsto, en_curso, finalizado, cancelado o null
-        $q      = trim((string) $request->query('q'));    // texto de búsqueda
+        $estado = $request->query('estado');            // previsto, en_curso, finalizado, cancelado o null
+        $q      = trim((string) $request->query('q'));  // texto de búsqueda
 
-        $trabajos = Trabajo::with([
+        // Base: trabajos del cliente autenticado
+        $query = Trabajo::with([
             'presupuesto.solicitud',
             'presupuesto.solicitud.cliente',
             'presupuesto.profesional',
             'comentarios',
         ])
-            // trabajos del cliente autenticado
             ->whereHas('presupuesto.solicitud', function ($sub) use ($usuario) {
                 $sub->where('cliente_id', $usuario->id);
-            })
-            // filtro por estado
-            ->when(! empty($estado), function ($query) use ($estado) {
-                $query->where('estado', $estado);
-            })
-            // filtro por buscador
-            ->when($q !== '', function ($query) use ($q) {
-                $like = '%' . $q . '%';
+            });
 
-                $query->where(function ($sub) use ($like) {
-                    // Por campos de la solicitud asociada
-                    $sub->whereHas('presupuesto.solicitud', function ($q2) use ($like) {
-                        $q2->where('titulo', 'like', $like)
-                            ->orWhere('ciudad', 'like', $like)
-                            ->orWhere('provincia', 'like', $like)
-                            ->orWhere('estado', 'like', $like);
+        // Filtro por estado
+        if (! empty($estado)) {
+            $query->where('estado', $estado);
+        }
+
+        // Filtro por buscador
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($like) {
+                // Por campos de la solicitud asociada
+                $sub->whereHas('presupuesto.solicitud', function ($q2) use ($like) {
+                    $q2->where('titulo', 'like', $like)
+                        ->orWhere('ciudad', 'like', $like)
+                        ->orWhere('provincia', 'like', $like)
+                        ->orWhere('estado', 'like', $like);
+                })
+                    // Por profesional (empresa / email)
+                    ->orWhereHas('presupuesto.profesional', function ($q3) use ($like) {
+                        $q3->where('empresa', 'like', $like)
+                            ->orWhere('email_empresa', 'like', $like);
                     })
-                        // Por profesional (empresa / email)
-                        ->orWhereHas('presupuesto.profesional', function ($q3) use ($like) {
-                            $q3->where('empresa', 'like', $like)
-                                ->orWhere('email_empresa', 'like', $like);
-                        })
-                        // Por estado del trabajo
-                        ->orWhere('estado', 'like', $like)
-                        // Por dirección de obra
-                        ->orWhere('dir_obra', 'like', $like)
-                        // Por total del presupuesto (convertido a texto)
-                        ->orWhereHas('presupuesto', function ($q4) use ($like) {
-                            $q4->whereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
-                        });
-                });
-            })
-            ->orderByDesc('created_at')
+                    // Por estado del trabajo
+                    ->orWhere('estado', 'like', $like)
+                    // Por dirección de obra
+                    ->orWhere('dir_obra', 'like', $like)
+                    // Por total del presupuesto (convertido a texto)
+                    ->orWhereHas('presupuesto', function ($q4) use ($like) {
+                        $q4->whereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
+                    });
+            });
+        }
+
+        // Filtro por rango de fechas del trabajo
+        // Filtrar por fecha_ini (inicio del trabajo)
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha_ini');
+
+        $trabajos = $query
+            ->orderByDesc('fecha_ini')   // o 'created_at' si has cambiado arriba
             ->paginate(5)
             ->withQueryString();
 

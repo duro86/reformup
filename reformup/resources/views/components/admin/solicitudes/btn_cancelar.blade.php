@@ -13,10 +13,10 @@
     @method('PATCH')
 
     <button type="button"
-            class="btn btn-outline-danger btn-sm  mt-2"
+            class="btn btn-outline-danger btn-sm mt-2"
             onclick="{{ $fnName }}()">
         <i class="bi bi-x-circle"></i>
-        Cancelar solicitud
+        Cancelar
     </button>
 </form>
 

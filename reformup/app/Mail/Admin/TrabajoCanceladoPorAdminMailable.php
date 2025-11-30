@@ -26,6 +26,7 @@ class TrabajoCanceladoPorAdminMailable extends Mailable
     public $oldFechaFin;
 
     public $paraProfesional;
+    public $esEliminacion;   // 👈 NUEVO
 
     public function __construct(
         Trabajo $trabajo,
@@ -36,7 +37,8 @@ class TrabajoCanceladoPorAdminMailable extends Mailable
         ?string $oldEstado = null,
         $oldFechaIni = null,
         $oldFechaFin = null,
-        bool $paraProfesional = false
+        bool $paraProfesional = false,
+        bool $esEliminacion = false    //  NUEVO PARÁMETRO, por defecto false
     ) {
         $this->trabajo         = $trabajo;
         $this->cliente         = $cliente;
@@ -49,13 +51,21 @@ class TrabajoCanceladoPorAdminMailable extends Mailable
         $this->oldFechaFin     = $oldFechaFin;
 
         $this->paraProfesional = $paraProfesional;
+        $this->esEliminacion   = $esEliminacion;
     }
 
     public function build()
     {
-        $subject = $this->paraProfesional
-            ? 'Un trabajo asignado a tu empresa ha sido cancelado'
-            : 'Tu trabajo en ReformUp ha sido cancelado';
+        
+        if ($this->esEliminacion) {
+            $subject = $this->paraProfesional
+                ? 'Un trabajo asignado a tu empresa ha sido eliminado por el administrador'
+                : 'Tu trabajo en ReformUp ha sido eliminado por el administrador';
+        } else {
+            $subject = $this->paraProfesional
+                ? 'Un trabajo asignado a tu empresa ha sido cancelado'
+                : 'Tu trabajo en ReformUp ha sido cancelado';
+        }
 
         return $this
             ->subject($subject)

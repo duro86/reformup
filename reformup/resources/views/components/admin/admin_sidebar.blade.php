@@ -9,7 +9,7 @@
     $isProfesional = $roles->contains('profesional');
 @endphp
 
-<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-light">
+<div id="sidebar" class="position-fixed d-none d-lg-flex flex-column p-3 bg-admin-bg">
     {{-- Botón para plegar/desplegar --}}
     <button id="sidebar-toggle" type="button" class="btn btn-sm btn-outline-secondary position-absolute top-0 end-0 m-1"
         aria-label="Contraer/expandir menú">
@@ -18,7 +18,7 @@
 
     {{-- Título Sidebar Roles --}}
     @if ($isAdmin)
-        <h4 class="m-2" style="color: #000000;">Administrador</h4>
+        <h4 class="mt-4 fs-3">Administrador</h4>
 
         <div class="ms-3 mt-1" style="color: #B5C99A;">
             @if ($isUsuario)
@@ -38,7 +38,7 @@
     @endif
 
     {{-- Elementos --}}
-    <nav class="mt-3 d-flex flex-column" style="flex-grow: 1;">
+    <nav class="mt-3 d-flex flex-column flex-grow-1">
         <ul class="nav flex-column admin-sidebar" style="flex-grow: 1;">
             <li class="nav-item">
                 {{-- Listado Usuarios --}}
@@ -109,7 +109,7 @@
             <li class="nav-item">
                 <form method="POST" action="{{ route('logout') }}" style="display: inline;">
                     @csrf
-                    <button type="submit" class="nav-link p-0 text-success" style="background:none; border:none;">
+                    <button type="submit" class="nav-link p-2">
                         <i class="bi bi-box-arrow-right"></i> Cerrar sesión
                     </button>
                 </form>

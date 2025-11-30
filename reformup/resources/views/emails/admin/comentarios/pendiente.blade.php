@@ -1,40 +1,41 @@
 @component('mail::message')
-    # Nuevo comentario pendiente de validación
+# Nuevo comentario pendiente de validación
 
-    Se ha recibido un nuevo comentario de un cliente y está pendiente de revisión.
+Se ha recibido un nuevo comentario de un cliente y está pendiente de revisión.
 
-    @component('mail::panel')
-        **Cliente:** {{ $cliente->nombre ?? $cliente->name }} {{ $cliente->apellidos ?? '' }}
+@component('mail::panel')
+**Cliente:** {{ $cliente->nombre ?? $cliente->name }} {{ $cliente->apellidos ?? '' }}
 
-        **Email:** {{ $cliente->email }}
+**Email:** {{ $cliente->email }}
 
-        **Trabajo:** #{{ $trabajo->id }}
-        @if ($trabajo->presupuesto?->solicitud?->titulo)
-            **Título solicitud:** {{ $trabajo->presupuesto->solicitud->titulo }}
-        @endif
+**Trabajo:** #{{ $trabajo->id }}
+@if ($trabajo->presupuesto?->solicitud?->titulo)
+**Título solicitud:** {{ $trabajo->presupuesto->solicitud->titulo }}
+@endif
 
-        **Puntuación:** {{ $comentario->puntuacion }} / 5
+**Puntuación:** {{ $comentario->puntuacion }} / 5
 
-        @if ($comentario->opinion)
-            **Opinión:**
-            {{ $comentario->opinion }}
-        @endif
-    @endcomponent
+@if ($comentario->opinion)
+**Opinión:**
 
-    @if ($profesional)
-        **Profesional asociado:**
+{{ strip_tags($comentario->opinion) }}
+@endif
+@endcomponent
 
-        - Empresa: {{ $profesional->empresa }}
-        - Email empresa: {{ $profesional->email_empresa }}
-        - Teléfono: {{ $profesional->telefono_empresa }}
-    @endif
+@if ($profesional)
+**Profesional asociado:**
 
-    Puedes revisar y publicar/rechazar este comentario desde el panel de administración.
+- Empresa: {{ $profesional->empresa }}
+- Email empresa: {{ $profesional->email_empresa }}
+- Teléfono: {{ $profesional->telefono_empresa }}
+@endif
 
-    @component('mail::button', ['url' => url('/admin/comentarios')])
-        Ir a comentarios
-    @endcomponent
+Puedes revisar y publicar/rechazar este comentario desde el panel de administración.
 
-    Gracias,
-    {{ config('app.name') }}
+@component('mail::button', ['url' => url('/admin/comentarios')])
+Ir a comentarios
+@endcomponent
+
+Gracias,  
+{{ config('app.name') }}
 @endcomponent

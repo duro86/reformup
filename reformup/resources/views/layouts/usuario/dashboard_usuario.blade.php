@@ -50,6 +50,7 @@
         </div>
     </div>
 @endif
+<x-alertas_sweet />
 
 {{-- Mostramos Script en la parte inferior derecha Registrar Empresa--}}
 <script>

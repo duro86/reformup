@@ -10,8 +10,10 @@ Hemos revisado tu comentario y actualmente **ya no está visible** en la platafo
 
 **Título:** {{ $solicitud->titulo }}
 
-@isset($solicitud->descripcion)
+@if (!empty($solicitud->descripcion))
 **Descripción:**
+
+{{ strip_tags($comentario->descripcion) }}
 
 > {{ $solicitud->descripcion }}
 @endisset
@@ -41,7 +43,7 @@ Esto **no afecta a tu cuenta**, ni a tu capacidad para seguir usando la platafor
 - **Puntuación enviada:** {{ $comentario->puntuacion }} / 5  
 - **Opinión:**
 @if ($comentario->opinion)
-> {{ $comentario->opinion }}
+{{ strip_tags($comentario->opinion) }}
 @else
 _Sin texto de opinión, solo puntuación._
 @endif

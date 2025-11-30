@@ -28,14 +28,7 @@ class AdminPresupuestoController extends Controller
         $estado = $request->query('estado');
         $q      = $request->query('q');
 
-        $estados = [
-            null         => 'Todos',
-            'enviado'    => 'Enviados',
-            'aceptado'   => 'Aceptados',
-            'rechazado'  => 'Rechazados',
-            'cancelado'  => 'Cancelados',
-            'caducado'   => 'Caducados',
-        ];
+        $estados = [null => 'Todas'] + Presupuesto::ESTADOS;
 
         // Empezamos la consulta base
         $query = Presupuesto::with(['solicitud.cliente', 'profesional']);
@@ -425,7 +418,8 @@ class AdminPresupuestoController extends Controller
                         $solicitud,
                         $cliente,
                         $perfilPro,
-                        false // esProfesional = false
+                        false, // esProfesional = false
+                        'cancelado'     // tipoAccion
                     )
                 );
             }
@@ -438,7 +432,8 @@ class AdminPresupuestoController extends Controller
                         $solicitud,
                         null,       // cliente null
                         $perfilPro,
-                        true        // esProfesional = true
+                        true,        // esProfesional = true
+                        'cancelado'     // tipoAccion
                     )
                 );
             }
@@ -548,12 +543,9 @@ class AdminPresupuestoController extends Controller
 
     /**
      * Eliminar presupuesto por parte del admin
-     * 
      */
-
     public function eliminarPresuAdmin(Presupuesto $presupuesto)
     {
-        // Cargamos relaciones necesarias (si no las tienes ya eager-loaded en el index)
         $presupuesto->load(['solicitud.cliente', 'trabajo', 'profesional']);
 
         $solicitud = $presupuesto->solicitud;
@@ -561,94 +553,83 @@ class AdminPresupuestoController extends Controller
         $cliente   = $solicitud?->cliente;
         $pro       = $presupuesto->profesional;
 
-        // CASO 1: ENVIADO → aquí NO se elimina, para eso ya tienes cancelar
-        if ($presupuesto->estado === 'enviado') {
-            return back()->with(
-                'error',
-                'Este presupuesto está ENVIADO. Primero debes cancelarlo con el botón de "Cancelar", no eliminarlo.'
-            );
-        }
-
-        // CASO 2: ACEPTADO → sólo si el trabajo NO ha empezado (fecha_ini = null)
-        if ($presupuesto->estado === 'aceptado') {
-
-            if (! $trabajo) {
-                return back()->with(
-                    'error',
-                    'Este presupuesto está aceptado pero no tiene trabajo asociado. Revisa los datos antes de eliminar.'
-                );
-            }
-
-            if (! is_null($trabajo->fecha_ini)) {
-                return back()->with(
-                    'error',
-                    'El trabajo asociado ya tiene fecha de inicio. No se puede cancelar/eliminar este presupuesto.'
-                );
-            }
-
-            // 1) Marcamos presupuesto como CANCELADO (no lo borramos físicamente)
-            $presupuesto->estado = 'cancelado';
-            $presupuesto->save();
-
-            // 2) Cancelamos el trabajo asociado
-            $trabajo->estado = 'cancelado';
-            $trabajo->save();
-
-            // 3) La solicitud vuelve a EN_REVISIÓN para poder enviar un nuevo presupuesto
-            if ($solicitud) {
-                $solicitud->estado = 'en_revision';
-                $solicitud->save();
-            }
-
-            // 4) Avisos por email (si quieres)
-            /*
         try {
-            if ($cliente && $cliente->email) {
-                Mail::to($cliente->email)->queue(new PresupuestoCanceladoPorAdmin($presupuesto, 'cliente'));
+
+            // 1) NO se elimina si aún está enviado
+            if ($presupuesto->estado === 'enviado') {
+                return back()->with('error', 'Este presupuesto sigue ENVIADO. Cancélalo primero.');
             }
 
-            if ($pro && $pro->email_empresa) {
-                Mail::to($pro->email_empresa)->queue(new PresupuestoCanceladoPorAdmin($presupuesto, 'profesional'));
+            // 2) Si hay trabajo y está cancelado: SE BORRA, tenga fecha o no
+            if ($trabajo && $trabajo->estado === 'cancelado') {
+
+                // Borramos comentarios antes
+                $trabajo->comentarios()->delete();
+
+                $trabajo->delete();
             }
-        } catch (\Throwable $e) {
-            // loguear si quieres, pero sin romper el flujo
-        }
-        */
 
-            return back()->with(
-                'success',
-                'Presupuesto aceptado cancelado correctamente. Se ha cancelado también el trabajo y la solicitud ha pasado a "en revisión".'
-            );
-        }
-
-        // CASO 3: RECHAZADO → se puede ELIMINAR y la solicitud queda CERRADA
-        if ($presupuesto->estado === 'rechazado') {
-
-            // Opcional: borrar el PDF del disco si existe
+            //  Borramos PDF del disco público si existe
             if ($presupuesto->docu_pdf) {
-                // Ajusta 'public' por 'private' si lo guardas en otro disk
-                Storage::disk('public')->delete($presupuesto->docu_pdf);
+
+                // Primero intentamos en "public"
+                if (Storage::disk('public')->exists($presupuesto->docu_pdf)) {
+                    Storage::disk('public')->delete($presupuesto->docu_pdf);
+                }
+
+                // Luego probamos en "private" por si ya lo moviste
+                if (Storage::disk('private')->exists($presupuesto->docu_pdf)) {
+                    Storage::disk('private')->delete($presupuesto->docu_pdf);
+                }
             }
 
-            // 1) Eliminamos el presupuesto
+            // 4) Borramos el presupuesto
             $presupuesto->delete();
 
-            // 2) La solicitud asociada queda CERRADA (si existe)
+            // 5) Opcional: dejar la solicitud abierta otra vez
             if ($solicitud) {
-                $solicitud->estado = 'cerrada';
+                $solicitud->estado = 'abierta';
                 $solicitud->save();
             }
 
+            // Emails de aviso
+            try {
+                if ($cliente && $cliente->email) {
+                    Mail::to($cliente->email)->send(
+                        new PresupuestoCanceladoPorAdminMailable(
+                            $presupuesto,
+                            $solicitud,
+                            $cliente,
+                            $pro,
+                            false,        // esProfesional
+                            'eliminado'   // tipoAccion
+                        )
+                    );
+                }
+
+                if ($pro && $pro->email_empresa) {
+                    Mail::to($pro->email_empresa)->send(
+                        new PresupuestoCanceladoPorAdminMailable(
+                            $presupuesto,
+                            $solicitud,
+                            null,
+                            $pro,
+                            true,         // esProfesional
+                            'eliminado'   // tipoAccion
+                        )
+                    );
+                }
+            } catch (\Throwable $e) {
+                return back()->with('error', 'Se ha eliminado el presupuesto correctamente pero no se ha enviado el email');
+            }
+
+            return back()->with('success', 'Presupuesto eliminado correctamente.Si tenía un trabajo asociado se ha borrado también. Se informa al cliente y profesional');
+        } catch (\Throwable $e) {
+
             return back()->with(
-                'success',
-                'Presupuesto rechazado eliminado correctamente. La solicitud asociada ha quedado cerrada.'
+                'error',
+                'Ha ocurrido un error al eliminar el presupuesto o el trabajo'
             );
         }
-
-        // Otros estados → de momento no permitimos esta operación
-        return back()->with(
-            'error',
-            'No se puede eliminar este presupuesto en su estado actual.'
-        );
     }
 }

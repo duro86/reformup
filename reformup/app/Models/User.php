@@ -119,6 +119,9 @@ class User extends Authenticatable
         return $this->hasMany(Comentario::class, 'cliente_id');
     }
 
+    /**
+     * Resetear contraseña
+     */
     public function sendPasswordResetNotification($token)
     {
         $this->notify(new ResetPasswordReformUp($token));

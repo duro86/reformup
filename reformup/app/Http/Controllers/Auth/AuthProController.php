@@ -169,11 +169,11 @@ class AuthProController extends Controller
             Storage::disk('public')->makeDirectory($dir);
             $request->file('avatar')->storeAs($dir, $file, 'public');
 
-            // 👉 En BD SOLO guardo la ruta relativa
+            //  En BD SOLO guardo la ruta relativa
             $avatarPath = $dir . '/' . $file; // p.ej. imagenes/avatarUser/20251124/avatar-pepe-xxxx.png
         } else {
             // Ruta por defecto, también relativa al disco public
-            $avatarPath = 'img/User/avatarUser/avatar_user_Hombre.webp';
+            $avatarPath = null;
         }
 
         // Insertamos en la tabla users y asignamos el rol de cliente
@@ -298,7 +298,7 @@ class AuthProController extends Controller
             $request->file('avatar_empresa')->storeAs($dir, $file, 'public');
 
             // >>> Guarda en BD SOLO la ruta relativa dentro del disco public:
-            $avatarPath = $dir . '/' . $file;                                     
+            $avatarPath = $dir . '/' . $file;
         } else {
             // ruta por defecto (también relativa al disco public)
             $avatarPath = null;
@@ -325,6 +325,7 @@ class AuthProController extends Controller
                     ->with('error', 'La sesión de registro ha expirado o no es válida. Vuelve a comenzar el registro.');
             }
 
+            // El usuareio que se acaba registrar
             $user = User::find($formUserId);
             if (! $user) {
                 session()->forget('pendiente_pro_user_id');
@@ -486,24 +487,27 @@ class AuthProController extends Controller
             abort(404);
         }
 
-        // Cargar trabajos FINALIZADOS de ese profesional + comentarios + solicitud
-        $perfil->load(['trabajos' => function ($q) {
-            $q->where('trabajos.estado', 'finalizado')   // << clave
-                ->with([
-                    'comentarios' => function ($q2) {
-                        $q2->orderByDesc('fecha'); // o created_at
-                    },
-                    'presupuesto.solicitud',
-                ])
-                ->orderByDesc('trabajos.fecha_fin');       // por claridad también
-        }]);
+        // Cargar trabajos FINALIZADOS de ese profesional + comentarios + solicitud + imágenes
+        $perfil->load([
+            'trabajos' => function ($q) {
+                $q->where('trabajos.estado', 'finalizado')
+                    ->with([
+                        'comentarios' => function ($q2) {
+                            $q2->with(['cliente', 'imagenes'])  //  añadimos cliente + imágenes
+                                ->orderByDesc('fecha');         // o created_at
+                        },
+                        'presupuesto.solicitud',
+                    ])
+                    ->orderByDesc('trabajos.fecha_fin');
+            },
+        ]);
 
-        // Si quieres tener una colección plana de comentarios (todas las reseñas)
+        // Colección plana de comentarios (si en algún momento la quieres usar)
         $comentarios = $perfil->trabajos
             ->flatMap(function ($trabajo) {
                 return $trabajo->comentarios;
             })
-            ->sortByDesc('fecha') // o created_at
+            ->sortByDesc('fecha')
             ->values();
 
         return view('layouts.profesionales.mostrar', [
@@ -512,6 +516,7 @@ class AuthProController extends Controller
             'comentarios' => $comentarios,
         ]);
     }
+
 
     /**
      * Funcion para ebviar al loguin al invitado que quiere contratar servicios

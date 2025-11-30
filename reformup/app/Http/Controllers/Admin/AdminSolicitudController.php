@@ -13,6 +13,10 @@ use App\Mail\Admin\SolicitudCanceladaProfesionalMailable;
 use App\Mail\Admin\SolicitudModificadaPorAdminMailable;
 use Illuminate\Support\Facades\Validator;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\DB;
+use App\Mail\Admin\SolicitudEliminadaPorAdminMailable;
+
 
 class AdminSolicitudController extends Controller
 {
@@ -22,12 +26,25 @@ class AdminSolicitudController extends Controller
      */
     public function index(Request $request)
     {
-        $q = $request->input('q');
+        $q      = trim((string) $request->query('q'));
+        $estado = $request->query('estado'); // abierta / en_revision / cerrada / cancelada / null
+
+        // Usamos la constante del modelo como base
+        // Añadimos opción "Todas"
+        $estados = [null => 'Todas'] + Solicitud::ESTADOS;
 
         $query = Solicitud::with(['cliente', 'profesional']);
 
-        // --- Filtro por texto (tu lógica actual) ---
-        if ($q) {
+        // --- Filtro por estado ---
+        if ($estado !== null && $estado !== '') {
+            // Solo aplicamos si es un estado válido definido en el modelo
+            if (array_key_exists($estado, Solicitud::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
+        }
+
+        // --- Filtro por texto ---
+        if ($q !== '') {
             $qLike = '%' . $q . '%';
 
             $query->where(function ($sub) use ($qLike) {
@@ -47,18 +64,21 @@ class AdminSolicitudController extends Controller
             });
         }
 
-        // --- Filtro por rango de fechas (reutilizable) ---
-        // Aquí usamos la columna fecha de la solicitud
+        // --- Filtro por rango de fechas (columna fecha de la solicitud) ---
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
-        
 
         // --- Orden y paginación ---
         $solicitudes = $query
             ->orderByDesc('fecha')
             ->paginate(6)
-            ->withQueryString(); // conserva ?q, ?fecha_desde, ?fecha_hasta
+            ->withQueryString(); // conserva q, estado, fecha_desde, fecha_hasta
 
-        return view('layouts.admin.solicitudes.index', compact('solicitudes', 'q'));
+        return view('layouts.admin.solicitudes.index', [
+            'solicitudes' => $solicitudes,
+            'q'           => $q,
+            'estado'      => $estado,
+            'estados'     => $estados,
+        ]);
     }
 
 
@@ -414,8 +434,8 @@ class AdminSolicitudController extends Controller
                 'pro_id'          => ['required', 'integer', 'exists:perfiles_profesionales,id'],
                 'titulo'          => ['required', 'string', 'max:160'],
                 'descripcion'     => ['required', 'string'],
-                'ciudad'          => ['required', 'string', 'max:120'],
-                'provincia'       => ['nullable', 'string', 'max:120'],
+                'ciudad'          => ['nullable', 'string', 'max:120'],
+                'provincia'       => ['required', 'string', 'max:120'],
                 'dir_cliente'     => ['nullable', 'string', 'max:255'],
                 'presupuesto_max' => ['nullable', 'numeric', 'min:0'],
             ],
@@ -434,8 +454,9 @@ class AdminSolicitudController extends Controller
                 'titulo.required'      => 'El título es obligatorio.',
                 'titulo.max'           => 'El título no puede tener más de 160 caracteres.',
                 'descripcion.required' => 'La descripción de la solicitud es obligatoria.',
-                'ciudad.required'      => 'La ciudad es obligatoria.',
+                'provincia.required' => 'La provincia de la solicitud es obligatoria.',
                 'ciudad.max'           => 'La ciudad no puede tener más de 120 caracteres.',
+                'provincia.max'           => 'La provincia no puede tener más de 120 caracteres.',
                 'provincia.max'        => 'La provincia no puede tener más de 120 caracteres.',
                 'dir_cliente.max'      => 'La dirección no puede tener más de 255 caracteres.',
                 'presupuesto_max.numeric' => 'El presupuesto máximo debe ser un número.',
@@ -479,7 +500,7 @@ class AdminSolicitudController extends Controller
             }
         });
 
-        // 👇 Aquí es donde metemos el back() + SweetAlert
+        //  Aquí es donde metemos el back() + SweetAlert
         if ($validator->fails()) {
             return back()
                 ->withInput()
@@ -508,5 +529,137 @@ class AdminSolicitudController extends Controller
         return redirect()
             ->route('admin.solicitudes')
             ->with('success', 'Solicitud creada correctamente.');
+    }
+
+    public function eliminarSolicitudAdmin(Solicitud $solicitud)
+    {
+        // 1) Cargamos todas las relaciones necesarias
+        $solicitud->load([
+            'cliente',
+            'profesional',                // Perfil_Profesional asociado
+            'presupuestos.trabajo.comentarios',
+        ]);
+
+        $cliente      = $solicitud->cliente;
+        $profesional  = $solicitud->profesional;
+
+        // En tu lógica actual solo hay un presupuesto por solicitud,
+        // Dejamos que pueda ser escalable mas adelante
+        // así que usamos el primero (o null si no hay)
+        $presupuesto  = $solicitud->presupuestos->first();
+        $trabajo      = $presupuesto?->trabajo;
+
+        // --------- REGLAS DE BLOQUEO SEGÚN ESTADO DEL TRABAJO ---------
+
+        if ($trabajo && $trabajo->estado === 'en_curso') {
+            return back()->with(
+                'error',
+                'No puedes eliminar esta solicitud porque el trabajo asociado está EN CURSO. Finaliza o cancela el trabajo antes de eliminar todo.'
+            );
+        }
+
+        // Aquí permitimos eliminar si:
+        // - no hay trabajo
+        // - o el trabajo está previsto, cancelado o finalizado
+
+        // --------- FLAGS PARA EL MAIL (ANTES DE BORRAR NADA) ---------
+
+        $estadoSolicitudOriginal = $solicitud->estado;
+        $estadoPresupuesto       = $presupuesto?->estado;
+        $estadoTrabajo           = $trabajo?->estado;
+        $teniaComentarios        = $trabajo ? $trabajo->comentarios()->exists() : false;
+        $teniaPresupuesto        = (bool) $presupuesto;
+        $teniaTrabajo            = (bool) $trabajo;
+
+        try {
+            // --------- TRANSACCIÓN DE BORRADO ---------
+            DB::transaction(function () use ($solicitud, $presupuesto, $trabajo) {
+
+                // 1) Si hay trabajo, borramos comentarios y trabajo
+                if ($trabajo) {
+                    $trabajo->comentarios()->delete();
+                    $trabajo->delete();
+                }
+
+                // 2) Si hay presupuesto, borramos PDF y luego el presupuesto
+                if ($presupuesto) {
+                    if ($presupuesto->docu_pdf) {
+                        // Intentamos en "public"
+                        if (Storage::disk('public')->exists($presupuesto->docu_pdf)) {
+                            Storage::disk('public')->delete($presupuesto->docu_pdf);
+                        }
+                        // Intentamos en "private"
+                        if (Storage::disk('private')->exists($presupuesto->docu_pdf)) {
+                            Storage::disk('private')->delete($presupuesto->docu_pdf);
+                        }
+                    }
+
+                    $presupuesto->delete();
+                }
+
+                // 3) Finalmente borramos la solicitud
+                $solicitud->delete();
+            });
+
+            // --------- EMAILS DE AVISO (NO HACEN ROLLBACK SI FALLAN) ---------
+
+            $infoAccion = [
+                'estadoSolicitudOriginal' => $estadoSolicitudOriginal,
+                'estadoPresupuesto'       => $estadoPresupuesto,
+                'estadoTrabajo'           => $estadoTrabajo,
+                'teniaPresupuesto'        => $teniaPresupuesto,
+                'teniaTrabajo'            => $teniaTrabajo,
+                'teniaComentarios'        => $teniaComentarios,
+            ];
+
+            // Mail al cliente
+            if ($cliente && $cliente->email) {
+                try {
+                    Mail::to($cliente->email)->send(
+                        new SolicitudEliminadaPorAdminMailable(
+                            $solicitud,     // aunque esté borrada, el modelo mantiene los atributos
+                            $cliente,
+                            $profesional,
+                            $infoAccion,
+                            false           // esProfesional = false
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    dd('Error enviando mail a profesional', $e->getMessage());
+                }
+            }
+
+            // Mail al profesional
+            if ($profesional && $profesional->email_empresa) {
+                try {
+                    Mail::to($profesional->email_empresa)->send(
+                        new SolicitudEliminadaPorAdminMailable(
+                            $solicitud,
+                            $cliente,
+                            $profesional,
+                            $infoAccion,
+                            true            // esProfesional = true
+                        )
+                    );
+                } catch (\Throwable $e) {
+                    // El borrado está hecho pero algún mail ha fallado
+                    return back()->with(
+                        'error',
+                        'La solicitud y los registros asociados se han eliminado correctamente, pero no se ha podido notificar al profesional por correo.'
+                    );
+                }
+            }
+
+            return back()->with(
+                'success',
+                'Solicitud eliminada correctamente. Se han eliminado también el presupuesto, el trabajo y los comentarios asociados según su estado.'
+            );
+        } catch (\Throwable $e) {
+
+            return back()->with(
+                'error',
+                'Ha ocurrido un error al eliminar la solicitud y sus datos asociados.'
+            );
+        }
     }
 }

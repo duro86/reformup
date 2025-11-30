@@ -51,6 +51,9 @@
                         </div>
                     </h1>
 
+                    {{-- Mensajes flash --}}
+                    <x-alertas.alertasFlash />
+
                     {{-- Buscador combinado: texto + fechas --}}
                     <form method="GET" action="{{ route('admin.profesionales') }}" class="row g-2 mb-3">
                         {{-- Búsqueda por texto --}}
@@ -240,8 +243,8 @@
                                 $user = $perfil->user;
                             @endphp
 
-                            <div class="card mb-3 shadow-sm">
-                                <div class="card-body bg-light">
+                            <div class="card mb-3 shadow-sm bg-light">
+                                <div class="card-body ">
 
                                     {{-- Cabecera: avatar + nombre --}}
                                     <div class="d-flex align-items-center gap-2 mb-2">

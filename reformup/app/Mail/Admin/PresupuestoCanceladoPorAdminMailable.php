@@ -19,26 +19,35 @@ class PresupuestoCanceladoPorAdminMailable extends Mailable
     public $cliente;
     public $perfilPro;
     public $esProfesional;
+    public $tipoAccion; //  NUEVO: 'cancelado' | 'eliminado'
 
     public function __construct(
         Presupuesto $presupuesto,
-        Solicitud $solicitud,
+        ?Solicitud $solicitud = null,       //  mejor nullable
         ?User $cliente = null,
         ?Perfil_Profesional $perfilPro = null,
-        bool $esProfesional = false
+        bool $esProfesional = false,
+        string $tipoAccion = 'cancelado'    //  por defecto
     ) {
-        $this->presupuesto  = $presupuesto;
-        $this->solicitud    = $solicitud;
-        $this->cliente      = $cliente;
-        $this->perfilPro    = $perfilPro;
+        $this->presupuesto   = $presupuesto;
+        $this->solicitud     = $solicitud;
+        $this->cliente       = $cliente;
+        $this->perfilPro     = $perfilPro;
         $this->esProfesional = $esProfesional;
+        $this->tipoAccion    = $tipoAccion;
     }
 
     public function build()
     {
-        $subject = $this->esProfesional
-            ? 'Se ha cancelado un presupuesto de una solicitud en ReformUp'
-            : 'Tu presupuesto ha sido cancelado por el equipo de ReformUp';
+        if ($this->tipoAccion === 'eliminado') {
+            $subject = $this->esProfesional
+                ? 'Se ha eliminado un presupuesto de una solicitud en ReformUp'
+                : 'Tu presupuesto ha sido eliminado por el equipo de ReformUp';
+        } else {
+            $subject = $this->esProfesional
+                ? 'Se ha cancelado un presupuesto de una solicitud en ReformUp'
+                : 'Tu presupuesto ha sido cancelado por el equipo de ReformUp';
+        }
 
         return $this
             ->subject($subject)

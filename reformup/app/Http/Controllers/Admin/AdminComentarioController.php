@@ -12,9 +12,14 @@ use App\Mail\Admin\ComentarioPublicadoMailable;
 use App\Mail\Admin\ComentarioRechazadoMailable;
 use App\Mail\Admin\ComentarioOcultadoMailable;
 use App\Mail\Admin\ComentarioModificadoPorAdminMailable;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Mews\Purifier\Facades\Purifier;
+
+
 
 class AdminComentarioController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de TODOS los comentarios (sin filtro)
      */
@@ -48,7 +53,7 @@ class AdminComentarioController extends Controller
             $query->where('estado', $estado);
         }
 
-        // Buscador
+        // Buscador texto
         if ($q) {
             $like = '%' . $q . '%';
 
@@ -80,10 +85,15 @@ class AdminComentarioController extends Controller
             });
         }
 
+        // Filtro por rango de fechas
+        // Tienes columna 'fecha' y también 'created_at' en la vista.
+        // Lo más lógico es filtrar por 'fecha' (fecha del comentario).
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+
         $comentarios = $query
-            ->orderByDesc('fecha')
+            ->orderByDesc('fecha')   // o 'created_at' si lo prefieres
             ->paginate(5)
-            ->withQueryString(); // mantiene estado + q en la paginación
+            ->withQueryString();     // mantiene q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.comentarios.index', compact(
             'comentarios',
@@ -292,9 +302,6 @@ class AdminComentarioController extends Controller
     }
 
     /**
-     * Guardar edición de comentario.
-     */
-    /**
      * Actualizar comentario como ADMIN.
      * No cambia estado ni visible: solo contenido y puntuación.
      * Envía email informando al usuario.
@@ -307,19 +314,29 @@ class AdminComentarioController extends Controller
             'opinion'    => 'nullable|string|max:2000',
         ]);
 
-        // Guardamos datos antiguos por si quieres usarlos en el mail
+        // Guardamos datos antiguos por si los usamos en el mail
         $oldOpinion    = $comentario->opinion;
         $oldPuntuacion = $comentario->puntuacion;
 
+        // Limpiar opinión con Purifier (perfil "solicitud" como en el resto)
+        $opinion = $validated['opinion'];
+
+        $opinion_limpia = $opinion
+            ? Purifier::clean($opinion, 'solicitud')
+            : null;
+
         // Actualizar comentario
         $comentario->puntuacion = $validated['puntuacion'];
-        $comentario->opinion    = $validated['opinion'] ?? null;
+        $comentario->opinion    = $opinion_limpia;
         // mantenemos estado y visible como están
         $comentario->fecha      = now(); // fecha de última revisión
         $comentario->save();
 
         // Cargar relaciones para el email
-        $comentario->load('trabajo.presupuesto.solicitud.cliente', 'trabajo.presupuesto.profesional');
+        $comentario->load(
+            'trabajo.presupuesto.solicitud.cliente',
+            'trabajo.presupuesto.profesional'
+        );
 
         $trabajo   = $comentario->trabajo;
         $presu     = $trabajo?->presupuesto;
@@ -329,7 +346,6 @@ class AdminComentarioController extends Controller
 
         // Enviar mail al usuario avisando de la modificación
         if ($cliente && $cliente->email) {
-
             try {
                 Mail::to($cliente->email)->send(
                     new ComentarioModificadoPorAdminMailable(
@@ -342,7 +358,6 @@ class AdminComentarioController extends Controller
                     )
                 );
             } catch (\Throwable $e) {
-                // El comentario ya está guardado; avisamos del fallo de correo
                 return redirect()
                     ->route('admin.comentarios')
                     ->with('error', 'El comentario se ha actualizado, pero no se ha podido enviar el correo al usuario.');
@@ -368,7 +383,7 @@ class AdminComentarioController extends Controller
         $media = Comentario::where('estado', 'publicado')
             ->where('visible', true)
             ->whereHas('trabajo.presupuesto', function ($q) use ($perfilPro) {
-                // 👈 IMPORTANTE: aquí la FK real de presupuesto -> profesional
+                // IMPORTANTE: aquí la FK real de presupuesto -> profesional
                 $q->where('pro_id', $perfilPro->id);
             })
             ->avg('puntuacion'); // Media aritmetica de los comentarios del profesional

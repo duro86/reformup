@@ -6,6 +6,8 @@
 
     <x-navbar />
     <x-admin.admin_sidebar />
+    {{-- Bienvenida --}}
+    <x-admin.admin_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
 
@@ -263,8 +265,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
 
                                 {{-- Título + refs --}}
                                 <div class="mb-2">

@@ -1,13 +1,25 @@
 @component('mail::message')
 
 @if($paraProfesional)
+    @if($esEliminacion)
 # Hola {{ $perfilPro->empresa ?? 'profesional' }}
 
-Te informamos de que un trabajo asignado a tu empresa en **ReformUp** ha sido cancelado por el equipo de administración.
+Te informamos de que un trabajo asignado a tu empresa en **ReformUp** ha sido **eliminado** por el equipo de administración.
+    @else
+# Hola {{ $perfilPro->empresa ?? 'profesional' }}
+
+Te informamos de que un trabajo asignado a tu empresa en **ReformUp** ha sido **cancelado** por el equipo de administración.
+    @endif
 @else
+    @if($esEliminacion)
 # Hola {{ $cliente->nombre ?? $cliente->name ?? 'cliente' }}
 
-Te informamos de que tu trabajo en **ReformUp** ha sido cancelado por el equipo de administración.
+Te informamos de que tu trabajo en **ReformUp** ha sido **eliminado** por el equipo de administración.
+    @else
+# Hola {{ $cliente->nombre ?? $cliente->name ?? 'cliente' }}
+
+Te informamos de que tu trabajo en **ReformUp** ha sido **cancelado** por el equipo de administración.
+    @endif
 @endif
 
 @component('mail::panel')
@@ -31,30 +43,34 @@ Te informamos de que tu trabajo en **ReformUp** ha sido cancelado por el equipo 
 
 - Estado actual: **{{ $estadoActual }}**
 
+@if($esEliminacion)
+- Este trabajo ha sido eliminado de nuestro sistema. Los datos que ves aquí son únicamente a efectos informativos.
+@endif
+
 @if($trabajo->fecha_ini || $trabajo->fecha_fin)
 ---
 **Fechas actuales:**
 
-@if($trabajo->fecha_ini)
+    @if($trabajo->fecha_ini)
 - Inicio: {{ $trabajo->fecha_ini->format('d/m/Y H:i') }}
-@endif
+    @endif
 
-@if($trabajo->fecha_fin)
+    @if($trabajo->fecha_fin)
 - Fin: {{ $trabajo->fecha_fin->format('d/m/Y H:i') }}
-@endif
+    @endif
 @endif
 
 @if($fechaIniOld || $fechaFinOld)
 ---
 **Fechas anteriores (a efectos informativos):**
 
-@if($fechaIniOld)
+    @if($fechaIniOld)
 - Inicio anterior: {{ $fechaIniOld }}
-@endif
+    @endif
 
-@if($fechaFinOld)
+    @if($fechaFinOld)
 - Fin anterior: {{ $fechaFinOld }}
-@endif
+    @endif
 @endif
 
 @if($trabajo->dir_obra)
@@ -66,9 +82,9 @@ Te informamos de que tu trabajo en **ReformUp** ha sido cancelado por el equipo 
 
 @isset($presupuesto)
 **Presupuesto asociado:** #{{ $presupuesto->id }}
-@if(!is_null($presupuesto->total))
+    @if(!is_null($presupuesto->total))
  — Importe: {{ number_format($presupuesto->total, 2, ',', '.') }} €
-@endif  
+    @endif  
 @endisset
 
 @isset($cliente)
@@ -77,15 +93,23 @@ Te informamos de que tu trabajo en **ReformUp** ha sido cancelado por el equipo 
 
 @isset($perfilPro)
 **Profesional:** {{ $perfilPro->empresa }}
-@if($perfilPro->email_empresa)
+    @if($perfilPro->email_empresa)
  — {{ $perfilPro->email_empresa }}
-@endif
+    @endif
 @endisset
 
+@if($esEliminacion)
 @if($paraProfesional)
-Si consideras que se trata de un error o necesitas más información, puedes responder a este correo.
+Si consideras que esta eliminación no es correcta o necesitas más información, puedes responder a este correo.
+@else
+Si consideras que esta eliminación no es correcta o deseas más detalles, puedes responder a este correo y lo revisaremos contigo.
+@endif
+@else
+@if($paraProfesional)
+Si consideras que esta cancelación no es correcta o necesitas más información, puedes responder a este correo.
 @else
 Si crees que esta cancelación no es correcta o quieres más detalles, puedes responder a este correo y lo revisaremos contigo.
+@endif
 @endif
 
 Saludos,  

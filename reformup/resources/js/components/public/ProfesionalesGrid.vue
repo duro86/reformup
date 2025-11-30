@@ -104,10 +104,30 @@
                     </div>
                   </div>
 
-                   <!--<p class="mb-1" v-if="pro.puntuacion_media != null">
+                  <p class="mb-1" v-if="pro.puntuacion_media != null">
                     <strong>Valoración:</strong>
-                    {{ pro.puntuacion_media.toFixed(1) }} / 5
-                  </p>-->
+
+                    <span v-for="i in 5" :key="i">
+                      <i
+                        v-if="i <= Math.floor(Number(pro.puntuacion_media))"
+                        class="bi bi-star-fill text-warning"
+                      ></i>
+                      <i
+                        v-else-if="i - Number(pro.puntuacion_media) < 1"
+                        class="bi bi-star-half text-warning"
+                      ></i>
+                      <i
+                        v-else
+                        class="bi bi-star text-muted"
+                      ></i>
+                    </span>
+
+                    <span class="ms-1">
+                      {{ Number(pro.puntuacion_media).toFixed(1) }} / 5
+                    </span>
+                  </p>
+
+
 
                   <p class="mb-1" v-if="pro.telefono_empresa">
                     <i class="bi bi-telephone me-1"></i>

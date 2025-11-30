@@ -13,7 +13,7 @@ Tu comentario ha sido **publicado** y ya es visible en la plataforma.
 @isset($solicitud->descripcion)
 **Descripción:**
 
-> {{ $solicitud->descripcion }}
+{{ strip_tags($comentario->descripcion) }}
 @endisset
 @endisset
 
@@ -28,7 +28,7 @@ Tu comentario ha sido **publicado** y ya es visible en la plataforma.
 - **Puntuación:** {{ $comentario->puntuacion }} / 5  
 - **Opinión:**
 @if ($comentario->opinion)
-> {{ $comentario->opinion }}
+{{ strip_tags($comentario->opinion) }}
 @else
 _Sin texto de opinión, solo puntuación._
 @endif

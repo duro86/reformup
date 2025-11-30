@@ -20,7 +20,7 @@ manteniendo el sentido general de tu opinión.
 @isset($comentario->opinion)
 **Texto actualizado del comentario:**
 
-"{{ $comentario->opinion }}"
+{{ strip_tags($comentario->opinion) }}
 @endisset
 @endcomponent
 

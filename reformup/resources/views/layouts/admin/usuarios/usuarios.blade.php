@@ -28,6 +28,7 @@
                         class="text-center d-flex flex-column flex-md-row align-items-center justify-content-center gap-3 mb-4">
                         <span>Listado de Usuarios</span>
 
+                        {{-- Enlaces utiles --}}
                         <div class="d-flex flex-wrap gap-2 justify-content-center">
                             <a href="{{ route('admin.form.registrar.cliente') }}" class="btn btn-sm"
                                 style="background-color: #718355; color: white;">
@@ -171,8 +172,8 @@
                     {{-- ====================== --}}
                     <div class="d-block d-lg-none ">
                         @foreach ($usuarios as $usuario)
-                            <div class="card mb-3 shadow-sm">
-                                <div class="card-body bg-light">
+                            <div class="card mb-3 shadow-sm bg-light">
+                                <div class="card-body ">
 
                                     {{-- Cabecera --}}
                                     <div class="d-flex align-items-center gap-2 mb-2">

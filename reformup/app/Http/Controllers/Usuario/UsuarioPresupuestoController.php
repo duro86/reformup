@@ -8,9 +8,12 @@ use App\Models\Trabajo;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class UsuarioPresupuestoController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de presupuestos del cliente logueado.
      */
@@ -23,8 +26,8 @@ class UsuarioPresupuestoController extends Controller
                 ->with('error', 'Debes iniciar sesión para ver tus presupuestos.');
         }
 
-        $estado = $request->query('estado');             // enviado, aceptado, rechazado, caducado, null
-        $q      = trim((string) $request->query('q'));   // texto buscador
+        $estado = $request->query('estado');           // enviado, aceptado, rechazado, caducado, null
+        $q      = trim((string) $request->query('q')); // texto buscador
 
         $query = Presupuesto::with(['solicitud.profesional'])
             ->whereHas('solicitud', function ($sub) use ($user) {
@@ -59,6 +62,9 @@ class UsuarioPresupuestoController extends Controller
             });
         }
 
+        // Filtro por rango de fechas 
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+
         $presupuestos = $query
             ->orderByDesc('fecha')
             ->paginate(5)
@@ -71,7 +77,6 @@ class UsuarioPresupuestoController extends Controller
             'estados'      => Presupuesto::ESTADOS,
         ]);
     }
-
 
     /**
      * Aceptar un presupuesto (cliente).

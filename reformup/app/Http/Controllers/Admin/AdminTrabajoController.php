@@ -11,6 +11,7 @@ use App\Mail\Admin\TrabajoCanceladoPorAdminMailable;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
 
 
+
 class AdminTrabajoController extends Controller
 {
     /**
@@ -77,7 +78,7 @@ class AdminTrabajoController extends Controller
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha_ini');
 
         $trabajos = $query
-            ->orderByDesc('fecha_ini')  
+            ->orderByDesc('fecha_ini')
             ->paginate(6)
             ->withQueryString();         // mantiene q, estado, fecha_desde, fecha_hasta
 
@@ -408,5 +409,100 @@ class AdminTrabajoController extends Controller
         }
 
         return back()->with('success', 'Trabajo cancelado correctamente. Cliente y profesional han sido notificados.');
+    }
+
+    /**
+     * Eliminar trabajo (ADMIN)
+     */
+    public function eliminarTrabajoAdmin(Trabajo $trabajo)
+    {
+        // Cargamos relaciones
+        $trabajo->load([
+            'presupuesto.solicitud.cliente',
+            'presupuesto.profesional',
+        ]);
+
+        // Guardamos los datots
+        $presupuesto = $trabajo->presupuesto;
+        $solicitud   = $presupuesto?->solicitud;
+        $cliente     = $solicitud?->cliente;
+        $perfilPro   = $presupuesto?->profesional;
+
+        $oldEstado   = $trabajo->estado;
+        $oldFechaIni = $trabajo->fecha_ini;
+        $oldFechaFin = $trabajo->fecha_fin;
+
+        //Cambiamos los estados del presupuesto y de la solicitud
+        try {
+            if ($presupuesto) {
+                $presupuesto->estado = 'rechazado';
+                $presupuesto->save();
+            }
+
+            if ($solicitud) {
+                $solicitud->estado = 'cancelada';
+                $solicitud->save();
+            }
+
+            // Marcamos el trabajo como cancelado para el estado actual del email
+            $trabajo->estado = 'cancelado';
+
+            // Enviamos email a cada 1
+            try {
+                // Email al cliente
+                if ($cliente && $cliente->email) {
+                    Mail::to($cliente->email)->send(
+                        new TrabajoCanceladoPorAdminMailable(
+                            $trabajo,
+                            $cliente,
+                            $perfilPro,
+                            $presupuesto,
+                            $solicitud,
+                            $oldEstado,
+                            $oldFechaIni,
+                            $oldFechaFin,
+                            false, // paraProfesional
+                            true   // esEliminacion condicin
+                        )
+                    );
+                }
+
+                // Email al profesional
+                if ($perfilPro && $perfilPro->email_empresa) {
+                    Mail::to($perfilPro->email_empresa)->send(
+                        new TrabajoCanceladoPorAdminMailable(
+                            $trabajo,
+                            $cliente,
+                            $perfilPro,
+                            $presupuesto,
+                            $solicitud,
+                            $oldEstado,
+                            $oldFechaIni,
+                            $oldFechaFin,
+                            true,  // paraProfesional
+                            true   // esEliminacion condicion
+                        )
+                    );
+                }
+            } catch (\Throwable $e) {
+                return back()->with(
+                    'error',
+                    'El trabajo se ha eliminado, pero ha fallado el envío de los correos.'
+                );
+            }
+
+            // Finalmente borramos el trabajo
+            $trabajo->delete();
+
+            return back()->with(
+                'success',
+                'Trabajo eliminado correctamente. El presupuesto se ha marcado como rechazado y la solicitud como cancelada.'
+            );
+        } catch (\Throwable $e) {
+            return back()->with(
+                'error',
+                'Error al eliminar el trabajo. Revisa los datos o consulta el log.'
+            );
+        }
     }
 }

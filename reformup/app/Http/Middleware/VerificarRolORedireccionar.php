@@ -5,8 +5,6 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth; // 
-use Spatie\Permission\Models\Role;
-use Spatie\Permission\Traits\HasRoles;   // <-- importa el trait
 
 class VerificarRolORedireccionar
 {

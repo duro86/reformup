@@ -73,81 +73,80 @@
     </section>
 
     {{-- Profesionales --}}
-    <section class="py-5 bg-light" id="profesionales-destacados">
-        <div class="container">
-            <h2 class="fw-bold mb-3 text-center">Profesionales destacados</h2>
-            <p class="text-center text-muted mb-5">Profesionales mejor valorados del mes <i class="bi bi-trophy-fill"></i>
-            </p>
+<section class="py-5 bg-light" id="profesionales-destacados">
+    <div class="container">
+        <h2 class="fw-bold mb-3 text-center">Profesionales destacados</h2>
+        <p class="text-center text-muted mb-5">
+            Profesionales mejor valorados del mes <i class="bi bi-trophy-fill"></i>
+        </p>
 
-            {{-- Card Profesionales mejor valorados --}}
-            <div class="row g-4">
-                @forelse ($profesionalesDestacados as $perfil)
-                    <div class="col-12 col-sm-6 col-lg-3">
-                        <div class="card h-100 shadow-sm card-pro">
-                            <div class="d-flex align-items-center p-3">
-                                @if ($perfil->avatar)
-                                    <img class="rounded-circle me-3" src="{{ Storage::url($perfil->avatar) }}"
-                                        alt="Foto {{ $perfil->empresa }}" width="60" height="60"
-                                        style="object-fit:cover;">
-                                @else
-                                    <i class="bi bi-building me-3" style="font-size:2.5rem;"></i>
-                                @endif
+        {{-- Card Profesionales mejor valorados --}}
+        <div class="row g-4 justify-content-center">
+            @forelse ($profesionalesDestacados as $perfil)
+                <div class="col-12 col-sm-6 col-lg-3">
+                    <div class="card h-100 shadow-sm card-pro">
+                        <div class="d-flex align-items-center p-3">
+                            @if ($perfil->avatar)
+                                <img class="rounded-circle me-3"
+                                     src="{{ Storage::url($perfil->avatar) }}"
+                                     alt="Foto {{ $perfil->empresa }}"
+                                     width="60" height="60"
+                                     style="object-fit:cover;">
+                            @else
+                                <i class="bi bi-building me-3" style="font-size:2.5rem;"></i>
+                            @endif
 
-                                <div class="flex-grow-1" style="min-width:0;">
-                                    <h5 class="mb-0 text-truncate d-block">
-                                        {{ $perfil->empresa }}
-                                    </h5>
-                                    <small class="text-muted d-block text-truncate">
-                                        {{ $perfil->ciudad }}
-                                        @if ($perfil->provincia)
-                                            - {{ $perfil->provincia }}
-                                        @endif
+                            <div class="flex-grow-1" style="min-width:0;">
+                                <h5 class="mb-0 text-truncate d-block">
+                                    {{ $perfil->empresa }}
+                                </h5>
+                                <small class="text-muted d-block text-truncate">
+                                    {{ $perfil->ciudad }}
+                                    @if ($perfil->provincia)
+                                        - {{ $perfil->provincia }}
+                                    @endif
+                                </small>
+                            </div>
+
+                            <i class="bi bi-star-fill text-warning ms-2"></i>
+                        </div>
+
+                        <div class="card-body">
+                            @if (!is_null($perfil->puntuacion_media))
+                                <div class="d-flex align-items-center mb-2">
+                                    <div class="text-warning me-2">⭐⭐⭐⭐⭐</div>
+                                    <small class="text-muted">
+                                        ({{ number_format($perfil->puntuacion_media, 1) }})
                                     </small>
                                 </div>
+                            @endif
 
+                            @if ($perfil->relationLoaded('oficios') && $perfil->oficios->isNotEmpty())
+                                <div class="mb-3 d-flex flex-wrap gap-2">
+                                    @foreach ($perfil->oficios as $oficio)
+                                        <span class="badge bg-light text-dark rounded-pill px-3 py-1">
+                                            {{ $oficio->nombre }}
+                                        </span>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
 
-                                <i class="bi bi-star-fill text-warning ms-2"></i>
-                            </div>
-
-                            <div class="card-body">
-                                {{-- Rating --}}
-                                @if (!is_null($perfil->puntuacion_media))
-                                    <div class="d-flex align-items-center mb-2">
-                                        <div class="text-warning me-2">⭐⭐⭐⭐⭐</div>
-                                        <small class="text-muted">
-                                            ({{ number_format($perfil->puntuacion_media, 1) }})
-                                            {{-- si tienes conteo de reseñas lo añades aquí --}}
-                                        </small>
-                                    </div>
-                                @endif
-
-                                {{-- Oficios como badges --}}
-                                @if ($perfil->relationLoaded('oficios') && $perfil->oficios->isNotEmpty())
-                                    <div class="mb-3 d-flex flex-wrap gap-2">
-                                        @foreach ($perfil->oficios as $oficio)
-                                            <span class="badge bg-light text-dark rounded-pill px-3 py-1">
-                                                {{ $oficio->nombre }}
-                                            </span>
-                                        @endforeach
-                                    </div>
-                                @endif
-                            </div>
-
-                            <div class="card-footer bg-transparent border-top-0">
-                                <a href="{{ route('public.profesionales.mostrar', $perfil) }}"
-                                    class="btn btn-primary w-100">
-                                    Ver perfil
-                                </a>
-                            </div>
+                        <div class="card-footer bg-transparent border-top-0">
+                            <a href="{{ route('public.profesionales.mostrar', $perfil) }}"
+                               class="btn btn-primary w-100">
+                                Ver perfil
+                            </a>
                         </div>
                     </div>
-                @empty
-                    <p class="text-center text-muted">Aún no hay profesionales destacados.</p>
-                @endforelse
-            </div>
-
+                </div>
+            @empty
+                <p class="text-center text-muted">Aún no hay profesionales destacados.</p>
+            @endforelse
         </div>
-    </section>
+    </div>
+</section>
+
 
     {{-- Sección: Comentarios y Valoraciones --}}
     {{-- Función para renderizar estrellas según la puntuación --}}
@@ -166,56 +165,85 @@
         };
     @endphp
 
+    {{-- Sección Comentarios --}}
     <section class="py-5">
         <div class="container" id="comentarios_valoraciones">
             <h2 class="text-center fw-bold mb-2">Comentarios y valoraciones</h2>
             <p class="text-center text-muted mb-4">
-                Opiniones y valoración de nuestros clientes y profesionales.
+                Opiniones reales de clientes sobre los profesionales de ReformUp.
             </p>
 
-            {{-- Si no hay comentarios, muestra mensaje --}}
             @if ($slides->isEmpty())
                 <p class="text-center text-muted">Todavía no hay comentarios publicados.</p>
             @else
-                {{-- Carrusel de comentarios --}}
                 <div id="reviewsCarousel" class="carousel slide" data-bs-ride="carousel" data-bs-interval="5500">
+
                     <div class="carousel-inner">
                         @foreach ($slides as $indice => $grupo)
+                            @php
+                                // Reindexamos por si acaso
+                                $grupo = $grupo->values();
+                            @endphp
+
                             <div class="carousel-item @if ($indice === 0) active @endif">
-                                <div class="row g-4">
-                                    @foreach ($grupo as $comentario)
-                                        <div class="col-12 col-md-6 col-lg-4">
+                                <div class="row g-4 justify-content-center">
+                                    {{-- PRIMER COMENTARIO (siempre visible) --}}
+                                    @if (isset($grupo[0]))
+                                        @php
+                                            $comentario = $grupo[0];
+                                            $cliente = $comentario->cliente;
+                                            $trabajo = $comentario->trabajo;
+                                            $presupuesto = $trabajo?->presupuesto;
+                                            $profesional = $presupuesto?->profesional;
+
+                                            $avatar =
+                                                $profesional && $profesional->avatar
+                                                    ? asset('storage/' . $profesional->avatar)
+                                                    : asset('img/pro_card.jpg');
+                                        @endphp
+
+                                        <div class="col-12 col-lg-6">
                                             <article class="card shadow-sm border-0 rounded-4 h-100 review-card">
                                                 <div class="card-body p-4">
-                                                    {{-- Icono de comillas --}}
                                                     <div class="text-primary mb-2" style="opacity:.35">
                                                         <i class="bi bi-quote fs-1"></i>
                                                     </div>
 
-                                                    {{-- Opinión del cliente --}}
                                                     <p class="mb-4 text-muted">
-                                                        {{ $comentario->opinion }}
+                                                        @if ($comentario->opinion)
+                                                            {{ \Illuminate\Support\Str::limit(strip_tags($comentario->opinion), 200, '...') }}
+                                                        @else
+                                                            <span class="text-muted">
+                                                                El cliente no dejó comentario escrito, solo puntuación.
+                                                            </span>
+                                                        @endif
                                                     </p>
 
                                                     <div class="d-flex align-items-center">
-                                                        {{-- Avatar del cliente --}}
-                                                        <img src="/img/pro_card.jpg" class="rounded-circle me-3"
+                                                        <img src="{{ $avatar }}" class="rounded-circle me-3"
                                                             width="52" height="52"
-                                                            alt="Foto de {{ $comentario->cliente->nombre ?? 'Cliente ReformUp' }}">
+                                                            alt="Profesional {{ $profesional->empresa ?? 'ReformUp' }}">
 
-                                                        {{-- Nombre y ciudad del cliente --}}
                                                         <div class="me-auto">
                                                             <div class="fw-bold">
-                                                                {{ $comentario->cliente->nombre ?? 'Cliente ReformUp' }}
-                                                                {{ $comentario->cliente->apellidos ?? '' }}
+                                                                {{ $cliente->nombre ?? 'Cliente ReformUp' }}
+                                                                {{ $cliente->apellidos ?? '' }}
                                                             </div>
                                                             <div class="text-muted small">
-                                                                {{ $comentario->cliente->ciudad ?? '' }}
+                                                                {{ $cliente->ciudad ?? '' }}
                                                             </div>
+
+                                                            @if ($profesional)
+                                                                <div class="text-muted small mt-1">
+                                                                    Profesional:
+                                                                    <span class="fw-semibold">
+                                                                        {{ $profesional->empresa }}
+                                                                    </span>
+                                                                </div>
+                                                            @endif
                                                         </div>
 
-                                                        {{-- Puntuación en estrellas --}}
-                                                        <div class="text-nowrap">
+                                                        <div class="text-nowrap text-end">
                                                             {!! $renderizarEstrellas($comentario->puntuacion) !!}
                                                             <span class="fw-semibold ms-1">
                                                                 {{ number_format($comentario->puntuacion, 1) }}
@@ -225,18 +253,86 @@
                                                 </div>
                                             </article>
                                         </div>
-                                    @endforeach
+                                    @endif
+
+                                    {{-- SEGUNDO COMENTARIO (solo en pantallas grandes) --}}
+                                    @if (isset($grupo[1]))
+                                        @php
+                                            $comentario2 = $grupo[1];
+                                            $cliente2 = $comentario2->cliente;
+                                            $trabajo2 = $comentario2->trabajo;
+                                            $presupuesto2 = $trabajo2?->presupuesto;
+                                            $profesional2 = $presupuesto2?->profesional;
+
+                                            $avatar2 =
+                                                $profesional2 && $profesional2->avatar
+                                                    ? asset('storage/' . $profesional2->avatar)
+                                                    : asset('img/pro_card.jpg');
+                                        @endphp
+
+                                        <div class="col-12 col-lg-6 d-none d-lg-block">
+                                            <article class="card shadow-sm border-0 rounded-4 h-100 review-card">
+                                                <div class="card-body p-4">
+                                                    <div class="text-primary mb-2" style="opacity:.35">
+                                                        <i class="bi bi-quote fs-1"></i>
+                                                    </div>
+
+                                                    <p class="mb-4 text-muted">
+                                                        @if ($comentario2->opinion)
+                                                            {{ \Illuminate\Support\Str::limit(strip_tags($comentario2->opinion), 200, '...') }}
+                                                        @else
+                                                            <span class="text-muted">
+                                                                El cliente no dejó comentario escrito, solo puntuación.
+                                                            </span>
+                                                        @endif
+                                                    </p>
+
+                                                    <div class="d-flex align-items-center">
+                                                        <img src="{{ $avatar2 }}" class="rounded-circle me-3"
+                                                            width="52" height="52"
+                                                            alt="Profesional {{ $profesional2->empresa ?? 'ReformUp' }}">
+
+                                                        <div class="me-auto">
+                                                            <div class="fw-bold">
+                                                                {{ $cliente2->nombre ?? 'Cliente ReformUp' }}
+                                                                {{ $cliente2->apellidos ?? '' }}
+                                                            </div>
+                                                            <div class="text-muted small">
+                                                                {{ $cliente2->ciudad ?? '' }}
+                                                            </div>
+
+                                                            @if ($profesional2)
+                                                                <div class="text-muted small mt-1">
+                                                                    Profesional:
+                                                                    <span class="fw-semibold">
+                                                                        {{ $profesional2->empresa }}
+                                                                    </span>
+                                                                </div>
+                                                            @endif
+                                                        </div>
+
+                                                        <div class="text-nowrap text-end">
+                                                            {!! $renderizarEstrellas($comentario2->puntuacion) !!}
+                                                            <span class="fw-semibold ms-1">
+                                                                {{ number_format($comentario2->puntuacion, 1) }}
+                                                            </span>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </article>
+                                        </div>
+                                    @endif
                                 </div>
                             </div>
                         @endforeach
                     </div>
 
-                    {{-- Controles del carrusel --}}
                     <button class="carousel-control-prev" type="button" data-bs-target="#reviewsCarousel"
                         data-bs-slide="prev">
                         <span class="carousel-control-prev-icon"></span>
                         <span class="visually-hidden">Anterior</span>
                     </button>
+
                     <button class="carousel-control-next" type="button" data-bs-target="#reviewsCarousel"
                         data-bs-slide="next">
                         <span class="carousel-control-next-icon"></span>
@@ -246,6 +342,7 @@
             @endif
         </div>
     </section>
+
 
     {{-- Footer  --}}
     <x-footer />

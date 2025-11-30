@@ -6,9 +6,12 @@ use App\Http\Controllers\Controller;
 use App\Models\Comentario;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class ProfesionalComentarioController extends Controller
 {
+    use FiltroRangoFechas;
     /**
      * Listado de comentarios que afectan a este profesional.
      * SOLO muestra comentarios publicados y visibles.
@@ -24,31 +27,72 @@ class ProfesionalComentarioController extends Controller
                 ->with('error', 'No tienes permiso para acceder a esta zona.');
         }
 
-        // Solo comentarios de trabajos suyos + publicados + visibles
-        $comentarios = Comentario::with([
+        // Texto de búsqueda
+        $q = trim((string) $request->query('q'));
+        // Puntuación mínima
+        $puntuacionMin = $request->query('puntuacion_min');
+
+        // Base: solo comentarios de este profesional, publicados y visibles
+        $query = Comentario::with([
             'trabajo.presupuesto.solicitud.cliente',
             'trabajo.presupuesto.profesional',
         ])
-            ->whereHas('trabajo.presupuesto', function ($q) use ($perfil) {
-                $q->where('pro_id', $perfil->id);
+            ->whereHas('trabajo.presupuesto', function ($qRel) use ($perfil) {
+                $qRel->where('pro_id', $perfil->id);
             })
             ->where('estado', 'publicado')
-            ->where('visible', true)
-            ->orderByDesc('fecha')
-            ->paginate(6);
+            ->where('visible', true);
 
-        // Para la vista (el filtro realmente solo tiene sentido en "publicados")
+        // Buscador por texto
+        if ($q !== '') {
+            $like = '%' . $q . '%';
+
+            $query->where(function ($sub) use ($like) {
+                // Título de la solicitud
+                $sub->whereHas('trabajo.presupuesto.solicitud', function ($qSol) use ($like) {
+                    $qSol->where('titulo', 'like', $like);
+                })
+                    // Cliente
+                    ->orWhereHas('trabajo.presupuesto.solicitud.cliente', function ($qCli) use ($like) {
+                        $qCli->where('nombre', 'like', $like)
+                            ->orWhere('apellidos', 'like', $like)
+                            ->orWhere('email', 'like', $like);
+                    })
+                    // Profesional 
+                    ->orWhereHas('trabajo.presupuesto.profesional', function ($qPro) use ($like) {
+                        $qPro->where('empresa', 'like', $like);
+                    })
+                    // Opinión
+                    ->orWhere('opinion', 'like', $like);
+            });
+        }
+        //  Filtro por puntuación mínima
+        if ($puntuacionMin !== null && $puntuacionMin !== '') {
+            $query->where('puntuacion', '>=', (int) $puntuacionMin);
+        }
+
+        //  Filtro por rango de fechas (usamos la columna fecha del comentario)
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+
+
+        $comentarios = $query
+            ->orderByDesc('fecha')
+            ->paginate(6)
+            ->withQueryString(); // mantiene q + fechas en la paginación
+
+        // Solo ven publicados
         $estado  = null;
-        $estados = [
-            'publicado' => 'Publicados',
-        ];
+        $estados = []; // Variables en vista
 
         return view('layouts.profesional.comentarios.index', compact(
             'comentarios',
             'estado',
             'estados',
+            'q',
+            'puntuacionMin'
         ));
     }
+
 
     /**
      * Mostrar comentario concreto al profesional (modal JSON o vista normal).

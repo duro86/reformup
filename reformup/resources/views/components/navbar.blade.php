@@ -65,6 +65,8 @@
                     </a>
                 </li>
             </ul>
+            <div class="vr mx-2 d-none d-lg-block"></div>
+            <hr class="d-block d-lg-none w-50">
 
             {{-- DERECHA: según esté logueado o no --}}
             <ul class="navbar-nav ms-auto align-items-lg-center">

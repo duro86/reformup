@@ -18,17 +18,20 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        // Últimos 9 comentarios publicados
+        // Últimos 9 comentarios publicados (con cliente + profesional)
         $comentarios = Comentario::query()
             ->where('estado', 'publicado')
             ->where('visible', true)
-            ->with(['cliente']) // relación belongsTo User (cliente_id)
+            ->with([
+                'cliente',                             // cliente que comenta
+                'trabajo.presupuesto.profesional',     // profesional al que va ligado el trabajo
+            ])
             ->orderByDesc('created_at')
-            ->take(9)
+            ->take(12)
             ->get();
 
-        // Agrupamos en “slides” de 3 para el carrusel
-        $slides = $comentarios->chunk(3);
+        // Cada "slide" tendrá hasta 2 comentarios
+        $slides = $comentarios->chunk(2);
 
         return view('home', compact('profesionalesDestacados', 'comentarios', 'slides'));
     }

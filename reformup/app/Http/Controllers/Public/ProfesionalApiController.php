@@ -82,7 +82,7 @@ class ProfesionalApiController extends Controller
         if (! $perfil->visible) {
             return redirect()
                 ->back()
-                ->with('error', 'Perfil del profesional no visible en la platadforma.');
+                ->with('error', 'Perfil del profesional no visible en la plataforma.');
         }
 
         return response()->json($perfil);

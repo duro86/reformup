@@ -7,6 +7,8 @@
     <x-navbar />
     {{-- Sidebar admin fija --}}
     <x-admin.admin_sidebar />
+    {{-- Bienvenida --}}
+    <x-admin.admin_bienvenido />
 
     <div class="container-fluid main-content-with-sidebar">
 
@@ -21,30 +23,15 @@
                 </h1>
             </div>
 
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            {{-- Mensajes flash --}}
+            <x-alertas.alertasFlash />
 
             @if ($comentarios->isEmpty())
                 <div class="alert alert-info">
                     No hay comentarios registrados todavía.
                 </div>
             @else
-                {{-- Switch en verde cuando está publicado --}}
-                <style>
-                    .form-switch .form-check-input:checked {
-                        background-color: #198754;
-                        border-color: #198754;
-                    }
-                </style>
-
-                {{-- ========================== --}}
-                {{-- BUSCADOR + FILTROS         --}}
-                {{-- ========================== --}}
+                {{-- BUSCADOR + FILTROS --}}
                 <form method="GET" action="{{ route('admin.comentarios') }}" class="row g-2 mb-3">
                     {{-- Texto libre --}}
                     <div class="col-12 col-md-6 col-lg-4">
@@ -66,6 +53,9 @@
                         </select>
                     </div>
 
+                    {{-- Rango de fechas (fecha del comentario) --}}
+                    @include('partials.filtros.rango_fechas')
+
                     {{-- Buscar --}}
                     <div class="col-6 col-md-3 col-lg-2 d-grid">
                         <button type="submit" class="btn btn-sm btn-primary">
@@ -74,14 +64,15 @@
                     </div>
 
                     {{-- Limpiar --}}
-                    <div class="col-12 col-md-3 col-lg-2 d-grid">
-                        @if (request('q') || request('estado'))
+                    <div class="col-6 col-md-3 col-lg-2 d-grid">
+                        @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
                             <a href="{{ route('admin.comentarios') }}" class="btn btn-sm btn-outline-secondary">
                                 Limpiar
                             </a>
                         @endif
                     </div>
                 </form>
+
 
                 {{-- ========================== --}}
                 {{-- TABLA (solo en lg+)       --}}
@@ -177,14 +168,15 @@
                                         {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
-                                    {{-- Opinión --}}
-                                    <td>
+                                    {{-- Opinión (lg+) --}}
+                                    <td class="d-none d-lg-table-cell">
                                         @if ($comentario->opinion)
-                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 70, '...') }}
+                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 60, '...') }}
                                         @else
                                             <span class="text-muted small">Sin opinión</span>
                                         @endif
                                     </td>
+
 
                                     {{-- Acciones --}}
                                     <td class="text-center">
@@ -258,8 +250,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
 
                                 {{-- Cabecera: trabajo / solicitud --}}
                                 <div class="mb-2">
@@ -325,11 +317,12 @@
                                     <div class="mt-2">
                                         <strong>Opinión:</strong><br>
                                         @if ($comentario->opinion)
-                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 120, '...') }}
+                                            {{ \Illuminate\Support\Str::limit(strip_tags($comentario->opinion), 120, '...') }}
                                         @else
                                             <span class="text-muted">Sin opinión</span>
                                         @endif
                                     </div>
+
                                 </div>
 
                                 {{-- Acciones --}}

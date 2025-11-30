@@ -22,7 +22,7 @@ use App\Http\Controllers\Admin\ProfesionalPerfilController;
     ->name('crear.admin');*/
 
 // Dashboard admin con middleware personalizado
-Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
+Route::middleware(['rol.redirigir:admin'])->prefix('admin')
     ->name('admin.')->group(function () {
         Route::get('/dashboard', [AdminDashboardController::class, 'index'])->name('dashboard'); //Mostrar dashboard
 
@@ -138,6 +138,11 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
 
         Route::put('/solicitudes/{solicitud}', [AdminSolicitudController::class, 'actualizar'])
             ->name('solicitudes.actualizar');
+        // Eliminar SOLICITUD por parte del admin
+        Route::delete(
+            '/solicitudes/{solicitud}/eliminar',
+            [AdminSolicitudController::class, 'eliminarSolicitudAdmin']
+        )->name('solicitudes.eliminar_admin');
 
         // -----PRESUPUESTOS (ADMIN)
         Route::get('/presupuestos', [AdminPresupuestoController::class, 'index'])
@@ -192,4 +197,10 @@ Route::middleware(['auth', 'rol.redirigir:admin'])->prefix('admin')
         // Cancelar trabajo
         Route::patch('/trabajos/{trabajo}/cancelar', [AdminTrabajoController::class, 'cancelar'])
             ->name('trabajos.cancelar');
+
+        Route::delete(
+            '/trabajos/{trabajo}/eliminar',
+            [AdminTrabajoController::class, 'eliminarTrabajoAdmin']
+        )
+            ->name('trabajos.eliminar_admin');
     });

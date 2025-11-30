@@ -10,9 +10,13 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\TrabajoCanceladoPorProfesionalMailable;
 use App\Mail\TrabajoIniciadoMailable;
 use App\Mail\TrabajoFinalizadoMailable;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+
 
 class ProfesionalTrabajoController extends Controller
 {
+    use FiltroRangoFechas;
+
 
     /**
      * Asegura que el trabajo pertenece al profesional logueado.
@@ -36,7 +40,6 @@ class ProfesionalTrabajoController extends Controller
     public function index(Request $request)
     {
         $user   = Auth::user();
-        // Ojo al nombre de la relación: ajusta a como la tengas en el modelo User
         $perfil = $user->perfil_Profesional; // relación del profesional
 
         if (! $perfil) {
@@ -45,8 +48,8 @@ class ProfesionalTrabajoController extends Controller
         }
 
         // Filtros
-        $estado = $request->query('estado');                // previsto, en_curso, finalizado, cancelado o null
-        $q      = trim((string) $request->query('q'));      // texto del buscador
+        $estado = $request->query('estado');           // previsto, en_curso, finalizado, cancelado o null
+        $q      = trim((string) $request->query('q')); // texto del buscador
 
         $trabajosQuery = Trabajo::with([
             'presupuesto.solicitud.cliente',
@@ -88,12 +91,16 @@ class ProfesionalTrabajoController extends Controller
             });
         }
 
-        $trabajos = $trabajosQuery
-            ->orderByDesc('created_at')
-            ->paginate(5)
-            ->withQueryString(); // mantiene ?q= y ?estado= en la paginación
+        // Filtro por rango de fechas 
+        $this->aplicarFiltroRangoFechas($trabajosQuery, $request, 'created_at');
+        // $this->aplicarFiltroRangoFechas($trabajosQuery, $request, 'fecha_ini');
 
-        // Array de estados para las pills (o usa Trabajo::ESTADOS si lo tienes)
+        $trabajos = $trabajosQuery
+            ->orderByDesc('created_at') // o 'fecha_ini' si cambias arriba
+            ->paginate(5)
+            ->withQueryString(); // mantiene ?q=, ?estado=, fechas, etc.
+
+        // Array de estados para las pills
         $estados = Trabajo::ESTADOS ?? [
             'previsto'   => 'Previstos',
             'en_curso'   => 'En curso',
@@ -109,6 +116,7 @@ class ProfesionalTrabajoController extends Controller
             'estados'  => $estados,
         ]);
     }
+
 
     /**
      * Detalle de un trabajo para el profesional (JSON para modal o vista normal).
@@ -234,7 +242,6 @@ class ProfesionalTrabajoController extends Controller
         $trabajo->save();
 
 
-
         // Avisar al cliente
         $presupuesto = $trabajo->presupuesto;
         $solicitud   = $presupuesto?->solicitud;
@@ -253,8 +260,13 @@ class ProfesionalTrabajoController extends Controller
                     new TrabajoFinalizadoMailable($trabajo, $presupuesto, $cliente, $perfilPro)
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'No se ha podido finalizar el trabajo.');
+                return back()->with('error', 'No se ha enviar el correo a los implicaods.');
             }
+        }
+
+        if ($trabajo->presupuesto && $trabajo->presupuesto->profesional) {
+            $perfilPro = $trabajo->presupuesto->profesional;
+            $perfilPro->increment('trabajos_realizados'); // Sumamos en trabajos realizados
         }
 
         return back()->with('success', 'Has marcado el trabajo como finalizado. El cliente ha sido notificado.');

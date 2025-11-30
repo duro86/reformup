@@ -9,9 +9,15 @@ use App\Models\Solicitud;
 use App\Models\Perfil_Profesional;
 use App\Models\Oficio;
 use Mews\Purifier\Facades\Purifier;
+use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Usuario\SolicitudClienteAccionMailable;
+
 
 class UsuarioSolicitudController extends Controller
 {
+    use FiltroRangoFechas;
+
     /**
      * Listado de solicitudes del cliente, con filtro por estado.
      */
@@ -24,8 +30,8 @@ class UsuarioSolicitudController extends Controller
                 ->with('error', 'Debes iniciar sesión para ver tus solicitudes.');
         }
 
-        $estado = $request->query('estado');             // abierta / en_revision / cerrada / cancelada / null
-        $q      = trim((string) $request->query('q'));   // texto buscador
+        $estado = $request->query('estado');           // abierta / en_revision / cerrada / cancelada / null
+        $q      = trim((string) $request->query('q')); // texto buscador
 
         // Base: solo solicitudes de ESTE cliente
         $query = Solicitud::with(['profesional'])
@@ -52,6 +58,9 @@ class UsuarioSolicitudController extends Controller
             });
         }
 
+        // Filtro por rango de fechas (usamos la columna 'fecha' de la solicitud)
+        $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+
         $solicitudes = $query
             ->orderByDesc('fecha')
             ->paginate(5)
@@ -65,6 +74,7 @@ class UsuarioSolicitudController extends Controller
         ]);
     }
 
+
     /**
      * Ver detalles de una solicitud del usuario (JSON para Vue o vista normal)
      */
@@ -75,7 +85,7 @@ class UsuarioSolicitudController extends Controller
         // 1) No autenticado
         if (is_null($userId)) {
             if (request()->ajax() || request()->wantsJson()) {
-                abort(401, 'No autenticado.');
+                return back()->with('error', 'No puedes acceder a esta solicitud, debes autenticarte');
             }
 
             return redirect()
@@ -86,14 +96,13 @@ class UsuarioSolicitudController extends Controller
         // 2) La solicitud NO es suya
         if ($solicitud->cliente_id !== $userId) {
             if (request()->ajax() || request()->wantsJson()) {
-                abort(403, 'No puedes acceder a esta solicitud.');
+                return back()->with('No puedes acceder a esta solicitud.');
             }
 
             return back()->with('error', 'No puedes acceder a esta solicitud.');
         }
 
         // 3) Cargar relaciones necesarias
-        //    (asumiendo que en el modelo tienes:
         //     cliente(), profesional(), presupuestos() y en Presupuesto -> trabajo())
         $solicitud->load([
             'cliente',
@@ -155,7 +164,6 @@ class UsuarioSolicitudController extends Controller
             ]);
         }
 
-        // 5) Si entra sin AJAX, devuelves otra vista (si quieres tenerla)
         return view('layouts.usuario.solicitudes.mostrar', compact('solicitud'));
     }
 
@@ -238,8 +246,8 @@ class UsuarioSolicitudController extends Controller
                 'pro_id'          => ['required', 'integer', 'exists:perfiles_profesionales,id'],
                 'titulo'          => ['required', 'string', 'max:160'],
                 'descripcion'     => ['required', 'string'],
-                'ciudad'          => ['required', 'string', 'max:120'],
-                'provincia'       => ['nullable', 'string', 'max:120'],
+                'ciudad'          => ['nullable', 'string', 'max:120'],
+                'provincia'       => ['required', 'string', 'max:120'],
                 'dir_cliente'     => ['nullable', 'string', 'max:255'],
                 'presupuesto_max' => ['nullable', 'numeric', 'min:0'],
             ],
@@ -249,8 +257,10 @@ class UsuarioSolicitudController extends Controller
                 'pro_id.exists'   => 'El profesional seleccionado no existe.',
                 'titulo.required'      => 'El título es obligatorio.',
                 'titulo.max'           => 'El título no puede tener más de 160 caracteres.',
+                'provincia.max'           => 'La provincia no puede tener más de 160 caracteres.',
+                'ciudad.max'           => 'La ciudad no puede tener más de 160 caracteres.',
                 'dir_cliente.max'           => 'La dirección no puede tener más de 255 caracteres.',
-                'ciudad.required'      => 'La ciudad es obligatoria.',
+                'provincia.required'      => 'El municipio es obligatoria.',
                 'descripcion.required' => 'La descripción de la solicitud es obligatoria.',
                 'presupuesto_max.numeric' => 'El presupuesto máximo debe ser un número.',
                 'presupuesto_max.min'     => 'El presupuesto máximo no puede ser negativo.',
@@ -262,47 +272,131 @@ class UsuarioSolicitudController extends Controller
         $descripcion_limpia = Purifier::clean($descripcion, 'solicitud');
 
         // Creamos la solicitud: el estado por defecto en BBDD ya es 'abierta'
-        Solicitud::create([
-            'pro_id'         => $validated['pro_id'],  // Asociada al profesional seleccionado
-            'cliente_id'      => $user->id,
-            'titulo'          => $validated['titulo'],
-            'descripcion'     => $descripcion_limpia,
-            'ciudad'          => $validated['ciudad'],
-            'provincia'       => $validated['provincia'] ?? null,
-            'dir_cliente'     => $validated['dir_cliente'] ?? null,
-            'estado'          => 'abierta',        // por si acaso, luego cambiamos cuando haya un presupuesto
-            'presupuesto_max' => $validated['presupuesto_max'] ?? null,
-            'fecha'           => now(),
-        ]);
+        try {
+            Solicitud::create([
+                'pro_id'         => $validated['pro_id'],  // Asociada al profesional seleccionado
+                'cliente_id'      => $user->id,
+                'titulo'          => $validated['titulo'],
+                'descripcion'     => $descripcion_limpia,
+                'ciudad'          => $validated['ciudad'],
+                'provincia'       => $validated['provincia'] ?? null,
+                'dir_cliente'     => $validated['dir_cliente'] ?? null,
+                'estado'          => 'abierta',        // por defecto
+                'presupuesto_max' => $validated['presupuesto_max'] ?? null,
+                'fecha'           => now(),
+            ]);
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Ha ocurrido un error al crear la solicitud');
+        }
 
         return redirect()
             ->route('usuario.solicitudes.index')
             ->with('success', 'Tu solicitud se ha creado correctamente.');
     }
 
-    /** Eliminar una Solicitud si esta abierta(sin revision) */
-    public function eliminar(Solicitud $solicitud)
+    /**
+     * Cancelar una solicitud del cliente (cambiar estado a "cancelada").
+     */
+    public function cancelar(Request $request, Solicitud $solicitud)
     {
         $user = Auth::user();
 
-        // 1) Seguridad: solo puede borrar sus propias solicitudes
         if ($solicitud->cliente_id !== $user->id) {
-            abort(403, 'No puedes eliminar esta solicitud.');
+            return back()->with('error', 'No puedes eliminar una solicitud que no es tuya.');
         }
 
-        // 2) Regla de negocio: solo si está ABIERTA
+        if ($solicitud->estado !== 'abierta') {
+            return back()->with('error', 'Solo puedes cancelar solicitudes en estado "abierta".');
+        }
+
+        // El motivo viene del input hidden que rellena el SweetAlert
+        $motivo = trim((string) $request->input('motivo_cancelacion'));
+
+        if ($motivo === '') {
+            // Por seguridad, por si alguien salta el JS
+            return back()->with('error', 'Debes indicar un motivo para cancelar la solicitud.');
+        }
+
+        try {
+            $solicitud->estado = 'cancelada';
+            $solicitud->save();
+
+            // Enviar correo al profesional (si existe)
+            $perfilPro = $solicitud->profesional; // Perfil_Profesional
+
+            try {
+                if ($perfilPro && $perfilPro->email_empresa) {
+                    Mail::to($perfilPro->email_empresa)->send(
+                        new SolicitudClienteAccionMailable(
+                            $solicitud,
+                            $user,
+                            $perfilPro,
+                            $motivo,
+                            'cancelada'
+                        )
+                    );
+                }
+            } catch (\Throwable $e) {
+                return back()->with('error', 'Se ha cancelado la solicitud, pero no se ha podido informar a los afectados');
+            }
+
+            $estado = $request->query('estado');
+
+            return redirect()
+                ->route('usuario.solicitudes.index', $estado ? ['estado' => $estado] : [])
+                ->with('success', 'La solicitud se ha cancelado correctamente.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Ha ocurrido un error al cancelar la solicitud.');
+        }
+    }
+
+    /** Eliminar una Solicitud si esta abierta(sin revision) */
+    public function eliminar(Request $request, Solicitud $solicitud)
+    {
+        $user = Auth::user();
+
+        if ($solicitud->cliente_id !== $user->id) {
+            return back()->with('error', 'No puedes eliminar una solicitud que no es tuya.');
+        }
+
         if ($solicitud->estado !== 'abierta') {
             return back()->with('error', 'Solo puedes eliminar solicitudes en estado "abierta".');
         }
 
-        // 3) Soft delete (ya usas SoftDeletes en el modelo)
-        $solicitud->delete();
+        $motivo = trim((string) $request->input('motivo_eliminacion'));
 
-        // Si quieres mantener el filtro actual (estado) en la redirección:
-        $estado = request('estado');
+        $perfilPro = $solicitud->profesional;
 
-        return redirect()
-            ->route('usuario.solicitudes.index', $estado ? ['estado' => $estado] : [])
-            ->with('success', 'La solicitud ' . $solicitud->titulo . ' se ha eliminado correctamente.');
+        try {
+            // Guardamos una copia antes del delete para el mail
+            $solicitudClon = clone $solicitud;
+
+            $solicitud->delete();
+
+            // Email al profesional (si tiene email_empresa)
+            try {
+                if ($perfilPro && $perfilPro->email_empresa) {
+                    Mail::to($perfilPro->email_empresa)->send(
+                        new SolicitudClienteAccionMailable(
+                            $solicitudClon,
+                            $user,
+                            $perfilPro,
+                            $motivo !== '' ? $motivo : null,
+                            'eliminada'
+                        )
+                    );
+                }
+            } catch (\Throwable $e) {
+                return back()->with('error', 'Se ha borrado la solicitud, pero no se ha podido informar a los afectados.');
+            }
+
+            $estado = $request->query('estado');
+
+            return redirect()
+                ->route('usuario.solicitudes.index', $estado ? ['estado' => $estado] : [])
+                ->with('success', 'La solicitud ' . ($solicitudClon->titulo ?? '') . ' se ha eliminado correctamente.');
+        } catch (\Throwable $e) {
+            return back()->with('error', 'Ha ocurrido un error al eliminar la solicitud.');
+        }
     }
 }

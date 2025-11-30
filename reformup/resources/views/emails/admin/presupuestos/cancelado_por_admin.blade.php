@@ -1,61 +1,51 @@
 @component('mail::message')
+@php
+    $verbo = $tipoAccion === 'eliminado' ? 'eliminado' : 'cancelado';
+@endphp
 
-@if(!$esProfesional)
-# Hola {{ $cliente->nombre ?? $cliente->name ?? 'cliente' }}
+@if($esProfesional)
+# Presupuesto {{ $verbo }}
 
-Tu presupuesto asociado a la solicitud:
+Hola {{ $perfilPro->empresa ?? 'profesional' }},
 
-@isset($solicitud->titulo)
-**“{{ $solicitud->titulo }}”**
+Te informamos de que el presupuesto **#{{ $presupuesto->id }}**
+relacionado con la solicitud
+@if($solicitud?->titulo)
+"{{ $solicitud->titulo }}"
 @else
-**Solicitud #{{ $solicitud->id }}**
-@endisset
+#{{ $solicitud->id }}
+@endif
+ha sido **{{ $verbo }}** por el administrador de ReformUp.
 
-ha sido **cancelado por el equipo de ReformUp**.
-
-@component('mail::panel')
-**Importe del presupuesto:** {{ number_format($presupuesto->total, 2, ',', '.') }} €  
-
-**Estado actual:** {{ ucfirst($presupuesto->estado) }}
-@endcomponent
-
-Esto puede deberse a una revisión interna o a cambios en la gestión de la solicitud.  
-Si tienes dudas, puedes responder a este correo y lo revisaremos contigo.
-
-@if($perfilPro)
-Profesional asignado: **{{ $perfilPro->empresa }}**
+@if($tipoAccion === 'eliminado')
+Además, el presupuesto y, en su caso, el trabajo asociado han sido eliminados del sistema.
 @endif
 
-Saludos,  
-El equipo de **ReformUp**
-
 @else
-{{-- Versión para PROFESIONAL --}}
-# Hola {{ $perfilPro->empresa ?? 'profesional' }}
+# Tu presupuesto ha sido {{ $verbo }}
 
-Un presupuesto asociado a una de tus solicitudes ha sido **cancelado por el equipo de ReformUp**.
+Hola {{ $cliente->nombre ?? 'cliente' }},
 
-@isset($solicitud->titulo)
-**Solicitud:** “{{ $solicitud->titulo }}”
+Tu presupuesto **#{{ $presupuesto->id }}**
+para la solicitud
+@if($solicitud?->titulo)
+"{{ $solicitud->titulo }}"
 @else
-**Solicitud #{{ $solicitud->id }}**
-@endisset
+#{{ $solicitud->id }}
+@endif
+ha sido **{{ $verbo }}** por el equipo de ReformUp.
 
-@component('mail::panel')
-**Importe del presupuesto:** {{ number_format($presupuesto->total, 2, ',', '.') }} €  
-
-**Estado actual:** {{ ucfirst($presupuesto->estado) }}
-
-@isset($solicitud->cliente)
-**Cliente:** {{ $solicitud->cliente->nombre ?? $solicitud->cliente->name }}
-{{ $solicitud->cliente->apellidos ?? '' }}
-@endisset
-@endcomponent
-
-Te recomendamos revisar la solicitud y tu listado de presupuestos en tu panel de profesional para decidir los siguientes pasos.
-
-Saludos,  
-El equipo de **ReformUp**
+@if($tipoAccion === 'eliminado')
+El presupuesto y, si existía, el trabajo asociado han sido eliminados del sistema.
+Podrás solicitar o aceptar nuevos presupuestos desde tu área privada.
 @endif
 
+@endif
+
+@component('mail::button', ['url' => route('home')])
+Ir a ReformUp
+@endcomponent
+
+Un saludo,  
+{{ config('app.name') }}
 @endcomponent

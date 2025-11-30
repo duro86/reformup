@@ -23,13 +23,7 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
 
             @php
                 $estados = [
@@ -41,19 +35,52 @@
                 ];
             @endphp
 
-            {{-- Buscador --}}
-            <x-buscador-q :action="route('profesional.presupuestos.index')" placeholder="Buscar por título, cliente, ciudad, estado o importe..." />
+            {{-- Buscador combinado: campos + fechas --}}
+            <form method="GET" action="{{ route('profesional.presupuestos.index') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, cliente, ciudad, estado o importe...">
+                </div>
 
+                {{-- Rango de fechas reutilizable (fecha del presupuesto) --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
+                        <a href="{{ route('profesional.presupuestos.index') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
 
             {{-- Filtros por estado --}}
             <ul class="nav nav-pills mb-3">
                 @foreach ($estados as $valor => $texto)
                     @php
                         $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-                        $url = $valor
-                            ? route('profesional.presupuestos.index', ['estado' => $valor, 'q' => request('q')])
-                            : route('profesional.presupuestos.index', ['q' => request('q')]);
+
+                        // Conservamos q + fechas al cambiar de estado
+                        $params = request()->except('page', 'estado');
+
+                        if (!is_null($valor)) {
+                            $params['estado'] = $valor;
+                        } else {
+                            unset($params['estado']);
+                        }
+
+                        $url = route('profesional.presupuestos.index', $params);
                     @endphp
+
                     <li class="nav-item">
                         <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
                             {{ $texto }}
@@ -61,6 +88,7 @@
                     </li>
                 @endforeach
             </ul>
+
 
             {{-- Lista de presupuestos --}}
             @if ($presupuestos->isEmpty())
@@ -76,12 +104,12 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th>Solicitud</th>
-                                <th>Cliente</th>
-                                <th>Importe</th>
-                                <th class="text-center">Estado</th>
-                                <th>Fecha</th>
-                                <th class="text-start">Acciones</th>
+                                <th class="bg-secondary">Solicitud</th>
+                                <th class="bg-secondary">Cliente</th>
+                                <th class="bg-secondary">Importe</th>
+                                <th class="bg-secondary text-center">Estado</th>
+                                <th class="bg-secondary text-center">Fecha</th>
+                                <th class=" bg-secondary text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -211,8 +239,8 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body">
 
                                 {{-- Título solicitud + refs --}}
                                 <div class="mb-2">
@@ -325,3 +353,4 @@
     </div>
 
 @endsection
+<x-alertas_sweet />

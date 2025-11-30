@@ -24,12 +24,36 @@
             </div>
 
             {{-- Mensajes flash --}}
-            @if (session('success'))
-                <div class="alert alert-success">{{ session('success') }}</div>
-            @endif
-            @if (session('error'))
-                <div class="alert alert-danger">{{ session('error') }}</div>
-            @endif
+            <x-alertas.alertasFlash />
+
+            {{-- Buscador combinado: campos + fechas --}}
+            <form method="GET" action="{{ route('profesional.solicitudes.index') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, ciudad, provincia, estado o cliente...">
+                </div>
+
+                {{-- Rango de fechas reutilizable (fecha de la solicitud) --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
+                        <a href="{{ route('profesional.solicitudes.index') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
+
 
             {{-- Filtros por estado --}}
             @php
@@ -42,17 +66,25 @@
                 ];
             @endphp
 
-            {{-- Buscador --}}
-            <x-buscador-q :action="route('profesional.solicitudes.index')" placeholder="Buscar por título, profesional, ciudad o estado..." />
-
+            {{-- Imprimimos los estados y activamos el presente --}}
             <ul class="nav nav-pills mb-3">
                 @foreach ($estados as $valor => $texto)
                     @php
                         $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-                        $url = $valor
-                            ? route('profesional.solicitudes.index', ['estado' => $valor])
-                            : route('profesional.solicitudes.index');
+
+                        // Conservamos q + fechas al cambiar de estado
+                        $params = array_merge(request()->except('page', 'estado'), []);
+
+                        if (!is_null($valor)) {
+                            $params['estado'] = $valor;
+                        } else {
+                            // Si es "Todas", nos aseguramos de quitar estado
+                            unset($params['estado']);
+                        }
+
+                        $url = route('profesional.solicitudes.index', $params);
                     @endphp
+
                     <li class="nav-item">
                         <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
                             {{ $texto }}
@@ -61,6 +93,8 @@
                 @endforeach
             </ul>
 
+
+            {{-- SI no hay solicitudes --}}
             @if ($solicitudes->isEmpty())
                 <div class="alert alert-info">
                     No tienes solicitudes
@@ -74,11 +108,11 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th>Cliente</th>
-                                <th>Título</th>
-                                <th>Fecha</th>
-                                <th>Estado</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="bg-secondary">Cliente</th>
+                                <th class="bg-secondary">Título</th>
+                                <th class="bg-secondary text-center">Fecha</th>
+                                <th class="bg-secondary text-center">Estado</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,7 +166,7 @@
                                     </td>
 
                                     {{-- Estado --}}
-                                    <td>
+                                    <td class="text-center">
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}
                                         </span>
@@ -161,7 +195,7 @@
 
                                     {{-- Acciones --}}
                                     <td class="text-end">
-                                        <div class="d-flex flex-row flex-wrap gap-1 justify-content-end">
+                                        <div class="d-flex flex-row flex-wrap gap-1 justify-content-center">
 
                                             {{-- Ver (modal Vue) --}}
                                             <button type="button"
@@ -207,8 +241,8 @@
                             $puedeRechazar = $solicitud->estado === 'abierta';
                         @endphp
 
-                        <div class="card mb-3 shadow-sm">
-                            <div class="card-body bg-light">
+                        <div class="card mb-3 shadow-sm bg-light">
+                            <div class="card-body ">
 
                                 {{-- Cliente + fecha --}}
                                 <div class="mb-2">
@@ -228,23 +262,33 @@
                                         <span class="text-muted small">Cliente no disponible</span>
                                     @endif
 
-                                    <div class="small text-muted mt-1">
-                                        <strong>Fecha:</strong>
-                                        {{ optional($solicitud->fecha ?? $solicitud->created_at)->format('d/m/Y H:i') }}
-                                    </div>
-                                </div>
-
-                                {{-- Título --}}
-                                <div class="small text-muted mb-2">
                                     {{-- Título / Ref --}}
                                     <td>
                                         <strong>
                                             {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref: #{{ $solicitud->id }}
+                                            Ref: <strong>#{{ $solicitud->id }}</strong>
                                         </div>
                                     </td>
+
+                                    <div class="small text-muted mt-1">
+                                        <strong>Fecha:</strong>
+                                        {{ optional($solicitud->fecha ?? $solicitud->created_at)->format('d/m/Y H:i') }}
+                                    </div>
+                                </div>
+
+                                {{-- Ubicación --}}
+                                <div class="small text-muted mt-1">
+                                    <strong>Ubicación:</strong>
+                                    @if ($solicitud->provincia)
+                                        {{ $solicitud->provincia }} -
+                                    @endif
+                                    {{ $solicitud->ciudad ?? 'No indicada' }}
+                                </div>
+
+                                {{-- Título --}}
+                                <div class="small text-muted mb-2">
 
                                     {{-- Estado --}}
                                     <div class="mt-1">
@@ -313,3 +357,4 @@
         </div>
     </div>
 @endsection
+<x-alertas_sweet />

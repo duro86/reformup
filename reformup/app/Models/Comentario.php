@@ -75,17 +75,8 @@ class Comentario extends Model
         return $this->belongsTo(User::class, 'cliente_id');
     }
 
-    /**
-     * Relación polimórfica uno a muchos con el modelo Comentario.
-     * 
-     * Permite asociar archivos (imágenes, documentos, PDFs, etc.) a cada comentario
-     * sin necesidad de crear tablas específicas para cada tipo de entidad.
-     * 
-     * Los campos `model_type` y `model_id` de la tabla `medios` indican a qué
-     * modelo pertenece cada archivo.
-     */
-    public function medios()
+    public function imagenes()
     {
-        return $this->morphMany(Medio::class, 'model');
+        return $this->hasMany(ComentarioImagen::class, 'comentario_id');
     }
 }

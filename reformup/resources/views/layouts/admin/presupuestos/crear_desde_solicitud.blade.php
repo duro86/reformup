@@ -65,16 +65,11 @@
             <div class="card">
                 <div class="card-body">
 
-                    {{-- Mensaje de error general (el primero) --}}
-                    @if ($errors->any())
-                        <div class="alert alert-danger">
-                            {{ $errors->first() }}
-                        </div>
-                    @endif
+                    {{-- Mensajes flash --}}
+                    <x-alertas.alertasFlash />
 
-                    <form method="POST"
-                          action="{{ route('admin.solicitudes.presupuestos.guardar', $solicitud) }}"
-                          enctype="multipart/form-data">
+                    <form method="POST" action="{{ route('admin.solicitudes.presupuestos.guardar', $solicitud) }}"
+                        enctype="multipart/form-data">
                         @csrf
 
                         {{-- MODO DE PRESUPUESTO --}}
@@ -90,12 +85,8 @@
                             @endphp
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="modo"
-                                       id="modo_lineas"
-                                       value="lineas"
-                                       {{ $modo === 'lineas' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="radio" name="modo" id="modo_lineas"
+                                    value="lineas" {{ $modo === 'lineas' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="modo_lineas">
                                     Crear desde líneas (materiales, unidades, etc.)
                                 </label>
@@ -103,12 +94,8 @@
                             <i class="bi bi-card-checklist mr-3 text-primary fs-5 me-4"></i>
 
                             <div class="form-check form-check-inline">
-                                <input class="form-check-input"
-                                       type="radio"
-                                       name="modo"
-                                       id="modo_archivo"
-                                       value="archivo"
-                                       {{ $modo === 'archivo' ? 'checked' : '' }}>
+                                <input class="form-check-input" type="radio" name="modo" id="modo_archivo"
+                                    value="archivo" {{ $modo === 'archivo' ? 'checked' : '' }}>
                                 <label class="form-check-label" for="modo_archivo">
                                     Adjuntar presupuesto ya generado (PDF / Word)
                                 </label>
@@ -123,11 +110,11 @@
                         @php
                             $hasConceptoError = $errors->has('concepto') || $errors->has('concepto.*');
                             $hasCantidadError = $errors->has('cantidad') || $errors->has('cantidad.*');
-                            $hasPrecioError   = $errors->has('precio_unitario') || $errors->has('precio_unitario.*');
+                            $hasPrecioError = $errors->has('precio_unitario') || $errors->has('precio_unitario.*');
 
-                            $oldConceptos  = old('concepto', []);
+                            $oldConceptos = old('concepto', []);
                             $oldCantidades = old('cantidad', []);
-                            $oldPrecios    = old('precio_unitario', []);
+                            $oldPrecios = old('precio_unitario', []);
 
                             $numLineas = max(1, count($oldConceptos));
                         @endphp
@@ -137,34 +124,25 @@
                             @for ($i = 0; $i < $numLineas; $i++)
                                 <div class="row g-2 mb-2 linea-item">
                                     <div class="col-md-6">
-                                        <input type="text"
-                                               name="concepto[]"
-                                               value="{{ $oldConceptos[$i] ?? '' }}"
-                                               class="form-control {{ $hasConceptoError ? 'is-invalid' : '' }}"
-                                               placeholder="Concepto (ej: Mano de obra, Materiales, etc.)">
+                                        <input type="text" name="concepto[]" value="{{ $oldConceptos[$i] ?? '' }}"
+                                            class="form-control {{ $hasConceptoError ? 'is-invalid' : '' }}"
+                                            placeholder="Concepto (ej: Mano de obra, Materiales, etc.)">
                                     </div>
                                     <div class="col-md-2">
-                                        <input type="number"
-                                               name="cantidad[]"
-                                               step="1"
-                                               min="1"
-                                               value="{{ $oldCantidades[$i] ?? '' }}"
-                                               class="form-control {{ $hasCantidadError ? 'is-invalid' : '' }}"
-                                               placeholder="Cant.">
+                                        <input type="number" name="cantidad[]" step="1" min="1"
+                                            value="{{ $oldCantidades[$i] ?? '' }}"
+                                            class="form-control {{ $hasCantidadError ? 'is-invalid' : '' }}"
+                                            placeholder="Cant.">
                                     </div>
                                     <div class="col-md-3">
-                                        <input type="number"
-                                               name="precio_unitario[]"
-                                               step="0.01"
-                                               min="0"
-                                               value="{{ $oldPrecios[$i] ?? '' }}"
-                                               class="form-control {{ $hasPrecioError ? 'is-invalid' : '' }}"
-                                               placeholder="Precio €/u">
+                                        <input type="number" name="precio_unitario[]" step="0.01" min="0"
+                                            value="{{ $oldPrecios[$i] ?? '' }}"
+                                            class="form-control {{ $hasPrecioError ? 'is-invalid' : '' }}"
+                                            placeholder="Precio €/u">
                                     </div>
                                     <div class="col-md-1 d-flex justify-content-end">
-                                        <button type="button"
-                                                class="btn btn-outline-danger btn-sm btn-remove-linea"
-                                                title="Eliminar línea">
+                                        <button type="button" class="btn btn-outline-danger btn-sm btn-remove-linea"
+                                            title="Eliminar línea">
                                             &times;
                                         </button>
                                     </div>
@@ -185,9 +163,7 @@
                         @endif
 
                         {{-- Botón añadir línea --}}
-                        <button type="button"
-                                class="btn btn-sm btn-outline-primary mb-3"
-                                id="btn-add-linea">
+                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="btn-add-linea">
                             Añadir línea
                         </button>
 
@@ -199,13 +175,8 @@
                                 Importe total del presupuesto
                                 <span class="text-muted small">(solo obligatorio si adjuntas un documento)</span>
                             </label>
-                            <input type="number"
-                                   name="total"
-                                   step="0.01"
-                                   min="0"
-                                   value="{{ old('total') }}"
-                                   class="form-control @error('total') is-invalid @enderror"
-                                   placeholder="Ej: 1200.00">
+                            <input type="number" name="total" step="0.01" min="0" value="{{ old('total') }}"
+                                class="form-control @error('total') is-invalid @enderror" placeholder="Ej: 1200.00">
                             @error('total')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -218,10 +189,7 @@
                         {{-- Notas / detalle --}}
                         <div class="mb-3">
                             <label class="form-label">Notas para el cliente</label>
-                            <textarea name="notas"
-                                      rows="4"
-                                      class="form-control @error('notas') is-invalid @enderror"
-                                      style="resize:none;">{{ old('notas') }}</textarea>
+                            <textarea name="notas" rows="4" class="form-control @error('notas') is-invalid @enderror" style="resize:none;">{{ old('notas') }}</textarea>
                             @error('notas')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -233,10 +201,8 @@
                         {{-- Adjuntar documento --}}
                         <div class="mb-3">
                             <label class="form-label">Adjuntar presupuesto (PDF / Word)</label>
-                            <input type="file"
-                                   name="docu_pdf"
-                                   accept=".pdf,.doc,.docx"
-                                   class="form-control @error('docu_pdf') is-invalid @enderror">
+                            <input type="file" name="docu_pdf" accept=".pdf,.doc,.docx"
+                                class="form-control @error('docu_pdf') is-invalid @enderror">
                             @error('docu_pdf')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
@@ -247,8 +213,7 @@
 
                         {{-- Botones Guardar --}}
                         <div class="d-flex justify-content-end gap-2">
-                            <a href="{{ route('admin.presupuestos') }}"
-                               class="btn btn-outline-secondary">
+                            <a href="{{ route('admin.presupuestos') }}" class="btn btn-outline-secondary">
                                 Cancelar
                             </a>
                             <button type="submit" class="btn btn-primary">

@@ -415,19 +415,17 @@ class AdminUsuarioController extends Controller
         $usuario = User::findOrFail($id);
 
         // Si tiene perfil profesional, lo eliminamos también
-        // Usamos el nombre correcto de la relación:
-        // perfilProfesional()  o  perfil_Profesional()
         if ($usuario->perfilProfesional) {
             $usuario->perfilProfesional->delete();  // o ->forceDelete() 
         }
 
-        // Si quieres borrar también el avatar físico
+        // Borramos el avatar
         if ($usuario->avatar && $usuario->avatar !== 'imagenes/avatarUser/avatar_default.png') {
             Storage::disk('public')->delete($usuario->avatar);
         }
 
         // Ahora sí borramos el usuario
-        $usuario->delete(); // o ->forceDelete()
+        $usuario->delete(); 
 
         return redirect()
             ->route('admin.usuarios')

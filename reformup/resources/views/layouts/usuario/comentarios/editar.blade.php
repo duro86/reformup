@@ -35,7 +35,8 @@
                 </div>
             </div>
 
-            <form action="{{ route('usuario.comentarios.actualizar', $comentario) }}" method="POST" class="card p-3">
+            <form action="{{ route('usuario.comentarios.actualizar', $comentario) }}" enctype="multipart/form-data"
+                method="POST" class="card p-3">
                 @csrf
                 @method('PUT')
 
@@ -54,13 +55,97 @@
                     @enderror
                 </div>
 
+                {{-- CKEDITOR --}}
                 <div class="mb-3">
                     <label class="form-label">Opinión (opcional)</label>
-                    <textarea name="opinion" rows="4" class="form-control @error('opinion') is-invalid @enderror">{{ old('opinion', $comentario->opinion) }}</textarea>
+                    <textarea id="opinion" name="opinion" rows="5" class="form-control @error('opinion') is-invalid @enderror">{{ old('opinion', $comentario->opinion) }}</textarea>
                     @error('opinion')
                         <div class="invalid-feedback">{{ $message }}</div>
                     @enderror
                 </div>
+
+                {{-- Inicializar CKEditor sobre #opinion --}}
+                <x-ckeditor.ckeditor_descripcion for="opinion" />
+
+                <div class="mb-3">
+                    <label class="form-label">
+                        <strong>Fotos del trabajo (opcional)</strong>
+                        <span class="text-muted small d-block">
+                            Puedes subir hasta 3 imágenes (JPG, PNG o WEBP, máx. 2MB cada una).
+                        </span>
+                    </label>
+
+                    {{-- FOTOS YA GUARDADAS --}}
+                    @if ($comentario->imagenes->isNotEmpty())
+                        <div class="mb-2">
+                            <span class="text-muted small d-block mb-1">
+                                Fotos actuales asociadas a este comentario:
+                            </span>
+
+                            <div class="d-flex flex-wrap gap-2">
+                                @foreach ($comentario->imagenes as $img)
+                                    @php
+                                        $imgUrl = Storage::url($img->ruta);
+                                    @endphp
+
+                                    <div class="border rounded-3 p-1 bg-light" style="width: 110px;">
+                                        <a href="#" data-bs-toggle="modal"
+                                            data-bs-target="#modalImagenComentario{{ $img->id }}">
+                                            <img src="{{ $imgUrl }}"
+                                                alt="Foto del comentario #{{ $comentario->id }}"
+                                                class="img-fluid rounded-2"
+                                                style="height: 90px; object-fit: cover; width: 100%;">
+                                        </a>
+                                    </div>
+
+                                    {{-- Modal para ver la imagen en grande --}}
+                                    <div class="modal fade" id="modalImagenComentario{{ $img->id }}" tabindex="-1"
+                                        aria-hidden="true">
+                                        <div class="modal-dialog modal-dialog-centered modal-lg">
+                                            <div class="modal-content">
+                                                <div class="modal-body p-0">
+                                                    <img src="{{ $imgUrl }}"
+                                                        alt="Foto del comentario #{{ $comentario->id }}"
+                                                        class="img-fluid w-100"
+                                                        style="max-height: 80vh; object-fit: contain;">
+                                                </div>
+                                                <div class="modal-footer justify-content-between">
+                                                    <span class="small text-muted">
+                                                        Imagen asociada al comentario #{{ $comentario->id }}
+                                                    </span>
+                                                    <button type="button" class="btn btn-secondary btn-sm"
+                                                        data-bs-dismiss="modal">
+                                                        Cerrar
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
+
+                            <span class="text-muted small d-block mt-1">
+                                Si no subes nuevas imágenes, estas se mantendrán.
+                                Si subes nuevas, se sustituirán por las que elijas ahora.
+                            </span>
+                        </div>
+                    @endif
+
+
+                    {{-- INPUT PARA SUBIR NUEVAS IMÁGENES --}}
+                    <input type="file" name="imagenes[]"
+                        class="form-control @error('imagenes') is-invalid @enderror @error('imagenes.*') is-invalid @enderror"
+                        multiple accept="image/jpeg,image/png,image/webp">
+
+                    @error('imagenes')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+
+                    @error('imagenes.*')
+                        <div class="invalid-feedback">{{ $message }}</div>
+                    @enderror
+                </div>
+
 
                 <div class="alert alert-info small">
                     Al guardar los cambios, tu comentario volverá a estado
