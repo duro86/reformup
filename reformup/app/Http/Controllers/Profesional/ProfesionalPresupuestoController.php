@@ -31,15 +31,20 @@ class ProfesionalPresupuestoController extends Controller
                 ->with('error', 'No tienes permisos para esta sección');
         }
 
-        $estado = $request->query('estado');            // enviado, aceptado, rechazado, caducado, null
-        $q      = trim((string) $request->query('q'));  // texto buscador
+        $estado = $request->query('estado');             // enviado, aceptado, rechazado, caducado, null
+        $q      = trim((string) $request->query('q'));   // texto buscador
+
+        // Estados desde el modelo (sin "Todos")
+        $estados = Presupuesto::ESTADOS;
 
         $query = Presupuesto::with(['solicitud.cliente'])
             ->where('pro_id', $perfil->id);
 
-        // Filtro por estado
-        if (! empty($estado)) {
-            $query->where('estado', $estado);
+        // Filtro por estado SOLO si es válido
+        if ($estado !== null && $estado !== '') {
+            if (array_key_exists($estado, Presupuesto::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
         }
 
         // Buscador
@@ -67,13 +72,11 @@ class ProfesionalPresupuestoController extends Controller
             });
         }
 
-        // 🔹 Filtro por rango de fechas: ar 'fecha' 
+        // Filtro por rango de fechas: usamos 'fecha'
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
-        // Si created_at:
-        // $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
 
         $presupuestos = $query
-            ->orderByDesc('fecha')     // o 'created_at' 
+            ->orderByDesc('fecha')   // o created_at 
             ->paginate(6)
             ->withQueryString();
 
@@ -81,10 +84,11 @@ class ProfesionalPresupuestoController extends Controller
             'presupuestos' => $presupuestos,
             'estado'       => $estado,
             'q'            => $q,
-            'estados'      => Presupuesto::ESTADOS,
+            'estados'      => $estados,
             'perfil'       => $perfil,
         ]);
     }
+
 
     /**
      * Formulario para crear un presupuesto a partir de una solicitud concreta.

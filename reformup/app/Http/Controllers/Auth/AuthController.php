@@ -262,10 +262,10 @@ class AuthController extends Controller
 
         // Mensaje: lo limpiamos con Purifier usando el perfil "solicitud" que ya tienes
         $mensajeLimpio = Purifier::clean($validated['mensaje'], 'solicitud');
-
-        // 3) Enviar email al administrador (pon tu correo real)
+        
+        // 3) Enviar email al administrador 
         try {
-            Mail::to('admin@reformup.es') // cámbialo por tu email real
+            Mail::to('admin@reformup.es') 
                 ->send(new ContactoWebMailable(
                     $nombre,
                     $email,
@@ -277,9 +277,14 @@ class AuthController extends Controller
             return back()->with('success', 'Tu mensaje se ha enviado correctamente. El administrador revisará tu correo en breve.');
         } catch (\Throwable $e) {
             // Si algo revienta (SMTP, etc.)
-            return back()
+           /* return back()
                 ->withInput()
-                ->with('error', 'Ha ocurrido un problema al enviar el mensaje. Inténtalo de nuevo más tarde.');
+                ->with('error', 'Ha ocurrido un problema al enviar el mensaje. Inténtalo de nuevo más tarde.');*/
+                  dd(
+        $e->getMessage(),
+        $e->getFile(),
+        $e->getLine()
+    );
         }
     }
 }

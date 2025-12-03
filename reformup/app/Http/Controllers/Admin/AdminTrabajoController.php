@@ -9,7 +9,9 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\Admin\TrabajoModificadoPorAdminMailable;
 use App\Mail\Admin\TrabajoCanceladoPorAdminMailable;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
-
+use App\Exports\TrabajosExport;
+use Maatwebsite\Excel\Facades\Excel;
+use Illuminate\Support\Facades\Auth;
 
 
 class AdminTrabajoController extends Controller
@@ -26,6 +28,8 @@ class AdminTrabajoController extends Controller
         $estado = $request->query('estado');           // previsto, en_curso, finalizado, cancelado o null
         $q      = trim((string) $request->query('q')); // texto buscador
 
+        $estados = [null => 'Todas'] + Trabajo::ESTADOS;
+
         $query = Trabajo::with([
             'presupuesto.solicitud.cliente',
             'presupuesto.solicitud.profesional',
@@ -33,8 +37,10 @@ class AdminTrabajoController extends Controller
         ]);
 
         // Filtro por estado (si viene)
-        if (! empty($estado)) {
-            $query->where('estado', $estado);
+        if ($estado !== null && $estado !== '') {
+            if (array_key_exists($estado, Trabajo::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
         }
 
         // Filtro por buscador de texto
@@ -73,18 +79,19 @@ class AdminTrabajoController extends Controller
             });
         }
 
-        // 🔹 Filtro por rango de fechas (reutilizable)
+        // Filtro por rango de fechas (reutilizable)
         // Aquí tiene sentido usar 'fecha_ini' como referencia del trabajo
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha_ini');
 
         $trabajos = $query
             ->orderByDesc('fecha_ini')
-            ->paginate(6)
+            ->paginate(5)
             ->withQueryString();         // mantiene q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.trabajos.index', [
             'trabajos' => $trabajos,
             'estado'   => $estado,
+            'estados'   => $estados,
             'q'        => $q,
         ]);
     }
@@ -504,5 +511,25 @@ class AdminTrabajoController extends Controller
                 'Error al eliminar el trabajo. Revisa los datos o consulta el log.'
             );
         }
+    }
+
+    /**
+     * Exportar trabajos en excel para admin
+     */
+    public function exportarTrabajosExcel(Request $request)
+    {
+        $user = Auth::user();
+
+        // Por si acaso alguien llega aquí sin pasar bien el middleware
+        if (!$user) {
+            abort(403, 'No tienes permiso para exportar trabajos.');
+        }
+
+        $fileName = 'trabajos-' . now()->format('Ymd-His') . '.xlsx';
+
+        return Excel::download(
+            new TrabajosExport($request),
+            $fileName
+        );
     }
 }

@@ -22,60 +22,40 @@
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
-            {{-- Buscador combinado: texto + fechas + estado + puntuación --}}
-            <form method="GET" action="{{ route('usuario.comentarios.index') }}" class="mb-3">
+            {{-- Buscador combinado: texto + fechas --}}
+            <form method="GET" action="{{ route('usuario.comentarios.index') }}" class="row g-2 mb-3">
 
-                {{-- ===== FILA 1: texto + fechas + estado + botones ===== --}}
-                <div class="row g-2 mb-1">
-
-                    {{-- Texto libre --}}
-                    <div class="col-12 col-md-4 col-lg-3">
-                        <input type="text" name="q" value="{{ request('q') }}"
-                            class="form-control form-control-sm"
-                            placeholder="Buscar por trabajo, profesional, opinión o estado...">
-                    </div>
-
-                    {{-- Rango de fechas reutilizable --}}
-                    @include('partials.filtros.rango_fechas')
-
-                    {{-- Estado --}}
-                    <div class="col-6 col-md-2 col-lg-2">
-                        <select name="estado" class="form-select form-select-sm">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente" {{ request('estado') === 'pendiente' ? 'selected' : '' }}>Pendiente
-                            </option>
-                            <option value="publicado" {{ request('estado') === 'publicado' ? 'selected' : '' }}>Publicado
-                            </option>
-                            <option value="rechazado" {{ request('estado') === 'rechazado' ? 'selected' : '' }}>Rechazado
-                            </option>
-                        </select>
-                    </div>
-
-                    {{-- Botón Buscar --}}
-                    <div class="col-6 col-md-2 col-lg-2 d-grid">
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="bi bi-search"></i> Buscar
-                        </button>
-                    </div>
-
-                    {{-- Botón Limpiar --}}
-                    <div class="col-6 col-md-2 col-lg-2 d-grid">
-                        @if (request('q') ||
-                                request('estado') ||
-                                request('fecha_desde') ||
-                                request('fecha_hasta') ||
-                                request('puntuacion_min') ||
-                                request('puntuacion_max'))
-                            <a href="{{ route('usuario.comentarios.index') }}" class="btn btn-sm btn-outline-secondary">
-                                Limpiar
-                            </a>
-                        @endif
-                    </div>
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por trabajo, profesional, opinión o estado...">
                 </div>
 
-                {{-- ===== FILA 2: filtros de puntuación ===== --}}
-                <div class="row g-2">
+                {{-- Rango de fechas (fecha del comentario) --}}
+                @include('partials.filtros.rango_fechas')
 
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') ||
+                            request('estado') ||
+                            request('fecha_desde') ||
+                            request('fecha_hasta') ||
+                            request('puntuacion_min') ||
+                            request('puntuacion_max'))
+                        <a href="{{ route('usuario.comentarios.index') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+                {{-- Fila extra para filtros de puntuación --}}
+                <div class="row g-2 mb-3">
                     <div class="col-12 col-md-3 col-lg-2 d-flex align-items-center">
                         <small class="text-muted">
                             Filtrar por puntuación:
@@ -93,10 +73,58 @@
                         <input type="number" name="puntuacion_max" value="{{ request('puntuacion_max') }}"
                             class="form-control form-control-sm" min="1" max="5" placeholder="Máx">
                     </div>
-
                 </div>
             </form>
 
+            {{-- Filtros por estado (pills) --}}
+            @if (isset($estados) && is_array($estados))
+                <ul class="nav nav-pills mb-3">
+                    {{-- Pestaña "Todos" --}}
+                    <li class="nav-item">
+                        @php
+                            $urlTodos = route(
+                                'usuario.comentarios.index',
+                                array_filter([
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                    'puntuacion_min' => request('puntuacion_min'),
+                                    'puntuacion_max' => request('puntuacion_max'),
+                                    // sin 'estado'
+                                ]),
+                            );
+                        @endphp
+
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                            href="{{ $urlTodos }}">
+                            Todos
+                        </a>
+                    </li>
+
+                    {{-- Pestañas por cada estado del modelo --}}
+                    @foreach ($estados as $valor => $texto)
+                        @php
+                            $urlEstado = route(
+                                'usuario.comentarios.index',
+                                array_filter([
+                                    'estado' => $valor,
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                    'puntuacion_min' => request('puntuacion_min'),
+                                    'puntuacion_max' => request('puntuacion_max'),
+                                ]),
+                            );
+                        @endphp
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                                {{ $texto }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
 
 
             @if ($comentarios->isEmpty())

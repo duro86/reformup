@@ -26,12 +26,12 @@ class AdminSolicitudController extends Controller
      */
     public function index(Request $request)
     {
+
         $q      = trim((string) $request->query('q'));
-        $estado = $request->query('estado'); // abierta / en_revision / cerrada / cancelada / null
+        $estado = $request->query('estado');
 
         // Usamos la constante del modelo como base
-        // Añadimos opción "Todas"
-        $estados = [null => 'Todas'] + Solicitud::ESTADOS;
+        $estados = Solicitud::ESTADOS;
 
         $query = Solicitud::with(['cliente', 'profesional']);
 
@@ -70,14 +70,14 @@ class AdminSolicitudController extends Controller
         // --- Orden y paginación ---
         $solicitudes = $query
             ->orderByDesc('fecha')
-            ->paginate(6)
+            ->paginate(5)
             ->withQueryString(); // conserva q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.solicitudes.index', [
             'solicitudes' => $solicitudes,
             'q'           => $q,
             'estado'      => $estado,
-            'estados'     => $estados,
+            'estados'      => $estados,
         ]);
     }
 
@@ -99,7 +99,6 @@ class AdminSolicitudController extends Controller
         $perfilPro = $solicitud->profesional;
 
         // Escogemos un presupuesto “asociado principal”
-        // (ajusta la lógica si usas campo estado = 'aceptado', etc.)
         $presupuestoAsociado = $solicitud->presupuestos->first();
         $trabajoAsociado     = $presupuestoAsociado?->trabajo;
 
@@ -137,14 +136,14 @@ class AdminSolicitudController extends Controller
                     'provincia'        => $perfilPro->provincia,
                 ] : null,
 
-                // 🔹 Presupuesto asociado (si hay)
+                //  Presupuesto asociado (si hay)
                 'presupuesto' => $presupuestoAsociado ? [
                     'id'     => $presupuestoAsociado->id,
                     'estado' => $presupuestoAsociado->estado ?? null,
                     'total'  => $presupuestoAsociado->total ?? null,
                 ] : null,
 
-                // 🔹 Trabajo asociado (si hay)
+                //  Trabajo asociado (si hay)
                 'trabajo' => $trabajoAsociado ? [
                     'id'        => $trabajoAsociado->id,
                     'estado'    => $trabajoAsociado->estado ?? null,
@@ -161,6 +160,9 @@ class AdminSolicitudController extends Controller
         return view('layouts.admin.solicitudes.mostrar', compact('solicitud'));
     }
 
+    /**
+     * Editar una solicitud por parte del admin
+     */
     public function editar(Solicitud $solicitud)
     {
         // No dejamos editar si ya está cerrada o cancelada
@@ -183,13 +185,14 @@ class AdminSolicitudController extends Controller
      */
     public function actualizar(Request $request, Solicitud $solicitud)
     {
-        // Bloqueamos edición de cerradas / canceladas
-        if (in_array($solicitud->estado, ['cerrada', 'cancelada'])) {
+        // 0) Bloqueamos edición de cerradas / canceladas
+        if (in_array($solicitud->estado, ['cerrada', 'cancelada'], true)) {
             return redirect()
                 ->route('admin.solicitudes')
                 ->with('error', 'No puedes editar una solicitud cerrada o cancelada.');
         }
 
+        // 1) Validación básica de campos
         $validated = $request->validate([
             'titulo'          => 'required|string|max:255',
             'descripcion'     => 'nullable|string',
@@ -202,40 +205,93 @@ class AdminSolicitudController extends Controller
         $oldEstado = $solicitud->estado;
         $newEstado = $validated['estado'];
 
-        // Cargamos relaciones para ver si hay presupuesto / trabajo asociados
+        // 2) Cargamos relaciones
         $solicitud->load('presupuestos.trabajo', 'cliente', 'presupuestos.profesional');
 
-        // “Presupuesto principal” = primero (ajusta si tienes campo específico)
+        // Presupuesto "principal" (ajusta si luego tienes un campo específico)
         $presupuesto = $solicitud->presupuestos->first();
         $trabajo     = $presupuesto?->trabajo;
 
-        // Referencias comunes
         $cliente   = $solicitud->cliente;
         $perfilPro = $presupuesto?->profesional;
 
+        // Flag para saber si auto-aceptamos un presupuesto al cerrar
+        $presupuestoAutoAceptado = false;
+
         /**
-         * 1) Si el admin ha cambiado el estado a cancelada → lógica de cancelación completa
+         * REGLA 1:
+         * Pasar a "en_revision" → debe existir al menos un presupuesto "enviado".
+         */
+        if ($newEstado === 'en_revision' && $oldEstado !== 'en_revision') {
+            $tienePresupuestoEnviado = $solicitud->presupuestos
+                ->contains(fn($p) => $p->estado === 'enviado');
+
+            if (! $tienePresupuestoEnviado) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Para pasar la solicitud a en revisión debe existir al menos un presupuesto en estado enviado.');
+            }
+        }
+
+        /**
+         * REGLA 2:
+         * Pasar a "cerrada":
+         *  - Si ya hay un presupuesto "aceptado" → ok.
+         *  - Si no lo hay pero sí uno "enviado" → lo marcamos como "aceptado".
+         *  - Si no hay ni aceptado ni enviado → no dejamos cerrar.
+         */
+        if ($newEstado === 'cerrada' && $oldEstado !== 'cerrada') {
+            // ¿Hay alguno aceptado?
+            $presupuestoAceptado = $solicitud->presupuestos
+                ->firstWhere('estado', 'aceptado');
+
+            if ($presupuestoAceptado) {
+                // Usamos ese como principal
+                $presupuesto = $presupuestoAceptado;
+                $trabajo     = $presupuestoAceptado->trabajo;
+                $perfilPro   = $presupuestoAceptado->profesional;
+            } else {
+                // ¿Hay alguno enviado que podamos auto-aceptar?
+                $presupuestoEnviado = $solicitud->presupuestos
+                    ->firstWhere('estado', 'enviado');
+
+                if ($presupuestoEnviado) {
+                    $presupuestoEnviado->estado = 'aceptado';
+                    $presupuestoEnviado->save();
+
+                    $presupuesto             = $presupuestoEnviado;
+                    $trabajo                 = $presupuestoEnviado->trabajo;
+                    $perfilPro               = $presupuestoEnviado->profesional;
+                    $presupuestoAutoAceptado = true;
+                } else {
+                    // Ni aceptado ni enviado → no tiene sentido cerrar
+                    return back()
+                        ->withInput()
+                        ->with('error', 'Para cerrar la solicitud debe existir al menos un presupuesto en estado aceptado o uno enviado que puedas aceptar.');
+                }
+            }
+        }
+
+        /**
+         * 3) Cambio a "cancelada" → lógica de cancelación completa
          */
         if ($newEstado === 'cancelada' && $oldEstado !== 'cancelada') {
 
-            // Cancelamos solicitud
             $solicitud->fill($validated);
             $solicitud->estado = 'cancelada';
             $solicitud->save();
 
-            // Presupuesto asociado → rechazado
             if ($presupuesto) {
                 $presupuesto->estado = 'rechazado';
                 $presupuesto->save();
             }
 
-            // Trabajo asociado → cancelado (por si acaso lo hubiera)
             if ($trabajo) {
                 $trabajo->estado = 'cancelado';
                 $trabajo->save();
             }
 
-            // 4) Email al cliente
+            // Email al cliente
             if ($cliente && $cliente->email) {
                 try {
                     Mail::to($cliente->email)->send(
@@ -256,13 +312,13 @@ class AdminSolicitudController extends Controller
                 }
             }
 
-            // 5) Email al profesional (si lo hay)
+            // Email al profesional
             if ($perfilPro && $perfilPro->email_empresa) {
                 try {
                     Mail::to($perfilPro->email_empresa)->send(
                         new SolicitudModificadaPorAdminMailable(
                             $solicitud,
-                            null,          // cliente null → correo adaptado para el profesional
+                            null,
                             $presupuesto,
                             $trabajo,
                             $perfilPro,
@@ -283,14 +339,21 @@ class AdminSolicitudController extends Controller
         }
 
         /**
-         * 2) Cualquier otra edición “normal”
+         * 4) Edición “normal” (incluye pasar a en_revision o cerrada)
          */
         $solicitud->fill($validated);
         $solicitud->save();
 
+        // Mensaje base
+        $mensajeSuccess = 'Solicitud actualizada correctamente y correos enviados.';
+
+        // Si hemos auto-aceptado el presupuesto al cerrar, cambiamos el mensaje
+        if ($newEstado === 'cerrada' && $presupuestoAutoAceptado) {
+            $mensajeSuccess = 'Solicitud cerrada. El presupuesto enviado se ha marcado automáticamente como aceptado y se han enviado los correos.';
+        }
+
         // En ediciones normales también avisamos a cliente y profesional (si existen)
         try {
-            // Email al cliente
             if ($cliente && $cliente->email) {
                 Mail::to($cliente->email)->send(
                     new SolicitudModificadaPorAdminMailable(
@@ -298,25 +361,27 @@ class AdminSolicitudController extends Controller
                         $cliente,
                         $presupuesto,
                         $trabajo,
-                        $perfilPro
+                        $perfilPro,
+                        $oldEstado,
+                        $newEstado
                     )
                 );
             }
 
-            // Email al profesional
             if ($perfilPro && $perfilPro->email_empresa) {
                 Mail::to($perfilPro->email_empresa)->send(
                     new SolicitudModificadaPorAdminMailable(
                         $solicitud,
-                        null,       // cliente null
+                        null,
                         $presupuesto,
                         $trabajo,
-                        $perfilPro
+                        $perfilPro,
+                        $oldEstado,
+                        $newEstado
                     )
                 );
             }
         } catch (\Throwable $e) {
-            // Si el correo falla, no rompemos la edición, solo avisamos
             return redirect()
                 ->route('admin.solicitudes')
                 ->with('error', 'La solicitud se ha actualizado, pero ha fallado el envío de los correos.');
@@ -324,10 +389,14 @@ class AdminSolicitudController extends Controller
 
         return redirect()
             ->route('admin.solicitudes')
-            ->with('success', 'Solicitud actualizada correctamente y correos enviados.');
+            ->with('success', $mensajeSuccess);
     }
 
 
+
+    /**
+     * Cancelar solicitud por parte del admin
+     */
     public function cancelar(Request $request, Solicitud $solicitud)
     {
         $solicitud->load('cliente', 'profesional', 'presupuestos.trabajo');

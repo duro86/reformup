@@ -28,24 +28,33 @@ class UsuarioComentarioController extends Controller
         $user = Auth::user();
 
         if (! $user) {
-            return redirect()->route('login')
+            return redirect()
+                ->route('login')
                 ->with('error', 'Debes iniciar sesión para ver tus comentarios.');
         }
 
-        $q              = trim((string) $request->input('q'));
-        $estado         = $request->input('estado');        // pendiente | publicado | rechazado | null
-        $puntuacionMin  = $request->input('puntuacion_min');
-        $puntuacionMax  = $request->input('puntuacion_max');
+        // Estados posibles para el select / filtros
+         // Estados disponibles desde el modelo (sin "Todos")
+        $estados = Comentario::ESTADOS;
 
+        // Parámetros de filtro
+        $q             = trim((string) $request->query('q'));
+        $estado        = $request->query('estado');          // pendiente | publicado | rechazado | null
+        $puntuacionMin = $request->query('puntuacion_min');
+        $puntuacionMax = $request->query('puntuacion_max');
+
+        // Base: comentarios de este cliente
         $query = Comentario::with([
             'trabajo.presupuesto.solicitud',
             'trabajo.presupuesto.profesional',
         ])
             ->where('cliente_id', $user->id);
 
-        //  Filtro por estado (si lo envían)
-        if (! empty($estado)) {
-            $query->where('estado', $estado);
+        //  Filtro por estado (solo si es uno válido)
+        if ($estado !== null && $estado !== '') {
+            if (array_key_exists($estado, $estados)) {
+                $query->where('estado', $estado);
+            }
         }
 
         //  Buscador de texto
@@ -65,43 +74,56 @@ class UsuarioComentarioController extends Controller
                     })
                     // Opinión
                     ->orWhere('opinion', 'like', $like)
-                    // Estado
+                    // Estado (por si el usuario escribe "publicado" en el buscador)
                     ->orWhere('estado', 'like', $like);
             });
         }
 
         //  Filtro por puntuación mínima / máxima
+        $pMin = null;
+        $pMax = null;
+
         if ($puntuacionMin !== null && $puntuacionMin !== '') {
-            $query->where('puntuacion', '>=', (int) $puntuacionMin);
+            $pMin = (int) $puntuacionMin;
+            if ($pMin < 1) $pMin = 1;
+            if ($pMin > 5) $pMin = 5;
         }
 
         if ($puntuacionMax !== null && $puntuacionMax !== '') {
-            $query->where('puntuacion', '<=', (int) $puntuacionMax);
+            $pMax = (int) $puntuacionMax;
+            if ($pMax < 1) $pMax = 1;
+            if ($pMax > 5) $pMax = 5;
         }
 
-        // Filtro por rango de fechas (usamos la columna fecha del comentario)
+        // Si ambos están definidos y el min > max, los intercambiamos
+        if ($pMin !== null && $pMax !== null && $pMin > $pMax) {
+            [$pMin, $pMax] = [$pMax, $pMin];
+        }
+
+        if ($pMin !== null) {
+            $query->where('puntuacion', '>=', $pMin);
+        }
+
+        if ($pMax !== null) {
+            $query->where('puntuacion', '<=', $pMax);
+        }
+
+        //  Filtro por rango de fechas (columna 'fecha' del comentario)
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
 
         $comentarios = $query
-            ->orderByDesc('fecha')   // si a veces es null, podrías usar created_at
+            ->orderByDesc('fecha')     // si a veces es null, puedes cambiar a created_at
             ->paginate(5)
             ->withQueryString();
 
-        // Para poder pintar un select/pills de estados en la vista 
-        $estados = [
-            'pendiente' => 'Pendientes',
-            'publicado' => 'Publicados',
-            'rechazado' => 'Rechazados',
-        ];
-
         return view('layouts.usuario.comentarios.index', [
-            'comentarios'     => $comentarios,
-            'user'            => $user,
-            'q'               => $q,
-            'estado'          => $estado,
-            'estados'         => $estados,
-            'puntuacionMin'   => $puntuacionMin,
-            'puntuacionMax'   => $puntuacionMax,
+            'comentarios'   => $comentarios,
+            'user'          => $user,
+            'q'             => $q,
+            'estado'        => $estado,
+            'estados'       => $estados,
+            'puntuacionMin' => $puntuacionMin,
+            'puntuacionMax' => $puntuacionMax,
         ]);
     }
 

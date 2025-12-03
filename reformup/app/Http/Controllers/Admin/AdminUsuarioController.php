@@ -62,6 +62,11 @@ class AdminUsuarioController extends Controller
     // Exportar todos los usuarios a PDF
     public function exportarUsuariosPdf()
     {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('admin')) { // o el método que uses
+            abort(403, 'No tienes permiso para exportar usuarios.');
+        }
         // Sacamos TODOS los usuarios, sin paginación
         $usuarios = User::orderBy('created_at', 'asc')->get();
 
@@ -82,6 +87,11 @@ class AdminUsuarioController extends Controller
      */
     public function exportarUsuariosPaginaPdf(Request $request)
     {
+        $user = Auth::user();
+
+        if (!$user || !$user->hasRole('admin')) { // o el método que uses
+            abort(403, 'No tienes permiso para exportar usuarios.');
+        }
         $pagina    = (int) $request->input('page', 1);
         $porPagina = 5;
         $busqueda  = $request->input('q');
@@ -425,7 +435,7 @@ class AdminUsuarioController extends Controller
         }
 
         // Ahora sí borramos el usuario
-        $usuario->delete(); 
+        $usuario->delete();
 
         return redirect()
             ->route('admin.usuarios')

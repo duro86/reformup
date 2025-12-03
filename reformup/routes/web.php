@@ -71,8 +71,5 @@ Route::post('/contacto', [AuthController::class, 'contactoEnviar'])->name('conta
 //Politica de privacidad
 Route::view('/politica-de-privacidad', 'legal.privacidad')->name('privacidad');
 
-
-
-
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
     ->name('admin.prueba');*/

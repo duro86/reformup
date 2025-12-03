@@ -56,35 +56,50 @@
             </form>
 
             {{-- Filtros por estado --}}
-            <ul class="nav nav-pills mb-3">
-                {{-- Todos --}}
-                @php
-                    $paramsBase = request()->except('page', 'estado');
-                    $urlTodos = route('profesional.trabajos.index', $paramsBase);
-                @endphp
-                <li class="nav-item">
-                    <a class="nav-link {{ $estado === null ? 'active' : '' }}" href="{{ $urlTodos }}">
-                        Todos
-                    </a>
-                </li>
-
-                {{-- ESTADOS DEL MODELO --}}
-                @foreach ($estados as $valor => $texto)
-                    @php
-                        $params = request()->except('page', 'estado');
-                        $params['estado'] = $valor;
-
-                        $urlEstado = route('profesional.trabajos.index', $params);
-                    @endphp
+            @if (isset($estados) && is_array($estados))
+                <ul class="nav nav-pills mb-3">
+                    {{-- Pestaña "Todos" --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
-                            {{ $texto }}
+                        @php
+                            $urlTodos = route(
+                                'profesional.trabajos.index',
+                                array_filter([
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                    // sin 'estado'
+                                ]),
+                            );
+                        @endphp
+
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                            href="{{ $urlTodos }}">
+                            Todos
                         </a>
                     </li>
-                @endforeach
-            </ul>
 
+                    {{-- Pestañas por cada estado del modelo --}}
+                    @foreach ($estados as $valor => $texto)
+                        @php
+                            $urlEstado = route(
+                                'profesional.trabajos.index',
+                                array_filter([
+                                    'estado' => $valor,
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                ]),
+                            );
+                        @endphp
 
+                        <li class="nav-item">
+                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                                {{ $texto }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
 
 
             @if ($trabajos->isEmpty())

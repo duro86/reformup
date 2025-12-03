@@ -29,7 +29,8 @@ class ProfesionalComentarioController extends Controller
 
         // Texto de búsqueda
         $q = trim((string) $request->query('q'));
-        // Puntuación mínima
+
+        // Puntuación mínima (1-5) en string desde la request
         $puntuacionMin = $request->query('puntuacion_min');
 
         // Base: solo comentarios de este profesional, publicados y visibles
@@ -43,7 +44,7 @@ class ProfesionalComentarioController extends Controller
             ->where('estado', 'publicado')
             ->where('visible', true);
 
-        // Buscador por texto
+        // 🔍 Buscador por texto
         if ($q !== '') {
             $like = '%' . $q . '%';
 
@@ -66,23 +67,27 @@ class ProfesionalComentarioController extends Controller
                     ->orWhere('opinion', 'like', $like);
             });
         }
-        //  Filtro por puntuación mínima
+
+        //  Filtro por puntuación mínima (validando rango 1–5)
         if ($puntuacionMin !== null && $puntuacionMin !== '') {
-            $query->where('puntuacion', '>=', (int) $puntuacionMin);
+            $pMin = (int) $puntuacionMin;
+
+            if ($pMin >= 1 && $pMin <= 5) {
+                $query->where('puntuacion', '>=', $pMin);
+            }
         }
 
         //  Filtro por rango de fechas (usamos la columna fecha del comentario)
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
 
-
         $comentarios = $query
             ->orderByDesc('fecha')
             ->paginate(6)
-            ->withQueryString(); // mantiene q + fechas en la paginación
+            ->withQueryString(); // mantiene q + fechas + puntuación en la paginación
 
-        // Solo ven publicados
+        // Para mantener la firma de otras vistas (aunque aquí no filtramos por estado)
         $estado  = null;
-        $estados = []; // Variables en vista
+        $estados = [];
 
         return view('layouts.profesional.comentarios.index', compact(
             'comentarios',

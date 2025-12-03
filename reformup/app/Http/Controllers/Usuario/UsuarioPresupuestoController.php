@@ -9,7 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\PresupuestoRechazadoPorClienteMailable;
 
 class UsuarioPresupuestoController extends Controller
 {
@@ -178,14 +179,39 @@ class UsuarioPresupuestoController extends Controller
             return back()->with('error', 'Solo puedes rechazar presupuestos en estado enviado.');
         }
 
+        // validamos motivo si existe
+        $validated = $request->validate([
+            'motivo' => 'nullable|string|max:500',
+        ]);
+
         try {
+            // Cambiar estado del presupuesto
             $presupuesto->estado = 'rechazado';
             $presupuesto->fecha  = now();
             $presupuesto->save();
 
+            // Cambiar la solicitud a cancelada
+            $solicitud = $presupuesto->solicitud;
+            if ($solicitud) {
+                $solicitud->estado = 'cancelada';
+                $solicitud->save();
+            }
+
+            // Enviar email al profesional
+            $pro = $presupuesto->profesional;
+
+            if ($pro && $pro->email_empresa) {
+                Mail::to($pro->email_empresa)->send(
+                    new PresupuestoRechazadoPorClienteMailable(
+                        $presupuesto,
+                        $user,
+                        $validated['motivo'] ?? null
+                    )
+                );
+            }
+
             return back()->with('success', 'Has rechazado el presupuesto.');
         } catch (\Throwable $e) {
-            // \Log::error($e->getMessage());
             return back()->with('error', 'Ha ocurrido un error al rechazar el presupuesto.');
         }
     }

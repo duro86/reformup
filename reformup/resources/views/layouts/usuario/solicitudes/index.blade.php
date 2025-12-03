@@ -157,7 +157,7 @@
                                         {{ $solicitud->provincia ? ' ' . $solicitud->provincia : '' }}
                                         @if ($solicitud->ciudad)
                                             - {{ $solicitud->ciudad }}
-                                        @endif                                  
+                                        @endif
                                     </td>
 
                                     {{-- Estado --}}
@@ -335,7 +335,10 @@
 
 
                                     {{-- Versión móvil --}}
-                                    <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
+                                    @if ($solicitud->estado == 'abierta')
+                                        <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
+                                    @endif
+
 
                                     {{-- Eliminar --}}
                                     <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />

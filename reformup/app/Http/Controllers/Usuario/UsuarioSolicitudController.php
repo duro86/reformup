@@ -399,4 +399,6 @@ class UsuarioSolicitudController extends Controller
             return back()->with('error', 'Ha ocurrido un error al eliminar la solicitud.');
         }
     }
+
+    
 }

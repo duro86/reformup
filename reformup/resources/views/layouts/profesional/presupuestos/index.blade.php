@@ -25,16 +25,6 @@
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
-            @php
-                $estados = [
-                    null => 'Todos',
-                    'enviado' => 'Enviados',
-                    'aceptado' => 'Aceptados',
-                    'rechazado' => 'Rechazados',
-                    'caducado' => 'Caducados',
-                ];
-            @endphp
-
             {{-- Buscador combinado: campos + fechas --}}
             <form method="GET" action="{{ route('profesional.presupuestos.index') }}" class="row g-2 mb-3">
                 {{-- Búsqueda por texto --}}
@@ -64,30 +54,51 @@
             </form>
 
             {{-- Filtros por estado --}}
-            <ul class="nav nav-pills mb-3">
-                @foreach ($estados as $valor => $texto)
-                    @php
-                        $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-
-                        // Conservamos q + fechas al cambiar de estado
-                        $params = request()->except('page', 'estado');
-
-                        if (!is_null($valor)) {
-                            $params['estado'] = $valor;
-                        } else {
-                            unset($params['estado']);
-                        }
-
-                        $url = route('profesional.presupuestos.index', $params);
-                    @endphp
-
+            @if (isset($estados) && is_array($estados))
+                <ul class="nav nav-pills mb-3">
+                    {{-- Pestaña "Todos" --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
-                            {{ $texto }}
+                        @php
+                            $urlTodos = route(
+                                'profesional.presupuestos.index',
+                                array_filter([
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                    // sin 'estado'
+                                ]),
+                            );
+                        @endphp
+
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                            href="{{ $urlTodos }}">
+                            Todos
                         </a>
                     </li>
-                @endforeach
-            </ul>
+
+                    {{-- Pestañas por cada estado del modelo --}}
+                    @foreach ($estados as $valor => $texto)
+                        @php
+                            $urlEstado = route(
+                                'profesional.presupuestos.index',
+                                array_filter([
+                                    'estado' => $valor,
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                ]),
+                            );
+                        @endphp
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                                {{ $texto }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
 
 
             {{-- Lista de presupuestos --}}
@@ -104,7 +115,7 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th class="bg-secondary">Solicitud</th>
+                                <th class="bg-secondary">Presupuesto</th>
                                 <th class="bg-secondary">Cliente</th>
                                 <th class="bg-secondary">Importe</th>
                                 <th class="bg-secondary text-center">Estado</th>

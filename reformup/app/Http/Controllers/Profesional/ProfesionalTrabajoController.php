@@ -40,80 +40,75 @@ class ProfesionalTrabajoController extends Controller
     public function index(Request $request)
     {
         $user   = Auth::user();
-        $perfil = $user->perfil_Profesional; // relación del profesional
+        $perfil = $user->perfil_Profesional;
 
         if (! $perfil) {
-            return redirect()->route('home')
-                ->with('error', 'No puedes acceder a esta sección.');
+            return redirect()
+                ->back()
+                ->with('error', 'No tienes permisos para esta sección');
         }
 
-        // Filtros
-        $estado = $request->query('estado');           // previsto, en_curso, finalizado, cancelado o null
-        $q      = trim((string) $request->query('q')); // texto del buscador
+        // Estado del trabajo: previsto / en_curso / finalizado / cancelado / null
+        $estado = $request->query('estado');
+        $q      = trim((string) $request->query('q'));   // texto buscador
 
-        $trabajosQuery = Trabajo::with([
-            'presupuesto.solicitud.cliente',
-            'presupuesto.profesional',
-        ])
-            ->whereHas('presupuesto', function ($q2) use ($perfil) {
-                $q2->where('pro_id', $perfil->id);
+        // Estados disponibles desde el modelo (sin "Todos")
+        $estados = Trabajo::ESTADOS;
+
+        // Base: SOLO trabajos de este profesional
+
+        $query = Trabajo::with(['presupuesto.solicitud.cliente'])
+            ->whereHas('presupuesto', function ($qPro) use ($perfil) {
+                $qPro->where('pro_id', $perfil->id);
             });
 
-        // Filtro por estado (solo si viene algo)
+        // Filtro por estado (solo si es válido)
         if ($estado !== null && $estado !== '') {
-            $trabajosQuery->where('estado', $estado);
+            if (array_key_exists($estado, Trabajo::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
         }
 
         // Filtro por buscador
         if ($q !== '') {
             $like = '%' . $q . '%';
 
-            $trabajosQuery->where(function ($sub) use ($like) {
-
-                // Buscar por título / ciudad / provincia de la solicitud
-                $sub->whereHas('presupuesto.solicitud', function ($q3) use ($like) {
-                    $q3->where('titulo', 'like', $like)
+            $query->where(function ($sub) use ($like) {
+                // Por título / ciudad / provincia (desde la solicitud del presupuesto)
+                $sub->whereHas('presupuesto.solicitud', function ($q2) use ($like) {
+                    $q2->where('titulo', 'like', $like)
                         ->orWhere('ciudad', 'like', $like)
                         ->orWhere('provincia', 'like', $like);
                 })
-                    // Buscar por datos del cliente
-                    ->orWhereHas('presupuesto.solicitud.cliente', function ($q4) use ($like) {
-                        $q4->where('nombre', 'like', $like)
+                    // Por cliente
+                    ->orWhereHas('presupuesto.solicitud.cliente', function ($q3) use ($like) {
+                        $q3->where('nombre', 'like', $like)
                             ->orWhere('apellidos', 'like', $like)
                             ->orWhere('email', 'like', $like);
                     })
-                    // Buscar por estado del trabajo
+                    // Por estado del trabajo
                     ->orWhere('estado', 'like', $like)
-                    // Opcional: buscar por importe del presupuesto
-                    ->orWhereHas('presupuesto', function ($q5) use ($like) {
-                        $q5->whereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
+                    // Por importe (total del presupuesto asociado, casteado a texto)
+                    ->orWhereHas('presupuesto', function ($q4) use ($like) {
+                        $q4->whereRaw('CAST(total AS CHAR) LIKE ?', [$like]);
                     });
             });
         }
 
-        // Filtro por rango de fechas 
-        $this->aplicarFiltroRangoFechas($trabajosQuery, $request, 'created_at');
-        // $this->aplicarFiltroRangoFechas($trabajosQuery, $request, 'fecha_ini');
+        // Filtro por rango de fechas (creación del trabajo)
+        $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
 
-        $trabajos = $trabajosQuery
-            ->orderByDesc('created_at') // o 'fecha_ini' si cambias arriba
-            ->paginate(5)
-            ->withQueryString(); // mantiene ?q=, ?estado=, fechas, etc.
-
-        // Array de estados para las pills
-        $estados = Trabajo::ESTADOS ?? [
-            'previsto'   => 'Previstos',
-            'en_curso'   => 'En curso',
-            'finalizado' => 'Finalizados',
-            'cancelado'  => 'Cancelados',
-        ];
+        $trabajos = $query
+            ->orderByDesc('created_at')   // o 'fecha_ini' 
+            ->paginate(6)
+            ->withQueryString();
 
         return view('layouts.profesional.trabajos.index', [
             'trabajos' => $trabajos,
-            'perfil'   => $perfil,
             'estado'   => $estado,
             'q'        => $q,
             'estados'  => $estados,
+            'perfil'   => $perfil,
         ]);
     }
 
@@ -322,5 +317,26 @@ class ProfesionalTrabajoController extends Controller
 
         // Respuesta de éxito
         return back()->with('success', 'Has cancelado el trabajo correctamente. El cliente ha sido notificado.');
+    }
+
+    /**
+     * General token para consulta datos apì
+     */
+    public function generarTokenApi()
+    {
+        $user = Auth::user();
+
+        if (! $user->hasRole('profesional')) {
+            abort(403);
+        }
+
+        // Opcional: eliminar tokens antiguos con este nombre
+        $user->tokens()->where('name', 'token-movil-profesional')->delete();
+
+        // Crear un nuevo token
+        $token = $user->createToken('token-movil-profesional')->plainTextToken;
+
+        // Devolver el token a la vista mediante mensaje flash
+        return back()->with('token_api', $token);
     }
 }

@@ -13,7 +13,7 @@
             Puede que el enlace esté roto, la página ya no exista o se haya movido de sitio.
         </p>
 
-        <a href="{{ url('home') }}" class="btn btn-primary">
+        <a href="{{ url('/') }}" class="btn btn-primary">
             Volver al inicio
         </a>
     </div>

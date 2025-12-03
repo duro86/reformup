@@ -36,7 +36,7 @@ class Trabajo extends Model
 
     public const ESTADOS = [
         'previsto' => 'Previstos',
-        'en_curso' => 'En cursos',
+        'en_curso' => 'En curso',
         'finalizado' => 'Finalizados',
         'cancelado' => 'Cancelados',
     ];

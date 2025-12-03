@@ -134,9 +134,8 @@
             <h5 class="fw-semibold mb-2">Opinión del cliente</h5>
 
             <template v-if="comentario.visible">
-              <p v-if="comentario.opinion" class="mb-0">
-                {{ comentario.opinion }}
-              </p>
+              <p v-if="comentario.opinion" class="mb-0" v-html="comentario.opinion"></p>
+
               <p v-else class="text-muted mb-0">
                 El cliente no ha escrito opinión, solo puntuación.
               </p>

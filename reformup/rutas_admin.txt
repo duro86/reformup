@@ -1,0 +1,56 @@
+
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/admin/usuarios/exportar_pagina[39m[38;2;108;114;128m admin.usuarios.exportarPaginaPdf › Admin\AdminUsuarioController@exportarUsuariosP…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/comentarios[39m[38;2;108;114;128m ........................................... admin.comentarios › Admin\AdminComentarioController@index[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/comentarios/[39m[33m{comentario}[39m[38;2;108;114;128m .................... admin.comentarios.mostrar › Admin\AdminComentarioController@mostrar[39m
+  [33mPUT[39m       [37madmin/comentarios/[39m[33m{comentario}[39m[38;2;108;114;128m .............. admin.comentarios.actualizar › Admin\AdminComentarioController@actualizar[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/comentarios/[39m[33m{comentario}[39m[37m/editar[39m[38;2;108;114;128m ............... admin.comentarios.editar › Admin\AdminComentarioController@editar[39m
+  [33mPATCH[39m     [37madmin/comentarios/[39m[33m{comentario}[39m[37m/rechazar[39m[38;2;108;114;128m ......... admin.comentarios.rechazar › Admin\AdminComentarioController@rechazar[39m
+  [33mPATCH[39m     [37madmin/comentarios/[39m[33m{comentario}[39m[37m/toggle-publicado[39m[38;2;108;114;128m admin.comentarios.toggle_publicado › Admin\AdminComentarioController@t…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/dashboard[39m[38;2;108;114;128m ................................................ admin.dashboard › Admin\AdminDashboardController@index[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/perfil[39m[38;2;108;114;128m .............................................. admin.perfil › Admin\AdminDashboardController@mostrarPerfil[39m
+  [33mPUT[39m       [37madmin/perfil[39m[38;2;108;114;128m ................................ admin.perfil.actualizar › Admin\AdminDashboardController@actualizarPerfil[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/presupuestos[39m[38;2;108;114;128m ........................................ admin.presupuestos › Admin\AdminPresupuestoController@index[39m
+  [33mPOST[39m      [37madmin/presupuestos[39m[38;2;108;114;128m ................ admin.presupuestos.guardar › Admin\AdminPresupuestoController@guardarDesdeSolicitud[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/presupuestos/crear[39m[38;2;108;114;128m .............. admin.presupuestos.crear › Admin\AdminPresupuestoController@crearDesdeSolicitud[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/presupuestos/seleccionar-solicitud[39m[38;2;108;114;128m admin.presupuestos.seleccionar_solicitud › Admin\AdminPresupuestoController@s…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/presupuestos/[39m[33m{presupuesto}[39m[38;2;108;114;128m ................ admin.presupuestos.mostrar › Admin\AdminPresupuestoController@mostrar[39m
+  [33mPUT[39m       [37madmin/presupuestos/[39m[33m{presupuesto}[39m[38;2;108;114;128m .......... admin.presupuestos.actualizar › Admin\AdminPresupuestoController@actualizar[39m
+  [33mPATCH[39m     [37madmin/presupuestos/[39m[33m{presupuesto}[39m[37m/cancelar[39m[38;2;108;114;128m ..... admin.presupuestos.cancelar › Admin\AdminPresupuestoController@cancelar[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/presupuestos/[39m[33m{presupuesto}[39m[37m/editar[39m[38;2;108;114;128m ........... admin.presupuestos.editar › Admin\AdminPresupuestoController@editar[39m
+  [31mDELETE[39m    [37madmin/presupuestos/[39m[33m{presupuesto}[39m[37m/eliminar[39m[38;2;108;114;128m admin.presupuestos.eliminar_admin › Admin\AdminPresupuestoController@elimina…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/profesionales/exportar-pdf[39m[38;2;108;114;128m admin.profesionales.exportar_pdf_pagina › Admin\ProfesionalPerfilController@exportarP…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/profesionales/exportar-todos-pdf[39m[38;2;108;114;128m admin.profesionales.exportar_todos_pdf › Admin\ProfesionalPerfilController@expo…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/profesionales/profesionales[39m[38;2;108;114;128m ......... admin.profesionales › Admin\ProfesionalPerfilController@listarProfesionales[39m
+  [33mPUT[39m       [37madmin/profesionales/[39m[33m{id}[39m[38;2;108;114;128m ..... admin.profesionales.actualizar › Admin\ProfesionalPerfilController@actualizarProfesional[39m
+  [31mDELETE[39m    [37madmin/profesionales/[39m[33m{id}[39m[38;2;108;114;128m ......... admin.profesionales.eliminar › Admin\ProfesionalPerfilController@eliminarProfesional[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/profesionales/[39m[33m{id}[39m[37m/editar[39m[38;2;108;114;128m ...... admin.profesionales.editar › Admin\ProfesionalPerfilController@editarProfesional[39m
+  [33mPATCH[39m     [37madmin/profesionales/[39m[33m{perfil}[39m[37m/toggle-visible[39m[38;2;108;114;128m admin.profesionales.toggle_visible › Admin\ProfesionalPerfilController@tog…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/profesionales/[39m[33m{profesional}[39m[38;2;108;114;128m .................... admin.profesionales.ver › Admin\ProfesionalPerfilController@show[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/registrar/cliente[39m[38;2;108;114;128m ...... admin.form.registrar.cliente › Admin\AdminUsuarioController@mostrarFormAdminUsuarioNuevo[39m
+  [33mPOST[39m      [37madmin/registrar/cliente[39m[38;2;108;114;128m ...................... admin.registrar.cliente › Admin\AdminUsuarioController@crearUsuarioNuevo[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/registrar/profesional[39m[38;2;108;114;128m admin.form.registrar.profesional › Admin\ProfesionalPerfilController@mostrarFormAdminProNu…[39m
+  [33mPOST[39m      [37madmin/registrar/profesional[39m[38;2;108;114;128m ............. admin.registrar.profesional › Admin\ProfesionalPerfilController@crearProNuevo[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/solicitudes[39m[38;2;108;114;128m ............................................ admin.solicitudes › Admin\AdminSolicitudController@index[39m
+  [33mPOST[39m      [37madmin/solicitudes[39m[38;2;108;114;128m .................................. admin.solicitudes.guardar › Admin\AdminSolicitudController@guardar[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/solicitudes/crear[39m[38;2;108;114;128m ................................ admin.solicitudes.crear › Admin\AdminSolicitudController@crear[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/solicitudes/[39m[33m{solicitud}[39m[38;2;108;114;128m ...................... admin.solicitudes.mostrar › Admin\AdminSolicitudController@mostrar[39m
+  [33mPUT[39m       [37madmin/solicitudes/[39m[33m{solicitud}[39m[38;2;108;114;128m ................ admin.solicitudes.actualizar › Admin\AdminSolicitudController@actualizar[39m
+  [33mPATCH[39m     [37madmin/solicitudes/[39m[33m{solicitud}[39m[37m/cancelar[39m[38;2;108;114;128m ........... admin.solicitudes.cancelar › Admin\AdminSolicitudController@cancelar[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/solicitudes/[39m[33m{solicitud}[39m[37m/editar[39m[38;2;108;114;128m ................. admin.solicitudes.editar › Admin\AdminSolicitudController@editar[39m
+  [31mDELETE[39m    [37madmin/solicitudes/[39m[33m{solicitud}[39m[37m/eliminar[39m[38;2;108;114;128m admin.solicitudes.eliminar_admin › Admin\AdminSolicitudController@eliminarSolic…[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/trabajos[39m[38;2;108;114;128m .................................................... admin.trabajos › Admin\AdminTrabajoController@index[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/trabajos/exportar-excel[39m[38;2;108;114;128m ...... admin.trabajos.exportar_excel › Admin\AdminTrabajoController@exportarTrabajosExcel[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/trabajos/[39m[33m{trabajo}[39m[38;2;108;114;128m ................................ admin.trabajos.mostrar › Admin\AdminTrabajoController@mostrar[39m
+  [33mPUT[39m       [37madmin/trabajos/[39m[33m{trabajo}[39m[38;2;108;114;128m .......................... admin.trabajos.actualizar › Admin\AdminTrabajoController@actualizar[39m
+  [33mPATCH[39m     [37madmin/trabajos/[39m[33m{trabajo}[39m[37m/cancelar[39m[38;2;108;114;128m ..................... admin.trabajos.cancelar › Admin\AdminTrabajoController@cancelar[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/trabajos/[39m[33m{trabajo}[39m[37m/editar[39m[38;2;108;114;128m ........................... admin.trabajos.editar › Admin\AdminTrabajoController@editar[39m
+  [31mDELETE[39m    [37madmin/trabajos/[39m[33m{trabajo}[39m[37m/eliminar[39m[38;2;108;114;128m ... admin.trabajos.eliminar_admin › Admin\AdminTrabajoController@eliminarTrabajoAdmin[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/usuarios[39m[38;2;108;114;128m ........................................... admin.usuarios › Admin\AdminUsuarioController@listarUsuarios[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/usuarios/export/pdf[39m[38;2;108;114;128m .............. admin.usuarios.exportar.pdf › Admin\AdminUsuarioController@exportarUsuariosPdf[39m
+  [33mPUT[39m       [37madmin/usuarios/[39m[33m{id}[39m[38;2;108;114;128m ........................ admin.usuarios.actualizar › Admin\AdminUsuarioController@actualizarUsuario[39m
+  [31mDELETE[39m    [37madmin/usuarios/[39m[33m{id}[39m[38;2;108;114;128m ............................ admin.usuarios.eliminar › Admin\AdminUsuarioController@eliminarUsuario[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/usuarios/[39m[33m{id}[39m[37m/editar[39m[38;2;108;114;128m ......................... admin.usuarios.editar › Admin\AdminUsuarioController@editarUsuario[39m
+  [34mGET[39m[38;2;108;114;128m|[39m[38;2;108;114;128mHEAD[39m  [37madmin/usuarios/[39m[33m{usuario}[39m[38;2;108;114;128m .................................... admin.usuarios.ver › Admin\AdminUsuarioController@mostrar[39m
+
+                                                                                                                [34;1mShowing [52] routes[39;22m
+

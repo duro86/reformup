@@ -18,26 +18,29 @@ class ProfesionalSolicitudController extends Controller
     public function index(Request $request)
     {
         $user   = Auth::user();
-        $perfil = $user->perfil_Profesional; // relación 1:1 con Perfil_Profesional
+        $perfil = $user->perfil_Profesional;
 
-        // Si no tiene perfil profesional, fuera
         if (! $perfil) {
-            return redirect()->route('home')
+            return redirect()
+                ->route('home')
                 ->with('error', 'No puedes acceder a las solicitudes sin un perfil profesional.');
         }
 
-        // Filtros
-        $estado = $request->query('estado');            
-        // abierta / en_revision / cerrada / cancelada / null
-        $q      = trim((string) $request->query('q'));  // texto buscador
+        $estado = $request->query('estado');             // abierta / en_revision / cerrada / cancelada / null
+        $q      = trim((string) $request->query('q'));   // texto buscador
+
+        // Estados disponibles desde el modelo (sin "Todas")
+        $estados = Solicitud::ESTADOS;
 
         // Base: SOLO solicitudes dirigidas a este profesional
-        $query = Solicitud::with(['cliente']) // al pro le interesa ver al cliente
+        $query = Solicitud::with(['cliente'])
             ->where('pro_id', $perfil->id);
 
-        // Filtro por estado
-        if (! empty($estado)) {
-            $query->where('estado', $estado);
+        // Filtro por estado (solo si es válido)
+        if ($estado !== null && $estado !== '') {
+            if (array_key_exists($estado, Solicitud::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
         }
 
         // Filtro por buscador
@@ -57,14 +60,11 @@ class ProfesionalSolicitudController extends Controller
             });
         }
 
-        // Filtro por rango de fechas 
+        // Filtro por rango de fechas (columna fecha de la solicitud)
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
-        // Si alguna solicitud no tiene 'fecha' y solo usar created_at:
-        // $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
 
-        // Orden + paginación
         $solicitudes = $query
-            ->orderByDesc('fecha')   // o 'created_at' si cambias arriba
+            ->orderByDesc('fecha')
             ->paginate(5)
             ->withQueryString();
 
@@ -72,10 +72,11 @@ class ProfesionalSolicitudController extends Controller
             'solicitudes' => $solicitudes,
             'estado'      => $estado,
             'q'           => $q,
-            'estados'     => Solicitud::ESTADOS ?? [], // por si usamos la constante
+            'estados'     => $estados,   // sin null, solo los del modelo
             'perfil'      => $perfil,
         ]);
     }
+
 
 
     /**

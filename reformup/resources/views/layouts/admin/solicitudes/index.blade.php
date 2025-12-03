@@ -14,7 +14,7 @@
         {{-- Nav móvil admin --}}
         <x-admin.nav_movil active="solicitudes" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
             {{-- Título + botón nueva --}}
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
@@ -60,38 +60,53 @@
                 </div>
             </form>
 
-            {{-- Filtros por estado --}}
-            @if (isset($estados) && is_array($estados))
-                <ul class="nav nav-pills mb-3">
-                    @foreach ($estados as $valor => $texto)
-                        @php
-                            // $estado viene del controlador
-                            $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
+            {{-- Filtros por estado Buscador por estado --}}
+            <ul class="nav nav-pills mb-3">
+                {{-- Todos --}}
+                <li class="nav-item">
+                    @php
+                        $urlTodos = route(
+                            'admin.solicitudes',
+                            array_filter([
+                                'q' => request('q'),
+                                'fecha_desde' => request('fecha_desde'),
+                                'fecha_hasta' => request('fecha_hasta'),
+                               
+                            ]),
+                        );
+                    @endphp
+                    <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}" href="{{ $urlTodos }}">
+                        Todas
+                    </a>
+                </li>
 
-                            // Conservamos la query 'q' y el resto de filtros al cambiar de estado
-                            $url =
-                                $valor !== null && $valor !== ''
-                                    ? route(
-                                        'admin.solicitudes', // <- OJO, aquí ruta de solicitudes
-                                        array_merge(request()->except('page'), ['estado' => $valor]),
-                                    )
-                                    : route('admin.solicitudes', request()->except('page', 'estado'));
-                        @endphp
+                {{-- ESTADOS DEL MODELO --}}
+                @foreach ($estados as $valor => $texto)
+                    @php
+                        $urlEstado = route(
+                            'admin.solicitudes',
+                            array_filter([
+                                'estado' => $valor,
+                                'q' => request('q'),
+                                'fecha_desde' => request('fecha_desde'),
+                                'fecha_hasta' => request('fecha_hasta'),
+                            ]),
+                        );
+                    @endphp
 
-                        <li class="nav-item">
-                            <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
-                                {{ $texto }}
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
-
+                    <li class="nav-item">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                            {{ $texto }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
 
 
             @if ($solicitudes->isEmpty())
                 <div class="alert alert-info">
-                    No hay solicitudes registradas todavía.
+                    No hay solicitudes
+                    {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'registrados todavía.' }}
                 </div>
             @else
                 {{-- ===================================================== --}}

@@ -17,10 +17,9 @@
         <input type="hidden" name="motivo_eliminacion" value="">
 
         <button type="button"
-                class="btn btn-danger btn-sm w-auto d-flex justify-content-center align-items-center gap-1 btn-confirmar-eliminar"
+                class="btn btn-danger btn-sm w-100 d-flex justify-content-center align-items-center gap-1 btn-confirmar-eliminar"
                 data-titulo="{{ $titulo }}">
-            <i class="bi bi-trash"></i>
-            <span class="d-none d-md-inline">Eliminar</span>
+            <i class="bi bi-trash"><span class="d-md-inline">Eliminar</span></i>      
         </button>
     </form>
 @else

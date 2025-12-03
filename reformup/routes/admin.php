@@ -138,6 +138,7 @@ Route::middleware(['rol.redirigir:admin'])->prefix('admin')
 
         Route::put('/solicitudes/{solicitud}', [AdminSolicitudController::class, 'actualizar'])
             ->name('solicitudes.actualizar');
+
         // Eliminar SOLICITUD por parte del admin
         Route::delete(
             '/solicitudes/{solicitud}/eliminar',
@@ -148,18 +149,18 @@ Route::middleware(['rol.redirigir:admin'])->prefix('admin')
         Route::get('/presupuestos', [AdminPresupuestoController::class, 'index'])
             ->name('presupuestos');
 
-        Route::get('/presupuestos/{presupuesto}', [AdminPresupuestoController::class, 'mostrar'])
-            ->name('presupuestos.mostrar');
-
-        // Seleccionar solicitud para crear un nuevo presupuesto (ADMIN)
+        // --Seleccionar solicitud para crear un nuevo presupuesto (ADMIN)--
         Route::get('/presupuestos/seleccionar-solicitud', [AdminPresupuestoController::class,     'seleccionarSolicitudParaNuevo',])
             ->name('presupuestos.seleccionar_solicitud');
 
-        Route::get('/presupuestos/crear', [AdminPresupuestoController::class, 'crearDesdeSolicitud'])
+        Route::get('/presupuestos/crear/{solicitud}', [AdminPresupuestoController::class, 'crearDesdeSolicitud'])
             ->name('presupuestos.crear');
-
-        Route::post('/presupuestos', [AdminPresupuestoController::class, 'guardarDesdeSolicitud'])
+        Route::post('/presupuestos/{solicitud}', [AdminPresupuestoController::class, 'guardarDesdeSolicitud'])
             ->name('presupuestos.guardar');
+
+        Route::get('/presupuestos/{presupuesto}', [AdminPresupuestoController::class, 'mostrar'])
+            ->name('presupuestos.mostrar');
+
 
         Route::patch('/presupuestos/{presupuesto}/cancelar', [AdminPresupuestoController::class, 'cancelar'])
             ->name('presupuestos.cancelar');
@@ -181,6 +182,9 @@ Route::middleware(['rol.redirigir:admin'])->prefix('admin')
         // ----- LISTADO TRABAJOS (ADMIN) -----
         Route::get('/trabajos', [AdminTrabajoController::class, 'index'])
             ->name('trabajos');
+
+        Route::get('/trabajos/exportar-excel', [AdminTrabajoController::class, 'exportarTrabajosExcel'])
+            ->name('trabajos.exportar_excel');
 
         // MOSTRAR (para modal)
         Route::get('/trabajos/{trabajo}', [AdminTrabajoController::class, 'mostrar'])

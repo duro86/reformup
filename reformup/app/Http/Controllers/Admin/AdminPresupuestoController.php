@@ -26,16 +26,18 @@ class AdminPresupuestoController extends Controller
     public function index(Request $request)
     {
         $estado = $request->query('estado');
-        $q      = $request->query('q');
+        $q      = trim((string) $request->query('q')); // texto buscador
 
-        $estados = [null => 'Todas'] + Presupuesto::ESTADOS;
+        $estados = Presupuesto::ESTADOS;
 
         // Empezamos la consulta base
         $query = Presupuesto::with(['solicitud.cliente', 'profesional']);
 
-        // ----- Filtro por estado -----
-        if ($estado) {
-            $query->where('estado', $estado);
+        // Filtro por estado (si viene)
+        if ($estado !== null && $estado !== '') {
+            if (array_key_exists($estado, Presupuesto::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
         }
 
         // ----- Filtro por búsqueda libre (tu lógica tal cual) -----
@@ -69,21 +71,21 @@ class AdminPresupuestoController extends Controller
         }
 
         // ----- Filtro por rango de fechas (usando el trait) -----
-        // Aquí puedes usar 'created_at' o 'fecha', según lo que te interese
         $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
-        // Si prefieres por la columna 'fecha' del presupuesto:
+        // por la columna 'fecha' del presupuesto:
         // $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
 
         // ----- Paginación -----
         $presupuestos = $query
             ->orderByDesc('created_at')   // o 'fecha' si has usado 'fecha' arriba
-            ->paginate(6)
+            ->paginate(5)
             ->withQueryString();          // conserva q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.presupuestos.index', [
             'presupuestos' => $presupuestos,
             'estados'      => $estados,
             'estado'       => $estado,
+            'q'           => $q
         ]);
     }
 
@@ -174,7 +176,7 @@ class AdminPresupuestoController extends Controller
             })
             ->with(['cliente', 'profesional'])
             ->orderByDesc('created_at')
-            ->paginate(10);
+            ->paginate(5);
 
         return view('layouts.admin.presupuestos.seleccionar_solicitud', [
             'solicitudes' => $solicitudes,
@@ -186,18 +188,29 @@ class AdminPresupuestoController extends Controller
      */
     public function crearDesdeSolicitud(Solicitud $solicitud)
     {
-        // Solo permitir abierta / en revisión
-        if (! in_array($solicitud->estado, ['abierta', 'en_revision'])) {
+
+        //dd($solicitud);
+        $estado = $solicitud->estado; // puede ser null
+        // Si tiene estado, lo validamos. Si es null, lo dejamos pasar.
+        if ($estado !== null && ! in_array($estado, ['abierta', 'en_revision'], true)) {
             return redirect()
                 ->route('admin.solicitudes')
                 ->with('error', 'Sólo puedes presupuestar solicitudes abiertas o en revisión.');
         }
 
-        // Debe tener profesional asignado
         if (! $solicitud->pro_id || ! $solicitud->profesional) {
             return redirect()
-                ->route('admin.solicitudes', $solicitud)
+                ->route('admin.solicitudes')
                 ->with('error', 'La solicitud no tiene un profesional asignado.');
+        }
+
+        if ($solicitud->presupuestos()
+            ->where('estado', '!=', 'rechazado')
+            ->exists()
+        ) {
+            return redirect()
+                ->route('admin.solicitudes')
+                ->with('error', 'Esta solicitud ya tiene un presupuesto activo.');
         }
 
         $solicitud->load('cliente', 'profesional');
@@ -212,24 +225,36 @@ class AdminPresupuestoController extends Controller
      */
     public function guardarDesdeSolicitud(Request $request, Solicitud $solicitud)
     {
-        // Misma protección básica que en crear
+
+        // Misma protección básica que en "crear"
         if (! in_array($solicitud->estado, ['abierta', 'en_revision'])) {
             return redirect()
-                ->route('admin.solicitudes')
+                ->route('admin.presupuestos')
                 ->with('error', 'Sólo puedes presupuestar solicitudes abiertas o en revisión.');
         }
 
         if (! $solicitud->pro_id || ! $solicitud->profesional) {
             return redirect()
-                ->route('admin.solicitudes.mostrar', $solicitud)
+                ->route('admin.presupuestos', $solicitud)
                 ->with('error', 'La solicitud no tiene un profesional asignado.');
+        }
+
+        // Opcional: evitar duplicar presupuestos activos
+        if ($solicitud->presupuestos()
+            ->where('estado', '!=', 'rechazado')
+            ->exists()
+        ) {
+            return redirect()
+                ->route('admin.presupuestos', $solicitud)
+                ->with('error', 'Esta solicitud ya tiene un presupuesto activo.');
         }
 
         $modo = $request->input('modo', 'lineas'); // 'archivo' | 'lineas'
 
-        $rutaPdf = null;
-        $total   = 0;
-        $notas   = $request->input('notas');
+        $rutaPdf       = null;
+        $total         = 0;
+        $notas         = $request->input('notas');
+        $notas_limpias = $notas ? strip_tags($notas) : null; // viene de CKEditor
 
         if ($modo === 'archivo') {
             // ======= MODO 1: subir PDF/Word ya hecho =======
@@ -246,8 +271,9 @@ class AdminPresupuestoController extends Controller
                 'total.min'         => 'El importe no puede ser negativo.',
             ]);
 
-            $total = $validated['total'];
-            $notas = $validated['notas'] ?? null;
+            $total         = $validated['total'];
+            $notas         = $validated['notas'] ?? null;
+            $notas_limpias = $notas ? strip_tags($notas) : null;
 
             $file = $request->file('docu_pdf');
             $dir  = 'presupuestos/documentos/' . now()->format('Ymd');
@@ -257,8 +283,8 @@ class AdminPresupuestoController extends Controller
             $safe = Str::slug($base);
             $name = $safe . '-' . Str::random(8) . '.' . $ext;
 
-            Storage::disk('public')->makeDirectory($dir);
-            $file->storeAs($dir, $name, 'public');
+            Storage::disk('private')->makeDirectory($dir);
+            $file->storeAs($dir, $name, 'private');
 
             $rutaPdf = $dir . '/' . $name;
         } else {
@@ -272,13 +298,15 @@ class AdminPresupuestoController extends Controller
                 'precio_unitario.*'  => ['nullable', 'numeric', 'min:0'],
                 'notas'              => ['nullable', 'string', 'max:2000'],
             ], [
-                'concepto.required' => 'Debes añadir al menos una línea de presupuesto.',
-                'concepto.array'    => 'Formato de líneas no válido.',
-                'cantidad.array'        => 'Formato de cantidades no válido.',
-                'precio_unitario.array' => 'Formato de precios no válido.',
+                'concepto.required'      => 'Debes añadir al menos una línea de presupuesto.',
+                'concepto.array'         => 'Formato de líneas no válido.',
+                'cantidad.array'         => 'Formato de cantidades no válido.',
+                'precio_unitario.array'  => 'Formato de precios no válido.',
             ]);
 
             $notas         = $validated['notas'] ?? null;
+            $notas_limpias = $notas ? strip_tags($notas) : null;
+
             $subtotal      = 0;
             $lineasValidas = 0;
             $lineas        = [];
@@ -293,7 +321,6 @@ class AdminPresupuestoController extends Controller
                 $precio   = $precios[$i] ?? null;
 
                 if ($concepto !== '' && $cantidad !== null && $precio !== null && $cantidad > 0 && $precio >= 0) {
-
                     $importeLinea = $cantidad * $precio;
                     $subtotal    += $importeLinea;
                     $lineasValidas++;
@@ -320,25 +347,29 @@ class AdminPresupuestoController extends Controller
             $ivaImporte    = $subtotal * $ivaPorcentaje / 100;
             $total         = $subtotal + $ivaImporte;
 
-            // Generar PDF desde la vista (la misma que el profesional)
+            // Generar PDF desde la misma vista que profesional
             $pdf = Pdf::loadView('layouts.profesional.presupuestos.pdf.presupuesto', [
-                'profesional'        => $solicitud->profesional, // aquí usamos el profesional de la solicitud
-                'solicitud'          => $solicitud,
-                'lineas'             => $lineas,
-                'subtotal'           => $subtotal,
-                'ivaPorcentaje'      => $ivaPorcentaje,
-                'ivaImporte'         => $ivaImporte,
-                'total'              => $total,
-                'notas'              => $notas,
-                'presupuestoNumero'  => null,
+                'profesional'       => $solicitud->profesional,
+                'solicitud'         => $solicitud,
+                'lineas'            => $lineas,
+                'subtotal'          => $subtotal,
+                'ivaPorcentaje'     => $ivaPorcentaje,
+                'ivaImporte'        => $ivaImporte,
+                'total'             => $total,
+                'notas'             => $notas_limpias,
+                'presupuestoNumero' => null,
             ]);
 
             $dir  = 'presupuestos/generados/' . now()->format('Ymd');
-            $safe = Str::slug('presupuesto-solicitud-' . $solicitud->id);
+            $base = 'presupuesto-solicitud-' . $solicitud->id;
+            if (! empty($solicitud->profesional?->empresa)) {
+                $base .= '-' . $solicitud->profesional->empresa;
+            }
+            $safe = Str::slug($base);
             $name = $safe . '-' . Str::random(8) . '.pdf';
 
-            Storage::disk('public')->makeDirectory($dir);
-            Storage::disk('public')->put($dir . '/' . $name, $pdf->output());
+            Storage::disk('private')->makeDirectory($dir);
+            Storage::disk('private')->put($dir . '/' . $name, $pdf->output());
 
             $rutaPdf = $dir . '/' . $name;
         }
@@ -346,16 +377,15 @@ class AdminPresupuestoController extends Controller
         // ==== Guarda el presupuesto en BBDD ====
         try {
             Presupuesto::create([
-                'pro_id'       => $solicitud->pro_id,   //pro_id del profesional de la solicitud
+                'pro_id'       => $solicitud->pro_id,   // profesional de la solicitud
                 'solicitud_id' => $solicitud->id,
                 'total'        => $total,
-                'notas'        => $notas,
+                'notas'        => $notas_limpias,
                 'estado'       => 'enviado',
                 'docu_pdf'     => $rutaPdf,
                 'fecha'        => now(),
             ]);
 
-            // Igual que en profesional: si estaba abierta → en_revision
             if ($solicitud->estado === 'abierta') {
                 $solicitud->estado = 'en_revision';
                 $solicitud->save();
@@ -370,7 +400,6 @@ class AdminPresupuestoController extends Controller
                 ->with('error', 'Ha ocurrido un error al guardar el presupuesto.');
         }
     }
-
 
     /**
      * Cancelar presupuesto por parte del admin

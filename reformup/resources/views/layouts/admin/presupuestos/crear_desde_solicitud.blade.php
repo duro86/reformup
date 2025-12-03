@@ -10,7 +10,7 @@
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-4">
 
-            {{-- Botón volver (ajusta la ruta si prefieres volver a solicitudes) --}}
+            {{-- Botón volver --}}
             <a href="{{ route('admin.presupuestos') }}" class="btn btn-secondary btn-sm mb-3">
                 Volver a presupuestos
             </a>
@@ -56,7 +56,7 @@
 
                     <p class="mb-0">
                         <strong>Descripción:</strong><br>
-                        {{ $solicitud->descripcion }}
+                        {!! $solicitud->descripcion !!} {{-- Etiquetas CKEditor --}}
                     </p>
                 </div>
             </div>
@@ -65,10 +65,16 @@
             <div class="card">
                 <div class="card-body">
 
-                    {{-- Mensajes flash --}}
+                    {{-- Mensaje de error general (el primero) --}}
+                    @if ($errors->any())
+                        <div class="alert alert-danger">
+                            {{ $errors->first() }}
+                        </div>
+                    @endif
+
                     <x-alertas.alertasFlash />
 
-                    <form method="POST" action="{{ route('admin.solicitudes.presupuestos.guardar', $solicitud) }}"
+                    <form method="POST" action="{{ route('admin.presupuestos.guardar', $solicitud) }}"
                         enctype="multipart/form-data">
                         @csrf
 
@@ -106,7 +112,6 @@
                         {{-- LÍNEAS (concepto / cantidad / precio) --}}
                         <h2 class="h6 mb-3">Líneas de presupuesto</h2>
 
-                        {{-- Guardamos errores en las lineas --}}
                         @php
                             $hasConceptoError = $errors->has('concepto') || $errors->has('concepto.*');
                             $hasCantidadError = $errors->has('cantidad') || $errors->has('cantidad.*');
@@ -119,97 +124,109 @@
                             $numLineas = max(1, count($oldConceptos));
                         @endphp
 
-                        <div id="lineas-presupuesto">
-                            {{-- Lineas añadir productos --}}
-                            @for ($i = 0; $i < $numLineas; $i++)
-                                <div class="row g-2 mb-2 linea-item">
-                                    <div class="col-md-6">
-                                        <input type="text" name="concepto[]" value="{{ $oldConceptos[$i] ?? '' }}"
-                                            class="form-control {{ $hasConceptoError ? 'is-invalid' : '' }}"
-                                            placeholder="Concepto (ej: Mano de obra, Materiales, etc.)">
+                        {{-- BLOQUE LÍNEAS --}}
+                        <div id="bloque-lineas">
+                            <div id="lineas-presupuesto">
+                                @for ($i = 0; $i < $numLineas; $i++)
+                                    <div class="row g-2 mb-2 linea-item">
+                                        <div class="col-md-6">
+                                            <input type="text" name="concepto[]" value="{{ $oldConceptos[$i] ?? '' }}"
+                                                class="form-control {{ $hasConceptoError ? 'is-invalid' : '' }}"
+                                                placeholder="Concepto (ej: Mano de obra, Materiales, etc.)">
+                                        </div>
+                                        <div class="col-md-2">
+                                            <input type="number" name="cantidad[]" step="1" min="1"
+                                                value="{{ $oldCantidades[$i] ?? '' }}"
+                                                class="form-control {{ $hasCantidadError ? 'is-invalid' : '' }}"
+                                                placeholder="Cant.">
+                                        </div>
+                                        <div class="col-md-3">
+                                            <input type="number" name="precio_unitario[]" step="0.01" min="0"
+                                                value="{{ $oldPrecios[$i] ?? '' }}"
+                                                class="form-control {{ $hasPrecioError ? 'is-invalid' : '' }}"
+                                                placeholder="Precio €/u">
+                                        </div>
+                                        <div class="col-md-1 d-flex justify-content-end">
+                                            <button type="button" class="btn btn-outline-danger btn-sm btn-remove-linea"
+                                                title="Eliminar línea">
+                                                &times;
+                                            </button>
+                                        </div>
                                     </div>
-                                    <div class="col-md-2">
-                                        <input type="number" name="cantidad[]" step="1" min="1"
-                                            value="{{ $oldCantidades[$i] ?? '' }}"
-                                            class="form-control {{ $hasCantidadError ? 'is-invalid' : '' }}"
-                                            placeholder="Cant.">
-                                    </div>
-                                    <div class="col-md-3">
-                                        <input type="number" name="precio_unitario[]" step="0.01" min="0"
-                                            value="{{ $oldPrecios[$i] ?? '' }}"
-                                            class="form-control {{ $hasPrecioError ? 'is-invalid' : '' }}"
-                                            placeholder="Precio €/u">
-                                    </div>
-                                    <div class="col-md-1 d-flex justify-content-end">
-                                        <button type="button" class="btn btn-outline-danger btn-sm btn-remove-linea"
-                                            title="Eliminar línea">
-                                            &times;
-                                        </button>
-                                    </div>
-                                </div>
-                            @endfor
-
-                        </div>
-
-                        {{-- Mensajes de error de las líneas --}}
-                        @if ($hasConceptoError || $hasCantidadError || $hasPrecioError)
-                            <div class="invalid-feedback d-block mb-2">
-                                {{ $errors->first('concepto') ??
-                                    ($errors->first('concepto.*') ??
-                                        ($errors->first('cantidad') ??
-                                            ($errors->first('cantidad.*') ??
-                                                ($errors->first('precio_unitario') ?? $errors->first('precio_unitario.*'))))) }}
+                                @endfor
                             </div>
-                        @endif
 
-                        {{-- Botón añadir línea --}}
-                        <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="btn-add-linea">
-                            Añadir línea
-                        </button>
+                            {{-- Mensajes de error de las líneas --}}
+                            @if ($hasConceptoError || $hasCantidadError || $hasPrecioError)
+                                <div class="invalid-feedback d-block mb-2">
+                                    {{ $errors->first('concepto') ??
+                                        ($errors->first('concepto.*') ??
+                                            ($errors->first('cantidad') ??
+                                                ($errors->first('cantidad.*') ??
+                                                    ($errors->first('precio_unitario') ?? $errors->first('precio_unitario.*'))))) }}
+                                </div>
+                            @endif
 
-                        <hr>
+                            {{-- Botón añadir línea --}}
+                            <button type="button" class="btn btn-sm btn-outline-primary mb-3" id="btn-add-linea">
+                                Añadir línea
+                            </button>
 
-                        {{-- TOTAL (solo obligatorio en modo archivo) --}}
-                        <div class="mb-3">
-                            <label class="form-label">
-                                Importe total del presupuesto
-                                <span class="text-muted small">(solo obligatorio si adjuntas un documento)</span>
-                            </label>
-                            <input type="number" name="total" step="0.01" min="0" value="{{ old('total') }}"
-                                class="form-control @error('total') is-invalid @enderror" placeholder="Ej: 1200.00">
-                            @error('total')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">
-                                Si adjuntas un PDF/Word con el presupuesto, usaremos este total.
-                                Si no adjuntas nada, calcularemos el total a partir de las líneas de arriba.
-                            </small>
+                            <hr>
                         </div>
 
-                        {{-- Notas / detalle --}}
+                        {{-- BLOQUE ARCHIVO + TOTAL --}}
+                        <div id="bloque-archivo">
+                            {{-- TOTAL (solo obligatorio en modo archivo) --}}
+                            <div class="mb-3">
+                                <label class="form-label">
+                                    Importe total del presupuesto
+                                    <span class="text-muted small">(solo obligatorio si adjuntas un documento)</span>
+                                </label>
+                                <input type="number" name="total" step="0.01" min="0"
+                                    value="{{ old('total') }}" class="form-control @error('total') is-invalid @enderror"
+                                    placeholder="Ej: 1200.00">
+                                @error('total')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">
+                                    Si adjuntas un PDF/Word con el presupuesto, usaremos este total.
+                                    Si no adjuntas nada, calcularemos el total a partir de las líneas de arriba.
+                                </small>
+                            </div>
+
+                            {{-- Adjuntar documento --}}
+                            <div class="mb-3">
+                                <label class="form-label">Adjuntar presupuesto (PDF / Word)</label>
+                                <input type="file" name="docu_pdf" accept=".pdf,.doc,.docx"
+                                    class="form-control @error('docu_pdf') is-invalid @enderror">
+                                @error('docu_pdf')
+                                    <div class="invalid-feedback">{{ $message }}</div>
+                                @enderror
+                                <small class="text-muted">
+                                    Opcional, máximo 5 MB.
+                                </small>
+                            </div>
+                        </div>
+
+                        {{-- NOTAS / DETALLE (CKEDITOR) --}}
                         <div class="mb-3">
-                            <label class="form-label">Notas para el cliente</label>
-                            <textarea name="notas" rows="4" class="form-control @error('notas') is-invalid @enderror" style="resize:none;">{{ old('notas') }}</textarea>
+                            <label class="form-label">Notas para el cliente (opcional)</label>
+
+                            <div class="form-control p-0">
+                                <textarea id="notas" name="notas" rows="5" class="@error('notas') is-invalid @enderror">{{ old('notas') }}</textarea>
+                            </div>
+
                             @error('notas')
-                                <div class="invalid-feedback">{{ $message }}</div>
+                                <div class="invalid-feedback d-block">{{ $message }}</div>
                             @enderror
+
                             <small class="text-muted">
-                                Puedes explicar qué incluye el presupuesto, plazos, condiciones, etc.
+                                Puedes explicar qué incluye el presupuesto, plazos, condiciones, formas de pago, etc.
                             </small>
                         </div>
 
-                        {{-- Adjuntar documento --}}
-                        <div class="mb-3">
-                            <label class="form-label">Adjuntar presupuesto (PDF / Word)</label>
-                            <input type="file" name="docu_pdf" accept=".pdf,.doc,.docx"
-                                class="form-control @error('docu_pdf') is-invalid @enderror">
-                            @error('docu_pdf')
-                                <div class="invalid-feedback">{{ $message }}</div>
-                            @enderror
-                            <small class="text-muted">
-                                Opcional, máximo 5 MB.
-                            </small>
-                        </div>
+                        <x-ckeditor.ckeditor_descripcion for="notas" />
 
                         {{-- Botones Guardar --}}
                         <div class="d-flex justify-content-end gap-2">
@@ -229,5 +246,34 @@
 
 @endsection
 
-{{-- Reutilizas el mismo componente JS de añadir/eliminar líneas --}}
+{{-- Reutilizamos el mismo JS de añadir/eliminar líneas y el toggle de modo --}}
 <x-profesional.presupuestos.anadir_eliminar_lineas />
+
+@push('scripts')
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const radios = document.querySelectorAll('input[name="modo"]');
+            const bloqueLineas = document.getElementById('bloque-lineas');
+            const bloqueArchivo = document.getElementById('bloque-archivo');
+
+            function actualizarVista() {
+                const seleccionado = document.querySelector('input[name="modo"]:checked')?.value || 'lineas';
+
+                if (seleccionado === 'lineas') {
+                    bloqueLineas?.classList.remove('d-none');
+                    bloqueArchivo?.classList.add('d-none');
+                } else {
+                    bloqueLineas?.classList.add('d-none');
+                    bloqueArchivo?.classList.remove('d-none');
+                }
+            }
+
+            radios.forEach(r => r.addEventListener('change', actualizarVista));
+
+            // Estado inicial
+            actualizarVista();
+        });
+    </script>
+@endpush
+
+<x-alertas_sweet />

@@ -5,7 +5,7 @@
 
     <x-navbar />
     {{-- Contenedor Principal --}}
-    <div class="container my-5">
+    <div class="container my-1">
         <div class="d-grid d-md-inline-block">
             <a href="{{ route('admin.dashboard') }}"
                 class="btn btn-secondary d-inline-flex align-items-center justify-content-center gap-2">
@@ -15,9 +15,9 @@
         </div>
         <div class="row g-0 shadow rounded overflow-hidden">
             <div class="col-lg-12 bg-white">
-                <div class="p-4 p-lg-5">
+                <div class="p-3 p-lg-3">
 
-                    <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+                    <h1 class="h4 mb-1 d-flex align-items-center gap-2">
                         <i class="bi bi-person-gear me-1"></i>
                         Mi perfil
                     </h1>

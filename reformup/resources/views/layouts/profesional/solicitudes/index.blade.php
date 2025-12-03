@@ -56,43 +56,50 @@
 
 
             {{-- Filtros por estado --}}
-            @php
-                $estados = [
-                    null => 'Todas',
-                    'abierta' => 'Abiertas',
-                    'en_revision' => 'En revisión',
-                    'cerrada' => 'Cerradas',
-                    'cancelada' => 'Canceladas',
-                ];
-            @endphp
-
-            {{-- Imprimimos los estados y activamos el presente --}}
-            <ul class="nav nav-pills mb-3">
-                @foreach ($estados as $valor => $texto)
-                    @php
-                        $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-
-                        // Conservamos q + fechas al cambiar de estado
-                        $params = array_merge(request()->except('page', 'estado'), []);
-
-                        if (!is_null($valor)) {
-                            $params['estado'] = $valor;
-                        } else {
-                            // Si es "Todas", nos aseguramos de quitar estado
-                            unset($params['estado']);
-                        }
-
-                        $url = route('profesional.solicitudes.index', $params);
-                    @endphp
-
+            @if (isset($estados) && is_array($estados))
+                <ul class="nav nav-pills mb-3">
+                    {{-- Pestaña "Todas" --}}
                     <li class="nav-item">
-                        <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
-                            {{ $texto }}
+                        @php
+                            $urlTodas = route(
+                                'profesional.solicitudes.index',
+                                array_filter([
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                    // sin 'estado'
+                                ]),
+                            );
+                        @endphp
+
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                            href="{{ $urlTodas }}">
+                            Todas
                         </a>
                     </li>
-                @endforeach
-            </ul>
 
+                    {{-- Pestañas por cada estado del modelo --}}
+                    @foreach ($estados as $valor => $texto)
+                        @php
+                            $urlEstado = route(
+                                'profesional.solicitudes.index',
+                                array_filter([
+                                    'estado' => $valor,
+                                    'q' => request('q'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                ]),
+                            );
+                        @endphp
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                                {{ $texto }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
 
             {{-- SI no hay solicitudes --}}
             @if ($solicitudes->isEmpty())

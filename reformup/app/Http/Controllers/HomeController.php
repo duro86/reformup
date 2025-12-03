@@ -18,7 +18,7 @@ class HomeController extends Controller
             ->take(8)
             ->get();
 
-        // Últimos 9 comentarios publicados (con cliente + profesional)
+        // Últimos 6 comentarios publicados (con cliente + profesional)
         $comentarios = Comentario::query()
             ->where('estado', 'publicado')
             ->where('visible', true)
@@ -27,7 +27,7 @@ class HomeController extends Controller
                 'trabajo.presupuesto.profesional',     // profesional al que va ligado el trabajo
             ])
             ->orderByDesc('created_at')
-            ->take(12)
+            ->take(6)
             ->get();
 
         // Cada "slide" tendrá hasta 2 comentarios

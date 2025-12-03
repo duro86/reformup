@@ -26,54 +26,102 @@
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
+
+            {{-- Buscador combinado: texto + fechas + puntuación --}}
+            <form method="GET" action="{{ route('admin.comentarios') }}" class="row g-2 mb-3">
+                {{-- Búsqueda por texto --}}
+                <div class="col-12 col-md-6 col-lg-4">
+                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                        placeholder="Buscar por título, cliente, profesional u opinión...">
+                </div>
+
+                {{-- Puntuación mínima --}}
+                <div class="col-6 col-md-3 col-lg-2">
+                    <select name="puntuacion_min" class="form-select form-select-sm">
+                        <option value="">Puntuación mín.</option>
+                        @for ($i = 5; $i >= 1; $i--)
+                            <option value="{{ $i }}" @selected(request('puntuacion_min') == $i)>
+                                {{ $i }} ★ o más
+                            </option>
+                        @endfor
+                    </select>
+                </div>
+
+                {{-- Rango de fechas reutilizable --}}
+                @include('partials.filtros.rango_fechas')
+
+                {{-- Botón Buscar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    <button type="submit" class="btn btn-sm btn-primary">
+                        <i class="bi bi-search"></i> Buscar
+                    </button>
+                </div>
+
+                {{-- Botón Limpiar --}}
+                <div class="col-6 col-md-3 col-lg-2 d-grid">
+                    @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta') || request('puntuacion_min'))
+                        <a href="{{ route('admin.comentarios') }}" class="btn btn-sm btn-outline-secondary">
+                            Limpiar
+                        </a>
+                    @endif
+                </div>
+            </form>
+
+            {{-- Filtros por estado --}}
+            @if (isset($estados) && is_array($estados))
+                <ul class="nav nav-pills mb-3">
+                    {{-- Tab "Todos" --}}
+                    <li class="nav-item">
+                        @php
+                            $urlTodos = route(
+                                'admin.comentarios',
+                                array_filter([
+                                    'q' => request('q'),
+                                    'puntuacion_min' => request('puntuacion_min'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                    // OJO: sin 'estado'
+                                ]),
+                            );
+                        @endphp
+
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                            href="{{ $urlTodos }}">
+                            Todos
+                        </a>
+                    </li>
+
+                    {{-- Tabs por cada estado del modelo --}}
+                    @foreach ($estados as $valor => $texto)
+                        @php
+                            $urlEstado = route(
+                                'admin.comentarios',
+                                array_filter([
+                                    'estado' => $valor,
+                                    'q' => request('q'),
+                                    'puntuacion_min' => request('puntuacion_min'),
+                                    'fecha_desde' => request('fecha_desde'),
+                                    'fecha_hasta' => request('fecha_hasta'),
+                                ]),
+                            );
+                        @endphp
+
+                        <li class="nav-item">
+                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                                {{ $texto }}
+                            </a>
+                        </li>
+                    @endforeach
+                </ul>
+            @endif
+
+
             @if ($comentarios->isEmpty())
                 <div class="alert alert-info">
-                    No hay comentarios registrados todavía.
+                    No hay comentarios
+                    {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'registrados todavía.' }}
                 </div>
             @else
-                {{-- BUSCADOR + FILTROS --}}
-                <form method="GET" action="{{ route('admin.comentarios') }}" class="row g-2 mb-3">
-                    {{-- Texto libre --}}
-                    <div class="col-12 col-md-6 col-lg-4">
-                        <input type="text" name="q" value="{{ request('q') }}"
-                            class="form-control form-control-sm"
-                            placeholder="Buscar por solicitud, profesional, cliente u opinión...">
-                    </div>
-
-                    {{-- Filtro estado --}}
-                    <div class="col-6 col-md-3 col-lg-2">
-                        <select name="estado" class="form-select form-select-sm">
-                            <option value="">Todos los estados</option>
-                            <option value="pendiente" {{ request('estado') === 'pendiente' ? 'selected' : '' }}>Pendiente
-                            </option>
-                            <option value="publicado" {{ request('estado') === 'publicado' ? 'selected' : '' }}>Publicado
-                            </option>
-                            <option value="rechazado" {{ request('estado') === 'rechazado' ? 'selected' : '' }}>Rechazado
-                            </option>
-                        </select>
-                    </div>
-
-                    {{-- Rango de fechas (fecha del comentario) --}}
-                    @include('partials.filtros.rango_fechas')
-
-                    {{-- Buscar --}}
-                    <div class="col-6 col-md-3 col-lg-2 d-grid">
-                        <button type="submit" class="btn btn-sm btn-primary">
-                            <i class="bi bi-search"></i> Buscar
-                        </button>
-                    </div>
-
-                    {{-- Limpiar --}}
-                    <div class="col-6 col-md-3 col-lg-2 d-grid">
-                        @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
-                            <a href="{{ route('admin.comentarios') }}" class="btn btn-sm btn-outline-secondary">
-                                Limpiar
-                            </a>
-                        @endif
-                    </div>
-                </form>
-
-
                 {{-- ========================== --}}
                 {{-- TABLA (solo en lg+)       --}}
                 {{-- ========================== --}}
@@ -168,10 +216,9 @@
                                         {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
-                                    {{-- Opinión (lg+) --}}
                                     <td class="d-none d-lg-table-cell">
                                         @if ($comentario->opinion)
-                                            {{ \Illuminate\Support\Str::limit($comentario->opinion, 60, '...') }}
+                                            {!! \Illuminate\Support\Str::limit($comentario->opinion, 60, '...') !!}
                                         @else
                                             <span class="text-muted small">Sin opinión</span>
                                         @endif
@@ -313,15 +360,13 @@
                                         {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                     </div>
 
-                                    {{-- Opinión (resumen) --}}
-                                    <div class="mt-2">
-                                        <strong>Opinión:</strong><br>
+                                    <td class="d-none d-lg-table-cell">
                                         @if ($comentario->opinion)
-                                            {{ \Illuminate\Support\Str::limit(strip_tags($comentario->opinion), 120, '...') }}
+                                            {{ Str::limit(strip_tags($comentario->opinion), 60, '...') }}
                                         @else
-                                            <span class="text-muted">Sin opinión</span>
+                                            <span class="text-muted small">Sin opinión</span>
                                         @endif
-                                    </div>
+                                    </td>
 
                                 </div>
 

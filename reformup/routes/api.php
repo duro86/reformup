@@ -7,3 +7,7 @@ Route::get('/profesionales', [ProfesionalApiController::class, 'index'])->name('
 
 Route::get('/profesionales/{perfil}', [ProfesionalApiController::class, 'mostrar'])
     ->name('api.profesionales.mostrar');
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::get('/profesional/trabajos', [ProfesionalApiController::class, 'misTrabajos']);
+});

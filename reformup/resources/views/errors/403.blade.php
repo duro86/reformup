@@ -15,7 +15,7 @@
                     Volver atrás
                 </a>
 
-                <a href="{{ route('home') }}" class="btn btn-primary">
+                <a href="{{ route('/') }}" class="btn btn-primary">
                     Ir al inicio
                 </a>
             </div>

@@ -1,55 +1,48 @@
 <?php
 
-namespace App\Mail\Admin;
+namespace App\Mail;
 
-use App\Models\Presupuesto;
-use App\Models\Solicitud;
-use App\Models\User;
-use App\Models\Perfil_Profesional;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class PresupuestoCanceladoPorAdminMailable extends Mailable
+class ContactoWebMailable extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public $presupuesto;
-    public $solicitud;
-    public $cliente;
-    public $perfilPro;
-    public $esProfesional;
-    public $tipoAccion; // 'cancelado' | 'eliminado'
+    public $nombre;
+    public $email;
+    public $asuntoUsuario;
+    public $mensaje;
 
-    public function __construct(
-        Presupuesto $presupuesto,
-        Solicitud $solicitud,
-        ?User $cliente = null,
-        ?Perfil_Profesional $perfilPro = null,
-        bool $esProfesional = false,
-        string $tipoAccion = 'cancelado' // valor por defecto
-    ) {
-        $this->presupuesto    = $presupuesto;
-        $this->solicitud      = $solicitud;
-        $this->cliente        = $cliente;
-        $this->perfilPro      = $perfilPro;
-        $this->esProfesional  = $esProfesional;
-        // Normalizamos por si acaso
-        $this->tipoAccion     = $tipoAccion === 'eliminado' ? 'eliminado' : 'cancelado';
+    /**
+     * Crear una nueva instancia del mailable.
+     */
+    public function __construct(string $nombre, string $email, string $asuntoUsuario, string $mensaje)
+    {
+        $this->nombre        = $nombre;
+        $this->email         = $email;
+        $this->asuntoUsuario = $asuntoUsuario;
+        $this->mensaje       = $mensaje;
     }
 
+    /**
+     * Construir el mensaje.
+     */
     public function build()
     {
-        $verbo = $this->tipoAccion === 'eliminado' ? 'eliminado' : 'cancelado';
-
-        $subject = $this->esProfesional
-            ? "Se ha {$verbo} un presupuesto de una solicitud en ReformUp"
-            : "Tu presupuesto ha sido {$verbo} por el equipo de ReformUp";
+        // Asunto del correo que tú recibes
+        $subject = 'Nuevo mensaje de contacto: ' . $this->asuntoUsuario;
 
         return $this
             ->subject($subject)
-            ->markdown('emails.admin.presupuestos.cancelado_por_admin', [
-                'tipoAccion' => $this->tipoAccion,
+            // Para que cuando respondas desde tu correo, responda al usuario
+            ->replyTo($this->email, $this->nombre)
+            ->markdown('emails.contacto.web', [
+                'nombre'        => $this->nombre,
+                'email'         => $this->email,
+                'asuntoUsuario' => $this->asuntoUsuario,
+                'mensaje'       => $this->mensaje,
             ]);
     }
 }

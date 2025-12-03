@@ -13,7 +13,8 @@ Tu solicitud en **ReformUp** ha sido revisada y modificada por nuestro equipo.
 
 @isset($solicitud->descripcion)
 **Descripción actualizada:**  
-{{ $solicitud->descripcion }}
+
+{{ strip_tags($solicitud->descripcion) }}
 @endisset
 
 @component('mail::panel')
@@ -51,7 +52,7 @@ Se ha actualizado una solicitud vinculada a tu perfil en **ReformUp**.
 
 @isset($solicitud->titulo)
 **Título de la solicitud:**  
-“**{{ $solicitud->titulo }}**”
+**{{ $solicitud->titulo }}**
 @endisset
 
 @if($solicitud->cliente)

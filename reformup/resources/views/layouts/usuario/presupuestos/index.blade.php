@@ -171,7 +171,7 @@
                                         @endif
                                         @if ($presu->estado === 'rechazado')
                                             <div class="small text-primary mt-1">
-                                                Has rechazado este presupuesto. El profesional puede enviarte otro.
+                                                Si has rechazado el presupuesto, el profesional le enviará otro
                                             </div>
                                         @endif
                                         @if ($presu->estado === 'caducado')

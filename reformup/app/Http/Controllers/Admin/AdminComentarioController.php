@@ -25,36 +25,27 @@ class AdminComentarioController extends Controller
      */
     public function index(Request $request)
     {
-        $user = Auth::user();
+        $estado        = $request->query('estado');          // null | pendiente | publicado | rechazado
+        $q             = trim((string) $request->query('q')); // texto buscador
+        $puntuacionMin = $request->query('puntuacion_min');   // 1–5 o null
 
-        // Opcional: asegurar que es admin
-        if (! $user->hasRole('admin')) {
-            return redirect()->route('home')
-                ->with('error', 'No tienes permisos para acceder a los comentarios de administración.');
-        }
-
-        $estado = $request->input('estado');  // null | pendiente | publicado | rechazado
-        $q      = $request->input('q');
-
-        // Para las pestañas/filtros por estado
-        $estados = [
-            'pendiente' => 'Pendientes',
-            'publicado' => 'Publicados',
-            'rechazado' => 'Rechazados',
-        ];
+        // Estados: usamos la constante del modelo 
+        $estados = Comentario::ESTADOS;
 
         $query = Comentario::with([
             'trabajo.presupuesto.solicitud.cliente',
             'trabajo.presupuesto.profesional',
         ]);
 
-        // Filtro por estado
-        if ($estado) {
-            $query->where('estado', $estado);
+        // --- Filtro por estado (solo si es válido) ---
+        if ($estado !== null && $estado !== '') {
+            if (array_key_exists($estado, Comentario::ESTADOS)) {
+                $query->where('estado', $estado);
+            }
         }
 
-        // Buscador texto
-        if ($q) {
+        // --- Filtro por texto ---
+        if ($q !== '') {
             $like = '%' . $q . '%';
 
             $query->where(function ($sub) use ($like) {
@@ -77,7 +68,7 @@ class AdminComentarioController extends Controller
                             ->orWhere('email_empresa', 'like', $like);
                     })
 
-                    // Opinión del comentario
+                    // Opinión del comentario (texto libre)
                     ->orWhere('opinion', 'like', $like)
 
                     // Estado del comentario (por si escribes "pendiente", etc.)
@@ -85,22 +76,27 @@ class AdminComentarioController extends Controller
             });
         }
 
-        // Filtro por rango de fechas
-        // Tienes columna 'fecha' y también 'created_at' en la vista.
-        // Lo más lógico es filtrar por 'fecha' (fecha del comentario).
+        // --- Filtro por puntuación mínima ---
+        if ($puntuacionMin !== null && $puntuacionMin !== '') {
+            $query->where('puntuacion', '>=', (int) $puntuacionMin);
+        }
+
+        // --- Filtro por rango de fechas (columna fecha del comentario) ---
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
 
+        // --- Orden y paginación ---
         $comentarios = $query
-            ->orderByDesc('fecha')   // o 'created_at' si lo prefieres
+            ->orderByDesc('fecha')
             ->paginate(5)
-            ->withQueryString();     // mantiene q, estado, fecha_desde, fecha_hasta
+            ->withQueryString(); // conserva q, estado, fecha_desde, fecha_hasta, puntuacion_min
 
-        return view('layouts.admin.comentarios.index', compact(
-            'comentarios',
-            'estado',
-            'estados',
-            'q'
-        ));
+        return view('layouts.admin.comentarios.index', [
+            'comentarios'    => $comentarios,  
+            'q'              => $q,
+            'estado'         => $estado,
+            'estados'        => $estados,
+            'puntuacionMin'  => $puntuacionMin,
+        ]);
     }
 
     /**

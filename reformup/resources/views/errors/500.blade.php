@@ -14,7 +14,7 @@
             Si el error persiste, por favor intenta de nuevo más tarde.
         </p>
 
-        <a href="{{ url('home') }}" class="btn btn-outline-primary">
+        <a href="{{ url('/') }}" class="btn btn-outline-primary">
             Volver al inicio
         </a>
     </div>

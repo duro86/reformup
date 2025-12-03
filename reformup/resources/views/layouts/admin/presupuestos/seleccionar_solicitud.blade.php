@@ -36,12 +36,12 @@
                     <table class="table align-middle">
                         <thead>
                             <tr>
-                                <th class="bg-secondary text-white">Solicitud</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Cliente</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Profesional</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Ubicación</th>
-                                <th class="d-none d-md-table-cell bg-secondary text-white">Fecha</th>
-                                <th class="bg-secondary text-white text-center">Acciones</th>
+                                <th class="bg-secondary ">Solicitud</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Cliente</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Profesional</th>
+                                <th class="d-none d-md-table-cell bg-secondary ">Ubicación</th>
+                                <th class="d-none d-md-table-cell bg-secondary ">Fecha</th>
+                                <th class="bg-secondary  text-center">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

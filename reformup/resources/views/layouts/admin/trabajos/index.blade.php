@@ -21,7 +21,15 @@
                     <i class="bi bi-briefcase"></i>
                     Gestión de trabajos
                 </h1>
+                @if (!$trabajos->isEmpty())
+                    <a href="{{ route('admin.trabajos.exportar_excel', request()->query()) }}"
+                        class="btn btn-sm btn-success d-flex align-items-center gap-1">
+                        <i class="bi bi-file-earmark-excel"></i>
+                        Exportar Excel
+                    </a>
+                @endif
             </div>
+
 
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
@@ -53,15 +61,6 @@
                     @endif
                 </div>
             </form>
-
-            @php
-                $estados = [
-                    'previsto' => 'Previstos',
-                    'en_curso' => 'En curso',
-                    'finalizado' => 'Finalizados',
-                    'cancelado' => 'Cancelados',
-                ];
-            @endphp
 
             {{-- Filtros por estado Buscador por estado --}}
             <ul class="nav nav-pills mb-3">
@@ -95,6 +94,7 @@
                             ]),
                         );
                     @endphp
+                    {{-- Activamos el que se marca --}}
                     <li class="nav-item">
                         <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
                             {{ $texto }}
@@ -245,7 +245,6 @@
                                             @if ($trabajo->estado === 'cancelado' || $trabajo->estado === 'finalizado')
                                                 <x-admin.trabajos.btn_eliminar :trabajo="$trabajo" />
                                             @endif
-
 
                                         </div>
                                     </td>

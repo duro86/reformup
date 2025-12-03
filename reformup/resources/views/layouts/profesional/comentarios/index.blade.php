@@ -24,6 +24,7 @@
 
             {{-- Buscador combinado: campos + fechas --}}
             <form method="GET" action="{{ route('profesional.comentarios.index') }}" class="row g-2 mb-3">
+
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-4 col-lg-3">
                     <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
@@ -63,11 +64,11 @@
                 </div>
             </form>
 
-
             {{-- Nota opcional para que el profesional lo entienda --}}
             <p class="small text-muted mb-3">
                 Mostrando solo los comentarios <strong>publicados y visibles</strong> sobre tus trabajos.
             </p>
+
 
 
             @if ($comentarios->isEmpty())

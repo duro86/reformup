@@ -61,33 +61,52 @@
             </form>
 
 
-            {{-- Filtros por estado --}}
-            @if (isset($estados) && is_array($estados))
-                <ul class="nav nav-pills mb-3">
-                    @foreach ($estados as $valor => $texto)
-                        @php
-                            $isActive = $estado === $valor || (is_null($estado) && is_null($valor));
-                            // Conservamos la query 'q' al cambiar de estado
-                            $url = $valor
-                                ? route(
-                                    'admin.presupuestos',
-                                    array_merge(request()->except('page'), ['estado' => $valor]),
-                                )
-                                : route('admin.presupuestos', request()->except('page', 'estado'));
-                        @endphp
-                        <li class="nav-item">
-                            <a class="nav-link {{ $isActive ? 'active' : '' }}" href="{{ $url }}">
-                                {{ $texto }}
-                            </a>
-                        </li>
-                    @endforeach
-                </ul>
-            @endif
+            {{-- Filtros por estado Buscador por estado --}}
+            <ul class="nav nav-pills mb-3">
+                {{-- Todos --}}
+                <li class="nav-item">
+                    @php
+                        $urlTodos = route(
+                            'admin.presupuestos',
+                            array_filter([
+                                'q' => request('q'),
+                                'fecha_desde' => request('fecha_desde'),
+                                'fecha_hasta' => request('fecha_hasta'),
+                            ]),
+                        );
+                    @endphp
+                    <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}" href="{{ $urlTodos }}">
+                        Todas
+                    </a>
+                </li>
+
+                {{-- ESTADOS DEL MODELO --}}
+                @foreach ($estados as $valor => $texto)
+                    @php
+                        $urlEstado = route(
+                            'admin.presupuestos',
+                            array_filter([
+                                'estado' => $valor,
+                                'q' => request('q'),
+                                'fecha_desde' => request('fecha_desde'),
+                                'fecha_hasta' => request('fecha_hasta'),
+                            ]),
+                        );
+                    @endphp
+
+                    <li class="nav-item">
+                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                            {{ $texto }}
+                        </a>
+                    </li>
+                @endforeach
+            </ul>
+
 
             @if ($presupuestos->isEmpty())
                 <div class="alert alert-info">
-                    No hay presupuestos registrados
-                    {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'todavía' }}.
+                    No hay presupuestos
+                    {{ $estado ? 'con estado ' . str_replace('_', ' ', $estado) : 'registrados todavía.' }}
                 </div>
             @else
                 {{-- ===================================================== --}}
