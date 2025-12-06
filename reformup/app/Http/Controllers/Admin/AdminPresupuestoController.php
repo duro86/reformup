@@ -504,25 +504,90 @@ class AdminPresupuestoController extends Controller
             'estado.in'       => 'El estado seleccionado no es válido.',
         ]);
 
-        // Guardamos datos antiguos por si los usamos en el mail
+        // 2) Guardamos datos antiguos para el mail
         $oldTotal  = $presupuesto->total;
         $oldNotas  = $presupuesto->notas;
         $oldEstado = $presupuesto->estado;
+        $newEstado = $validated['estado'];
 
-        // Actualizar presupuesto
-        $presupuesto->total  = $validated['total'];
-        $presupuesto->estado = $validated['estado'];
-        $presupuesto->notas  = $validated['notas'] ?? null;
-        // Si quieres, puedes guardar fecha de última revisión:
-        $presupuesto->fecha  = now(); // si tienes este campo
-        $presupuesto->save();
-
-        // Cargar relaciones para el email
+        // 3) Cargamos relaciones (las necesitamos para reglas y para el correo)
         $presupuesto->load('solicitud.cliente', 'solicitud.profesional');
 
         $solicitud = $presupuesto->solicitud;
         $cliente   = $solicitud?->cliente;
         $perfilPro = $solicitud?->profesional;
+
+        // SI no hay solicitud
+        if (! $solicitud) {
+            return back()
+                ->withInput()
+                ->with('error', 'No se ha encontrado la solicitud asociada a este presupuesto.');
+        }
+
+        /**
+         * REGLA 1:
+         * Para pasar a "aceptado":
+         *  - La solicitud debe estar en "en_revision"
+         *  - El presupuesto debe estar ANTES en "enviado"
+         */
+        if ($newEstado === 'aceptado') {
+
+            // Debe venir de "enviado"
+            if ($oldEstado !== 'enviado') {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Solo puedes aceptar un presupuesto que ya haya sido enviado al cliente.');
+            }
+
+            // La solicitud debe estar en "en_revision"
+            if ($solicitud->estado !== 'en_revision') {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Para aceptar un presupuesto, la solicitud debe estar en estado "en revisión".');
+            }
+        }
+
+        /**
+         * REGLA 2:
+         * No permitir volver de "aceptado" a "enviado".
+         */
+        if ($oldEstado === 'aceptado' && $newEstado === 'enviado') {
+            return back()
+                ->withInput()
+                ->with('error', 'Este presupuesto ya ha sido aceptado y no puede volver al estado "enviado".');
+        }
+
+        /**
+         * REGLA 3:
+         * Para pasar a "rechazado":
+         *  - El presupuesto debe estar en "enviado" o "aceptado".
+         *  - Si se rechaza (desde enviado/aceptado), la solicitud vuelve a "abierta".
+         */
+        $reabrirSolicitud = false;
+
+        if ($newEstado === 'rechazado') {
+
+            if (! in_array($oldEstado, ['enviado', 'aceptado'], true)) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Solo puedes rechazar un presupuesto que estuviera en estado "enviado" o "aceptado".');
+            }
+
+            $reabrirSolicitud = true;
+        }
+
+        // 4) Actualizar presupuesto
+        $presupuesto->total  = $validated['total'];
+        $presupuesto->estado = $newEstado;
+        $presupuesto->notas  = $validated['notas'] ?? null;
+        $presupuesto->fecha  = now(); // si usas este campo como "última actualización"
+        $presupuesto->save();
+
+        // 5) Si hay que reabrir la solicitud, la ponemos en "abierta"
+        if ($reabrirSolicitud) {
+            $solicitud->estado = 'abierta';
+            $solicitud->save();
+        }
 
         // Enviar mail al cliente y al profesional avisando de la modificación
         try {

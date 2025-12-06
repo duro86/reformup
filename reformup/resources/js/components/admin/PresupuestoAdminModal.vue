@@ -125,18 +125,6 @@
             <div>Creado: {{ presupuesto.created_at || '—' }}</div>
             <div>Última actualización: {{ presupuesto.updated_at || '—' }}</div>
           </div>
-
-          <!-- PDF -->
-          <div class="mt-3">
-            <h6 class="fw-semibold">Documento adjunto</h6>
-            <div v-if="presupuesto.docu_pdf">
-              <a :href="presupuesto.docu_pdf" target="_blank" class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1">
-                <i class="bi bi-file-earmark-pdf"></i>
-                Ver PDF
-              </a>
-            </div>
-            <p v-else class="text-muted mb-0">No hay documento PDF asociado.</p>
-          </div>
         </div>
 
         <!-- Estado cargando -->

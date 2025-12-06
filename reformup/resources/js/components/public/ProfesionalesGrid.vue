@@ -1,11 +1,13 @@
 <template>
   <div class="my-4">
-    <div class="row">
+    <div class="row align-items-start">
       <!-- Filtros: izquierda en desktop, arriba en móvil -->
       <div class="col-12 col-lg-3 mb-3 mb-lg-0">
         <div class="card h-100">
           <div class="card-body">
             <h5 class="card-title mb-3">Buscar profesionales</h5>
+
+            <!-- Empresa -->
             <div class="mb-2">
               <label class="form-label small mb-1">Empresa</label>
               <input
@@ -15,6 +17,8 @@
                 placeholder="Nombre de la empresa"
               />
             </div>
+
+            <!-- Ciudad -->
             <div class="mb-2">
               <label class="form-label small mb-1">Ciudad</label>
               <input
@@ -24,6 +28,8 @@
                 placeholder="Ciudad"
               />
             </div>
+
+            <!-- Provincia -->
             <div class="mb-2">
               <label class="form-label small mb-1">Provincia</label>
               <input
@@ -33,6 +39,8 @@
                 placeholder="Provincia"
               />
             </div>
+
+            <!-- Valoración mínima -->
             <div class="mb-3">
               <label class="form-label small mb-1">Valoración mínima</label>
               <input
@@ -45,11 +53,38 @@
                 placeholder="Ej: 4"
               />
             </div>
+
+            <!-- Oficios -->
+            <div class="mb-3" v-if="oficios.length">
+              <label class="form-label small mb-1 d-block">Oficios</label>
+
+              <div class="d-flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  v-for="oficio in oficios"
+                  :key="oficio.id"
+                  class="btn btn-sm rounded-pill"
+                  :class="filters.oficios.includes(oficio.id)
+                    ? 'btn-success'
+                    : 'btn-outline-success'"
+                  @click="toggleOficio(oficio.id)"
+                >
+                  {{ oficio.nombre }}
+                </button>
+              </div>
+            </div>
+
             <div class="d-flex justify-content-between">
-              <button class="btn btn-primary btn-sm w-100 me-1" @click="fetchProfesionales(1)">
+              <button
+                class="btn btn-primary btn-sm w-100 me-1"
+                @click="fetchProfesionales(1)"
+              >
                 Buscar
               </button>
-              <button class="btn btn-outline-secondary btn-sm w-100 ms-1" @click="resetFilters">
+              <button
+                class="btn btn-outline-secondary btn-sm w-100 ms-1"
+                @click="resetFilters"
+              >
                 Limpiar
               </button>
             </div>
@@ -104,6 +139,21 @@
                     </div>
                   </div>
 
+                  <!-- Chips de oficios del profesional -->
+                  <div
+                    v-if="pro.oficios && pro.oficios.length"
+                    class="mb-2"
+                  >
+                    <span
+                      v-for="oficio in pro.oficios"
+                      :key="oficio.id"
+                      class="badge rounded-pill bg-success text-white me-1 mb-1"
+                    >
+                      {{ oficio.nombre }}
+                    </span>
+                  </div>
+
+                  <!-- Valoración -->
                   <p class="mb-1" v-if="pro.puntuacion_media != null">
                     <strong>Valoración:</strong>
 
@@ -126,8 +176,6 @@
                       {{ Number(pro.puntuacion_media).toFixed(1) }} / 5
                     </span>
                   </p>
-
-
 
                   <p class="mb-1" v-if="pro.telefono_empresa">
                     <i class="bi bi-telephone me-1"></i>
@@ -152,7 +200,7 @@
 
                   <div class="mt-auto pt-2">
                     <a
-                      :href="`/profesionales/${pro.id}`" 
+                      :href="`/profesionales/${pro.id}`"
                       class="btn btn-sm btn-outline-primary w-100"
                     >
                       Ver perfil
@@ -222,7 +270,7 @@ export default {
       meta: {
         current_page: 1,
         last_page: 1,
-        per_page: 8,
+        per_page: 6,
         total: 0,
       },
       filters: {
@@ -230,7 +278,9 @@ export default {
         ciudad: "",
         provincia: "",
         min_rating: null,
+        oficios: [], //  varios oficios
       },
+      oficios: [], // lista global
       loading: false,
     };
   },
@@ -250,56 +300,78 @@ export default {
   },
   methods: {
     async fetchProfesionales(page = 1) {
-  this.loading = true;
-    try {
-      const params = {
-        page,
-        per_page: this.meta.per_page,
-      };
+      this.loading = true;
+      try {
+        const params = {
+          page,
+          per_page: this.meta.per_page,
+        };
 
-      if (this.filters.empresa) params.empresa = this.filters.empresa;
-      if (this.filters.ciudad) params.ciudad = this.filters.ciudad;
-      if (this.filters.provincia) params.provincia = this.filters.provincia;
-      if (this.filters.min_rating != null)
-        params.min_rating = this.filters.min_rating;
+        if (this.filters.empresa)   params.empresa   = this.filters.empresa;
+        if (this.filters.ciudad)    params.ciudad    = this.filters.ciudad;
+        if (this.filters.provincia) params.provincia = this.filters.provincia;
+        if (this.filters.min_rating != null)
+          params.min_rating = this.filters.min_rating;
 
-      const resp = await window.axios.get("/api/profesionales", { params });
+        if (this.filters.oficios.length) {
+          // axios lo convertirá en oficios[]=1&oficios[]=3...
+          params.oficios = this.filters.oficios;
+        }
 
-      this.profesionales = resp.data.data || [];
-      this.meta = resp.data.meta || this.meta;
-    } catch (e) {
-      console.error("Error cargando profesionales:", e);
+        const resp = await window.axios.get("/api/profesionales", { params });
 
-      // SweetAlert2 si está disponible
-      if (window.Swal) {
-        const msg =
-          e.response?.data?.message ||
-          "Ha ocurrido un error al cargar los profesionales.";
+        this.profesionales = resp.data.data || [];
+        this.meta = resp.data.meta || this.meta;
 
-        window.Swal.fire({
-          icon: "error",
-          title: "Error",
-          text: msg,
-        });
-      } else {
-        alert("No se han podido cargar los profesionales.");
+        // Cargamos oficios desde la misma respuesta
+        if (resp.data.oficios) {
+          this.oficios = resp.data.oficios;
+        }
+      } catch (e) {
+        console.error("Error cargando profesionales:", e);
+
+        if (window.Swal) {
+          const msg =
+            e.response?.data?.message ||
+            "Ha ocurrido un error al cargar los profesionales.";
+
+          window.Swal.fire({
+            icon: "error",
+            title: "Error",
+            text: msg,
+          });
+        } else {
+          alert("No se han podido cargar los profesionales.");
+        }
+      } finally {
+        this.loading = false;
       }
-    } finally {
-      this.loading = false;
-    }
-  },
+    },
+
     resetFilters() {
       this.filters = {
         empresa: "",
         ciudad: "",
         provincia: "",
         min_rating: null,
+        oficios: [],
       };
       this.fetchProfesionales(1);
     },
+
+    toggleOficio(id) {
+      const idx = this.filters.oficios.indexOf(id);
+      if (idx === -1) {
+        this.filters.oficios.push(id);
+      } else {
+        this.filters.oficios.splice(idx, 1);
+      }
+    },
+
     avatarUrl(path) {
       return `/storage/${path}`;
     },
   },
 };
 </script>
+

@@ -35,7 +35,9 @@
     {{ $perfilPro->email_empresa }}
 
     @isset($perfilPro->telefono_empresa)
-    <b>Teléfono:</b>{{ $perfilPro->telefono_empresa }}
+    <p>
+        <strong>Teléfono:</strong> {{ $perfilPro->telefono_empresa }}
+    </p>
     @endisset
     @endif
 

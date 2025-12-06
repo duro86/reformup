@@ -7,7 +7,8 @@
 
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-4">
-            <h1 class="h4 mb-3 text-center text-md-start">
+            <h1 class="h2 fw-bold mb-3 pb-2 border-bottom text-center text-md-start">
+                <i class="bi bi-search me-2 text-primary"></i>
                 Buscar profesionales
             </h1>
             <p class="text-muted mb-4 text-center text-md-start">

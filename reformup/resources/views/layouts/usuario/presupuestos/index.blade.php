@@ -166,12 +166,12 @@
                                         @endif
                                         @if ($presu->estado === 'aceptado')
                                             <div class="small text-primary mt-1">
-                                                Has aceptado el presupuesto. Revisa el apartado de trabajos.
+                                                El presupuesto ha sido aceptado. Revisa el apartado de trabajos.
                                             </div>
                                         @endif
                                         @if ($presu->estado === 'rechazado')
                                             <div class="small text-primary mt-1">
-                                                Si has rechazado el presupuesto, el profesional le enviará otro
+                                                Si has rechazado el presupuesto, el profesional le enviará otro nuevo
                                             </div>
                                         @endif
                                         @if ($presu->estado === 'caducado')
@@ -293,7 +293,7 @@
                                         @endif
                                         @if ($presu->estado === 'rechazado')
                                             <div class="small text-primary mt-1">
-                                                Si has rechazado el presupuesto, el profesional le enviará otro
+                                                Si has rechazado el presupuesto, el profesional le enviará otro nuevo
                                             </div>
                                         @endif
                                         @if ($presu->estado === 'caducado')

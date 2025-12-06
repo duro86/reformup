@@ -8,7 +8,12 @@ Tu solicitud de presupuesto:
 **“{{ $solicitud->titulo }}”**  
 (ID #{{ $solicitud->id }})
 
-ha sido **cancelada** por el equipo de ReformUp.
+ha sido **cancelada** 
+@isset($perfilPro)
+por el profesional **{{ $perfilPro->empresa }}** a través de ReformUp.
+@else
+por el equipo de **ReformUp**.
+@endisset
 
 ---
 

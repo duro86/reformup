@@ -7,6 +7,8 @@ use App\Models\Solicitud;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Admin\SolicitudCanceladaClienteMailable;
 
 
 class ProfesionalSolicitudController extends Controller
@@ -18,29 +20,25 @@ class ProfesionalSolicitudController extends Controller
     public function index(Request $request)
     {
         $user   = Auth::user();
-        $perfil = $user->perfil_Profesional;
+        $perfil = $user->perfil_Profesional; // relación 1:1 con Perfil_Profesional
 
+        // Si no tiene perfil profesional, fuera
         if (! $perfil) {
-            return redirect()
-                ->route('home')
+            return redirect()->route('home')
                 ->with('error', 'No puedes acceder a las solicitudes sin un perfil profesional.');
         }
 
-        $estado = $request->query('estado');             // abierta / en_revision / cerrada / cancelada / null
-        $q      = trim((string) $request->query('q'));   // texto buscador
-
-        // Estados disponibles desde el modelo (sin "Todas")
-        $estados = Solicitud::ESTADOS;
+        // Filtros
+        $estado = $request->query('estado');            // abierta / en_revision / cerrada / cancelada / null
+        $q      = trim((string) $request->query('q'));  // texto buscador
 
         // Base: SOLO solicitudes dirigidas a este profesional
-        $query = Solicitud::with(['cliente'])
+        $query = Solicitud::with(['cliente']) // al pro le interesa ver al cliente
             ->where('pro_id', $perfil->id);
 
-        // Filtro por estado (solo si es válido)
-        if ($estado !== null && $estado !== '') {
-            if (array_key_exists($estado, Solicitud::ESTADOS)) {
-                $query->where('estado', $estado);
-            }
+        // Filtro por estado
+        if (! empty($estado)) {
+            $query->where('estado', $estado);
         }
 
         // Filtro por buscador
@@ -60,11 +58,14 @@ class ProfesionalSolicitudController extends Controller
             });
         }
 
-        // Filtro por rango de fechas (columna fecha de la solicitud)
+        // Filtro por rango de fechas (tiene sentido usar 'fecha' de la solicitud)
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
+        // Si alguna solicitud no tiene 'fecha' y solo usar created_at:
+        // $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
 
+        // Orden + paginación
         $solicitudes = $query
-            ->orderByDesc('fecha')
+            ->orderByDesc('fecha')   // o 'created_at' si cambias arriba
             ->paginate(5)
             ->withQueryString();
 
@@ -72,11 +73,10 @@ class ProfesionalSolicitudController extends Controller
             'solicitudes' => $solicitudes,
             'estado'      => $estado,
             'q'           => $q,
-            'estados'     => $estados,   // sin null, solo los del modelo
+            'estados'     => Solicitud::ESTADOS ?? [], // por si usamos la constante
             'perfil'      => $perfil,
         ]);
     }
-
 
 
     /**
@@ -126,17 +126,46 @@ class ProfesionalSolicitudController extends Controller
         $user   = Auth::user();
         $perfil = $user->perfil_Profesional;
 
+        // 1) Seguridad: que el profesional sea el dueño de la solicitud
         if (! $perfil || $solicitud->pro_id !== $perfil->id) {
             return back()->with('error', 'No tienes permisos para acceder a esta sección.');
         }
 
-        if (! in_array($solicitud->estado, ['abierta', 'en_revision'])) {
+        // 2) Solo se pueden cancelar abiertas o en revisión
+        if (! in_array($solicitud->estado, ['abierta', 'en_revision'], true)) {
             return back()->with('error', 'Solo puedes cancelar solicitudes abiertas o en revisión.');
         }
 
+        // 3) Cambiamos estado a cancelada
         $solicitud->estado = 'cancelada';
         $solicitud->save();
 
-        return back()->with('success', 'La solicitud se ha cancelado correctamente.');
+        // 4) Cargamos relaciones para el correo
+        $solicitud->load(['cliente', 'profesional', 'presupuestos.trabajo']);
+
+        $cliente     = $solicitud->cliente;          // User
+        $perfilPro   = $solicitud->profesional;      // Perfil_Profesional
+        $presupuesto = $solicitud->presupuestos->first(); // si tienes varios, aquí coges el primero
+        $trabajo     = $presupuesto?->trabajo;
+
+        // 5) Enviar correo al cliente (si tiene email)
+        if ($cliente && $cliente->email) {
+            try {
+                Mail::to($cliente->email)->send(
+                    new SolicitudCanceladaClienteMailable(
+                        $solicitud,
+                        $cliente,
+                        $perfilPro,
+                        $presupuesto,
+                        $trabajo
+                    )
+                );
+            } catch (\Throwable $e) {
+                // Si el mail falla, la solicitud ya está cancelada igual
+                return back()->with('error', 'La solicitud se ha cancelado, pero no se ha podido enviar el correo al cliente.');
+            }
+        }
+
+        return back()->with('success', 'La solicitud se ha cancelado correctamente. El cliente ha sido notificado por correo.');
     }
 }

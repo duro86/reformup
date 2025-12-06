@@ -16,7 +16,19 @@
           <p><strong>Provincia:</strong> {{ user.provincia }}</p>
           <p><strong>CP:</strong> {{ user.cp }}</p>
           <p><strong>Dirección:</strong> {{ user.direccion }}</p>
+          <div v-if="user.perfil_profesional">
+          <h5 class="mb-2">Perfil profesional</h5>
+          <p><strong>Empresa:</strong> {{ user.perfil_profesional.empresa }}</p>
+          <p v-if="user.perfil_profesional.email_empresa">
+            <strong>Email empresa:</strong> {{ user.perfil_profesional.email_empresa }}
+          </p>
+          <p v-if="user.perfil_profesional.telefono_empresa">
+            <strong>Teléfono empresa:</strong> {{ user.perfil_profesional.telefono_empresa }}
+          </p>
+        </div>
+
           <p><strong>Avatar:</strong></p>
+          
         <div v-if="user.avatar && user.avatar !== ''">
             <img :src="getAvatarUrl(user.avatar)" alt="avatar" class="rounded-circle" style="width:30px;height:30px;object-fit:cover">
         </div>

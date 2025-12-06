@@ -15,6 +15,8 @@ use Illuminate\Support\Facades\Auth;
 use Mews\Purifier\Facades\Purifier;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
+
 
 class UsuarioComentarioController extends Controller
 {

@@ -94,7 +94,7 @@
                         @if ($presupuesto)
                             #{{ $presupuesto->id }}
                             @if (!is_null($presupuesto->total))
-                                – Total:
+                                - Total:
                                 {{ number_format($presupuesto->total, 2, ',', '.') }} €
                             @endif
                         @else
@@ -115,7 +115,9 @@
 
                         {{-- Estado --}}
                         <div class="mb-3">
-                            <label class="form-label">Estado del trabajo<span class="text-danger">*</span></label>
+                            <label class="form-label">
+                                Estado del trabajo <span class="text-danger">*</span>
+                            </label>
                             @php
                                 $estados = [
                                     'previsto' => 'Previsto',
@@ -124,17 +126,35 @@
                                     'cancelado' => 'Cancelado',
                                 ];
                                 $estadoActual = old('estado', $trabajo->estado);
+
+                                $noPuedeVolverAPrevisto =
+                                    !is_null($trabajo->fecha_ini) ||
+                                    in_array($trabajo->estado, ['en_curso', 'finalizado']);
                             @endphp
+
                             <select name="estado" class="form-select @error('estado') is-invalid @enderror">
                                 @foreach ($estados as $valor => $texto)
-                                    <option value="{{ $valor }}" {{ $estadoActual === $valor ? 'selected' : '' }}>
+                                    <option value="{{ $valor }}" {{ $estadoActual === $valor ? 'selected' : '' }}
+                                        @if ($valor === 'previsto' && $noPuedeVolverAPrevisto) disabled @endif>
                                         {{ $texto }}
+                                        @if ($valor === 'previsto' && $noPuedeVolverAPrevisto)
+                                            (no disponible: el trabajo ya comenzó)
+                                        @endif
                                     </option>
                                 @endforeach
                             </select>
+
                             @error('estado')
                                 <div class="invalid-feedback">{{ $message }}</div>
                             @enderror
+
+                            <small class="text-muted d-block mt-1">
+                                • Para poner el trabajo <strong>en curso</strong>, el presupuesto debe estar aceptado y debe
+                                haber fecha de inicio.<br>
+                                • Si marcas <strong>finalizado</strong> y no hay fechas, se rellenarán automáticamente.<br>
+                                • Si marcas <strong>cancelado</strong>, el presupuesto pasará a rechazado y la solicitud se
+                                cancelará.
+                            </small>
                         </div>
 
                         {{-- Fechas --}}
@@ -188,6 +208,7 @@
 
                 </div>
             </div>
+
 
         </div>
     </div>

@@ -315,7 +315,7 @@ class ProfesionalPerfilController extends Controller
         // --- Manejo imagen avatar al CREAR usuario ---
         if ($request->hasFile('avatar') && $request->file('avatar')->isValid()) {
 
-            $dir  = 'imagenes/avatarUser/' . now()->format('Ymd');
+            $dir  = 'imagenes/avatarPro/' . now()->format('Ymd');
             $ext  = $request->file('avatar')->getClientOriginalExtension();
             $base = pathinfo($request->file('avatar')->getClientOriginalName(), PATHINFO_FILENAME);
             $safe = Str::slug($base);
@@ -377,22 +377,30 @@ class ProfesionalPerfilController extends Controller
     /**
      * Elimina solo el perfil profesional (no el usuario)
      */
-    public function eliminarProfesional($id)
+    public function eliminar(Perfil_Profesional $perfil)
     {
-        $perfil = Perfil_Profesional::with('user')->findOrFail($id);
+        $user = $perfil->user; // relación belongsTo en Perfil_Profesional
 
-        // Si NO tiene usuario
-        if (! $perfil->user) {
-            return redirect()
-                ->route('admin.profesionales')
-                ->with('error', 'El perfil profesional no tenía perfil de usuario. Ten cuidado la próxima vez');
-            $perfil->delete();
+        // 1) Borrar avatar del perfil profesional si no es el genérico
+        if ($perfil->avatar && $perfil->avatar !== 'img/avatarPro/avatarHombrePro.png') {
+            Storage::disk('public')->delete($perfil->avatar);
         }
 
-        $perfil->delete(); // o soft delete
+        // 2) Borrar el perfil profesional
+        $perfil->delete();
+
+        // 3) Quitar rol profesional al usuario (si existe)
+        if ($user) {
+            if ($user->hasRole('profesional')) {
+                $user->removeRole('profesional');
+            }
+
+            // Opcional: limpiar la relación en memoria
+            $user->unsetRelation('perfil_Profesional');
+        }
 
         return redirect()
             ->route('admin.profesionales')
-            ->with('success', 'Perfil profesional eliminado correctamente.');
+            ->with('success', 'Perfil profesional eliminado correctamente. El usuario sigue existiendo pero sin perfil profesional.');
     }
 }

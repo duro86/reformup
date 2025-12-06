@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Perfil_Profesional;
 use App\Models\Comentario;
+use Illuminate\Support\Facades\Auth;
 
 class HomeController extends Controller
 {
@@ -42,4 +43,6 @@ class HomeController extends Controller
         // así que aquí solo devolvemos la vista
         return view('layouts.profesionales.index');
     }
+
+    
 }

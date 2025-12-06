@@ -172,7 +172,7 @@ class AdminSolicitudController extends Controller
                 ->with('error', 'No puedes editar una solicitud cerrada o cancelada.');
         }
 
-        // Cargamos cliente / profesional por si quieres mostrarlos
+        // Cargamos cliente / profesional 
         $solicitud->load('cliente', 'profesional');
 
         $estados = Solicitud::ESTADOS; // ['abierta' => 'Abiertas', ...]
@@ -391,7 +391,6 @@ class AdminSolicitudController extends Controller
             ->route('admin.solicitudes')
             ->with('success', $mensajeSuccess);
     }
-
 
 
     /**

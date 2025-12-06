@@ -16,20 +16,20 @@ class TrabajoCanceladoMailable extends Mailable
 
     public $trabajo;
     public $presupuesto;
-    public $perfil;
+    public $perfilPro;
     public $cliente;
     public $motivo;
 
     public function __construct(
         Trabajo $trabajo,
         ?Presupuesto $presupuesto,
-        ?Perfil_Profesional $perfil,
+        ?Perfil_Profesional $perfilPro,
         User $cliente,
         ?string $motivo = null
     ) {
         $this->trabajo     = $trabajo;
         $this->presupuesto = $presupuesto;
-        $this->perfil      = $perfil;
+        $this->perfilPro   = $perfilPro;
         $this->cliente     = $cliente;
         $this->motivo      = $motivo;
     }

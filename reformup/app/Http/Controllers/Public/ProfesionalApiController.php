@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Public;
 
 use App\Http\Controllers\Controller;
 use App\Models\Perfil_Profesional;
+use App\Models\Oficio;
 use Illuminate\Http\Request;
 use App\Models\Trabajo;
 
@@ -15,12 +16,11 @@ class ProfesionalApiController extends Controller
      */
     public function index(Request $request)
     {
-
-        //dd('api profesionales OK');
         $query = Perfil_Profesional::query()
-            ->where('visible', 1);
+            ->where('visible', 1)
+            ->with('oficios');
 
-        // Filtros
+        // Filtros texto
         if ($empresa = $request->get('empresa')) {
             $query->where('empresa', 'like', '%' . $empresa . '%');
         }
@@ -33,22 +33,32 @@ class ProfesionalApiController extends Controller
             $query->where('provincia', 'like', '%' . $provincia . '%');
         }
 
-        if (!is_null($request->get('min_rating'))) {
+        if (! is_null($request->get('min_rating'))) {
             $minRating = (float) $request->get('min_rating');
+
             $query->whereNotNull('puntuacion_media')
                 ->where('puntuacion_media', '>=', $minRating);
         }
 
+        //  Filtro por VARIOS oficios: ?oficios[]=1&oficios[]=3...
+        $oficioIds = $request->input('oficios', []); // array o vacío
+
+        if (! empty($oficioIds) && is_array($oficioIds)) {
+            $query->whereHas('oficios', function ($q) use ($oficioIds) {
+                $q->whereIn('oficio_id', $oficioIds);
+            });
+        }
+
         // Paginación
-        $perPage = (int) $request->get('per_page', 8);
-        $perPage = max(1, min($perPage, 24)); // por si acaso no se nos va de madre
+        $perPage = (int) $request->get('per_page', 6);
+        $perPage = max(1, min($perPage, 24));
 
         $paginator = $query
             ->orderByDesc('puntuacion_media')
             ->orderBy('empresa')
             ->paginate($perPage);
 
-        // Devolvemos solo los campos que necesitas
+        // Transformar profesionales
         $data = $paginator->getCollection()->transform(function ($perfil) {
             return [
                 'id'               => $perfil->id,
@@ -60,8 +70,19 @@ class ProfesionalApiController extends Controller
                 'web'              => $perfil->web,
                 'puntuacion_media' => $perfil->puntuacion_media,
                 'avatar'           => $perfil->avatar,
+
+                //  oficios para pintar chips en las cartas
+                'oficios'          => $perfil->oficios->map(function ($o) {
+                    return [
+                        'id'     => $o->id,
+                        'nombre' => $o->nombre,
+                    ];
+                }),
             ];
         });
+
+        //  Lista global de oficios para el filtro
+        $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre']);
 
         return response()->json([
             'data' => $data,
@@ -71,6 +92,7 @@ class ProfesionalApiController extends Controller
                 'per_page'     => $paginator->perPage(),
                 'total'        => $paginator->total(),
             ],
+            'oficios' => $oficios,
         ]);
     }
 

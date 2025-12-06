@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\DB;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\PresupuestoRechazadoPorClienteMailable;
+use App\Mail\Usuario\AceptarPresupuesto;
+
 
 class UsuarioPresupuestoController extends Controller
 {
@@ -97,7 +99,7 @@ class UsuarioPresupuestoController extends Controller
             return back()->with('error', 'Sólo puedes aceptar presupuestos en estado enviado.');
         }
 
-        // Dirección de la obra, viene del SweetAlert si no exite en la solicuitud
+        // Dirección de la obra, viene del SweetAlert si no existe en la solicitud
         $solicitud = $presupuesto->solicitud;
 
         // Si NO hay dir_cliente en la solicitud, entonces sí exigimos direccion_obra en la petición
@@ -116,8 +118,8 @@ class UsuarioPresupuestoController extends Controller
             ? $request->validate($rules, $mensajes)
             : [];
 
-        // Transacción para asegurar consistencia
         try {
+            // 1) Transacción para presupuesto + solicitud + trabajo
             DB::transaction(function () use ($presupuesto, $solicitud, $data) {
 
                 // 1) Marcar presupuesto como aceptado
@@ -130,16 +132,13 @@ class UsuarioPresupuestoController extends Controller
                     $solicitud->estado = 'cerrada';
                     $solicitud->save();
 
-                    // Bucamos otros presupuestos enviados y los rechazamos
                     Presupuesto::where('solicitud_id', $solicitud->id)
                         ->where('id', '!=', $presupuesto->id)
                         ->where('estado', 'enviado')
                         ->update(['estado' => 'rechazado']);
                 }
 
-                // 3) Elegir la dirección de obra:
-                //    - Si hay dir_cliente en la solicitud ⇒ usamos esa.
-                //    - Si no hay  usamos la que venía del formulario (SweetAlert).
+                // 3) Dirección de obra
                 $dirObra = $solicitud && $solicitud->dir_cliente
                     ? $solicitud->dir_cliente
                     : ($data['direccion_obra'] ?? null);
@@ -154,15 +153,39 @@ class UsuarioPresupuestoController extends Controller
                 ]);
             });
 
-            // Si va todo bien, redirigimos con éxito
+            // 2) Tras la transacción: recargar relaciones y enviar email al profesional
+            $presupuesto->load('solicitud.cliente', 'solicitud.profesional');
+
+            $solicitud = $presupuesto->solicitud;
+            $cliente   = $solicitud?->cliente;
+            $perfilPro = $solicitud?->profesional;
+
+            if ($perfilPro && $perfilPro->email_empresa && $cliente) {
+                try {
+                    Mail::to($perfilPro->email_empresa)->send(
+                        new AceptarPresupuesto($presupuesto, $solicitud, $cliente, $perfilPro)
+                    );
+
+                    return redirect()
+                        ->route('usuario.presupuestos.index')
+                        ->with('success', 'Has aceptado el presupuesto, se ha creado el trabajo y el profesional ha sido avisado por correo.');
+                } catch (\Throwable $e) {
+                    // Presupuesto aceptado y trabajo creado, pero fallo en el email
+                    return redirect()
+                        ->route('usuario.presupuestos.index')
+                        ->with('warning', 'Has aceptado el presupuesto y se ha creado el trabajo, pero no se ha podido enviar el correo al profesional.');
+                }
+            }
+
+            // Si no hay email de empresa, solo mensaje normal
             return redirect()
                 ->route('usuario.presupuestos.index')
-                ->with('success', 'Has aceptado el presupuesto y se ha creado el trabajo.');
+                ->with('success', 'Has aceptado el presupuesto y se ha creado el trabajo. El profesional no tiene email de empresa configurado.');
         } catch (\Throwable $e) {
-            // \Log::error($e->getMessage());
             return back()->with('error', 'Ha ocurrido un error al aceptar el presupuesto.');
         }
     }
+
 
     /**
      * Rechazar un presupuesto (cliente).

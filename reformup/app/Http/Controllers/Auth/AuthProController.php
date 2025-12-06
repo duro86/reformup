@@ -489,6 +489,7 @@ class AuthProController extends Controller
 
         // Cargar trabajos FINALIZADOS de ese profesional + comentarios + solicitud + imágenes
         $perfil->load([
+            'oficios',
             'trabajos' => function ($q) {
                 $q->where('trabajos.estado', 'finalizado')
                     ->with([
@@ -523,19 +524,44 @@ class AuthProController extends Controller
      */
     public function contratar(Perfil_Profesional $perfil)
     {
-        // Si NO está logueado: mandamos a login con mensaje
-        if (!Auth::check()) {
-            // Guardar la URL a la que quería ir, por si luego quieres usar intended()
-            session(['url.intended' => route('public.profesionales.mostrar', $perfil)]);
+        if (! $perfil->visible) {
+            abort(404);
+        }
+
+        // URL final donde queremos que acabe el usuario como cliente
+        $urlDestino = route('usuario.solicitudes.crear_con_profesional', $perfil);
+
+        // 1) Invitado → registro de cliente, guardando intended
+        if (! Auth::check()) {
+            session(['url.intended' => $urlDestino]);
 
             return redirect()
                 ->route('registrar.cliente')
                 ->with('info', 'Debes registrarte o iniciar sesión para contratar a un profesional.');
         }
 
-        // Si está logueado: crear la solicitud (ajusta la ruta a la tuya real)
-        return redirect()->route('usuario.solicitudes.seleccionar_profesional', [
-            'profesional' => $perfil->id,
-        ]);
+        // 2) Logueado
+        $user = Auth::user();
+        $roles = $user->getRoleNames();
+        $modo  = session('modo_panel');
+
+        // Si no tiene rol usuario, no puede contratar (aunque sea profesional)
+        if (! $roles->contains('usuario')) {
+            return redirect()
+                ->route('home')
+                ->with('error', 'Esta cuenta no tiene panel de usuario para contratar servicios.');
+        }
+
+        // Si está “en modo profesional”, le obligamos a ir a su panel usuario primero
+        if ($modo === 'profesional') {
+            return redirect()
+                ->route('usuario.dashboard')
+                ->with('info', 'Has accedido como profesional. Cambia a tu panel de usuario para contratar a este profesional.');
+        }
+
+        // Aquí ya lo consideramos en modo usuario (o sin modo explícito pero con rol usuario)
+        session(['modo_panel' => 'usuario']); // por si acaso fijamos modo
+
+        return redirect()->to($urlDestino);
     }
 }

@@ -12,6 +12,9 @@ use Illuminate\Support\Facades\Storage;
 use Illuminate\Database\QueryException;
 use Illuminate\Support\Str;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Illuminate\Support\Facades\Mail;
+use App\Mail\Profesional\NuevoPresupuesto;
+use App\Mail\Profesional\CancelarPresupuesto;
 
 
 class ProfesionalPresupuestoController extends Controller
@@ -37,7 +40,10 @@ class ProfesionalPresupuestoController extends Controller
         // Estados desde el modelo (sin "Todos")
         $estados = Presupuesto::ESTADOS;
 
-        $query = Presupuesto::with(['solicitud.cliente'])
+        $query = Presupuesto::with([
+            'solicitud.cliente',
+            'solicitud.presupuestos', // añadimos esto para no repetir nuevo presupuesto
+        ])
             ->where('pro_id', $perfil->id);
 
         // Filtro por estado SOLO si es válido
@@ -142,11 +148,11 @@ class ProfesionalPresupuestoController extends Controller
         }
 
         // ¿Qué modo usamos? archivo existente o líneas
-        $modo = $request->input('modo', 'lineas'); // 'archivo' | 'lineas'
-
-        $rutaPdf = null;
-        $total   = 0;
-        $notas   = $request->input('notas');
+        $modo          = $request->input('modo', 'lineas'); // 'archivo' | 'lineas'
+        $rutaPdf       = null;
+        $total         = 0;
+        $notas         = $request->input('notas');
+        $notas_limpias = null; // importante declararla aquí
 
         if ($modo === 'archivo') {
             // ======= MODO 1: el profesional sube un PDF/Word ya hecho =======
@@ -169,23 +175,17 @@ class ProfesionalPresupuestoController extends Controller
             // Eliminar etiquetas por si acaso (no hace falta Purifier)
             $notas_limpias = $notas ? strip_tags($notas) : null;
 
-            $file = $request->file('docu_pdf'); // Cogemos el archivo del formulario
-            $dir  = 'presupuestos/documentos/' . now()->format('Ymd'); // Ponemos ficha al documento(carpeta)
+            $file = $request->file('docu_pdf');
+            $dir  = 'presupuestos/documentos/' . now()->format('Ymd');
 
-            // Cogemos el nombresin la extension 
             $ext  = $file->getClientOriginalExtension();
             $base = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
-            $safe = Str::slug($base); // Version segura quitando paramentros raros
+            $safe = Str::slug($base);
             $name = $safe . '-' . Str::random(8) . '.' . $ext;
-            // Añade un código aleatorio de 8 caracteres (Str::random(8))
 
-            // Creamos el directorio en el disco privado (si no existe)
             Storage::disk('private')->makeDirectory($dir);
-
-            // Guardamos el archivo en el disco privado
             $file->storeAs($dir, $name, 'private');
 
-            // Deifnimos ruta
             $rutaPdf = $dir . '/' . $name;
         } else {
             // ======= MODO 2: líneas -> generamos el PDF =======
@@ -200,7 +200,6 @@ class ProfesionalPresupuestoController extends Controller
             ], [
                 'concepto.required' => 'Debes añadir al menos una línea de presupuesto.',
                 'concepto.array'    => 'Formato de líneas no válido.',
-
                 'cantidad.array'        => 'Formato de cantidades no válido.',
                 'precio_unitario.array' => 'Formato de precios no válido.',
             ]);
@@ -214,7 +213,6 @@ class ProfesionalPresupuestoController extends Controller
             $cantidades = $validated['cantidad'];
             $precios    = $validated['precio_unitario'];
 
-            // Eliminar etiquetas por si acaso (no hace falta Purifier)
             $notas_limpias = $notas ? strip_tags($notas) : null;
 
             foreach ($conceptos as $i => $concepto) {
@@ -250,7 +248,6 @@ class ProfesionalPresupuestoController extends Controller
             $ivaImporte    = $subtotal * $ivaPorcentaje / 100;
             $total         = $subtotal + $ivaImporte;
 
-            // === Generar PDF desde la vista ===
             $pdf = Pdf::loadView('layouts.profesional.presupuestos.pdf.presupuesto', [
                 'profesional'   => $perfil,
                 'solicitud'     => $solicitud,
@@ -260,35 +257,28 @@ class ProfesionalPresupuestoController extends Controller
                 'ivaImporte'    => $ivaImporte,
                 'total'         => $total,
                 'notas'         => $notas_limpias,
-                'presupuestoNumero' => null, // si luego quieres numerarlos
+                'presupuestoNumero' => null,
             ]);
 
-            // ==== Guardar el PDF generado en el disco "private" con nombre "bonito" ====
             $dir = 'presupuestos/generados/' . now()->format('Ymd');
 
-            // Base del nombre: por ejemplo "presupuesto-solicitud-23-mi-empresa"
             $base = 'presupuesto-solicitud-' . $solicitud->id;
             if (!empty($perfil->empresa)) {
                 $base .= '-' . $perfil->empresa;
             }
 
-            // Lo limpiamos para que sea seguro como nombre de fichero
             $safe = Str::slug($base);
-
-            // Extensión fija porque siempre es PDF
             $name = $safe . '-' . Str::random(8) . '.pdf';
 
-            // Creamos directorio (si no existe) y guardamos
             Storage::disk('private')->makeDirectory($dir);
             Storage::disk('private')->put($dir . '/' . $name, $pdf->output());
 
-            // Ruta que guardarás en la BD
             $rutaPdf = $dir . '/' . $name;
         }
 
-        // ==== Guarda el presupuesto en BBDD ====
+        // ==== Guarda el presupuesto en BBDD + EMAIL ====
         try {
-            Presupuesto::create([
+            $presupuesto = Presupuesto::create([
                 'pro_id'       => $perfil->id,
                 'solicitud_id' => $solicitud->id,
                 'total'        => $total,
@@ -303,9 +293,25 @@ class ProfesionalPresupuestoController extends Controller
                 $solicitud->save();
             }
 
+            // Cargamos cliente para el correo
+            $solicitud->load('cliente');
+            $cliente = $solicitud->cliente;
+
+            if ($cliente && $cliente->email) {
+                try {
+                    Mail::to($cliente->email)->send(
+                        new NuevoPresupuesto($presupuesto, $solicitud, $cliente, $perfil)
+                    );
+                } catch (\Throwable $e) {
+                    return redirect()
+                        ->route('profesional.presupuestos.index')
+                        ->with('warning', 'Presupuesto creado correctamente, pero no se ha podido enviar el correo al cliente.');
+                }
+            }
+
             return redirect()
                 ->route('profesional.presupuestos.index')
-                ->with('success', 'Presupuesto creado correctamente.');
+                ->with('success', 'Presupuesto creado correctamente. El cliente ha sido avisado por correo.');
         } catch (QueryException $e) {
             return back()
                 ->withInput()
@@ -339,11 +345,11 @@ class ProfesionalPresupuestoController extends Controller
             return back()->with('error', 'Solo puedes cancelar presupuestos en estado ENVIADO.');
         }
 
-        // Marcamos el presupuesto como RECHAZADO
+        // 1) Marcamos el presupuesto como RECHAZADO
         $presupuesto->estado = 'rechazado';
         $presupuesto->save();
 
-        // Opcional: revisar la solicitud asociada
+        // 2) Revisar la solicitud asociada
         $solicitud = $presupuesto->solicitud;
 
         if ($solicitud && $solicitud->estado === 'en_revision') {
@@ -360,6 +366,36 @@ class ProfesionalPresupuestoController extends Controller
             }
         }
 
-        return back()->with('success', 'Presupuesto cancelado (marcado como rechazado) correctamente.');
+        // 3) Cargar relaciones para el email
+        $presupuesto->load('solicitud.cliente', 'solicitud.profesional');
+
+        $solicitud = $presupuesto->solicitud;
+        $cliente   = $solicitud?->cliente;
+        $perfilPro = $solicitud?->profesional;
+
+        // 4) Intentar enviar email al cliente
+        if ($cliente && $cliente->email && $perfilPro) {
+            try {
+                Mail::to($cliente->email)->send(
+                    new CancelarPresupuesto($presupuesto, $solicitud, $cliente, $perfilPro)
+                );
+
+                return back()->with(
+                    'success',
+                    'Presupuesto cancelado correctamente. El cliente ha sido avisado por correo.'
+                );
+            } catch (\Throwable $e) {
+                return back()->with(
+                    'warning',
+                    'El presupuesto se ha cancelado correctamente, pero no se ha podido enviar el correo al cliente.'
+                );
+            }
+        }
+
+        // Sin email del cliente o sin perfil profesional cargado
+        return back()->with(
+            'success',
+            'Presupuesto cancelado correctamente. El cliente no tiene email configurado.'
+        );
     }
 }

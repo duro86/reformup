@@ -1,61 +1,82 @@
-@props(['trabajo'])
+@props([
+    'trabajo',
+    // para diferenciar desktop / mobile y no duplicar IDs
+    'context' => null,
+])
 
-<form id="form-cancelar-trabajo-{{ $trabajo->id }}" action="{{ route('usuario.trabajos.cancelar', $trabajo) }}"
-    method="POST" class="d-inline">
+@php
+    // ID único por trabajo + contexto
+    $suffix = $context ? $trabajo->id . '-' . $context : $trabajo->id;
+@endphp
+
+<form id="form-cancelar-trabajo-{{ $suffix }}"
+      action="{{ route('usuario.trabajos.cancelar', $trabajo) }}"
+      method="POST"
+      class="d-inline w-100">
     @csrf
     @method('PATCH')
 
-    {{-- Aquí guardaremos el motivo que escriba el usuario en el SweetAlert --}}
-    <input type="hidden" name="motivo" id="motivo-cancelar-trabajo-{{ $trabajo->id }}">
+    <input type="hidden" name="motivo" id="motivo-cancelar-trabajo-{{ $suffix }}">
 
-    <button type="button" id="btn-cancelar-trabajo-{{ $trabajo->id }}"
-        class="btn btn-outline-danger btn-sm px-2 py-1 w-100">
+    <button type="button"
+            id="btn-cancelar-trabajo-{{ $suffix }}"
+            class="btn btn-outline-danger btn-sm px-2 py-1 w-100">
         Cancelar trabajo
     </button>
 </form>
 
 @push('scripts')
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const btn = document.getElementById('btn-cancelar-trabajo-{{ $trabajo->id }}');
-            const form = document.getElementById('form-cancelar-trabajo-{{ $trabajo->id }}');
-            const input = document.getElementById('motivo-cancelar-trabajo-{{ $trabajo->id }}');
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const btnId   = 'btn-cancelar-trabajo-{{ $suffix }}';
+    const formId  = 'form-cancelar-trabajo-{{ $suffix }}';
+    const inputId = 'motivo-cancelar-trabajo-{{ $suffix }}';
 
-            if (!btn || !form || !input) return;
+    const btn   = document.getElementById(btnId);
+    const form  = document.getElementById(formId);
+    const input = document.getElementById(inputId);
 
-            btn.addEventListener('click', function(e) {
-                e.preventDefault();
+    if (!btn || !form || !input) return;
 
-                Swal.fire({
-                    title: '¿Cancelar trabajo?',
-                    text: 'Si cancelas este trabajo, el profesional será notificado.',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonText: 'Sí, cancelar',
-                    cancelButtonText: 'No, mantener',
-                    confirmButtonColor: '#d33',
-                    cancelButtonColor: '#6c757d',
-                    reverseButtons: true,
-                    input: 'textarea',
-                    inputLabel: 'Motivo de la cancelación (opcional)',
-                    inputPlaceholder: 'Escribe aquí el motivo (puede quedar vacío)...',
-                    inputAttributes: {
-                        'aria-label': 'Motivo de la cancelación'
-                    },
-                    // Obligar a poner motivo:
-                    inputValidator: (value) => {
-                        if (!value) {
-                            return 'Por favor, indica un motivo.';
-                        }
-                        return null;
-                    }
-                }).then((result) => {
-                    if (result.isConfirmed) {
-                        input.value = result.value || '';
-                        form.submit();
-                    }
-                });
-            });
+    // Si no existe SweetAlert, envío normal del form
+    if (typeof Swal === 'undefined') {
+        btn.addEventListener('click', function () {
+            form.submit();
         });
-    </script>
+        return;
+    }
+
+    btn.addEventListener('click', function (e) {
+        e.preventDefault();
+
+        Swal.fire({
+            title: '¿Cancelar trabajo?',
+            text: 'Si cancelas este trabajo, el profesional será notificado.',
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonText: 'Sí, cancelar',
+            cancelButtonText: 'No, mantener',
+            confirmButtonColor: '#d33',
+            cancelButtonColor: '#6c757d',
+            reverseButtons: true,
+            input: 'textarea',
+            inputLabel: 'Motivo de la cancelación (opcional)',
+            inputPlaceholder: 'Escribe aquí el motivo (opcional)...',
+            inputAttributes: {
+                'aria-label': 'Motivo de la cancelación'
+            },
+            // si lo quieres obligatorio, mete validación aquí
+            inputValidator: (value) => {
+                // if (!value) return 'Por favor, indica un motivo.';
+                return;
+            }
+        }).then((result) => {
+            if (result.isConfirmed) {
+                input.value = result.value || '';
+                form.submit();
+            }
+        });
+    });
+});
+</script>
 @endpush

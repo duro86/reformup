@@ -11,12 +11,20 @@
 
     $user = Auth::user();
     $roles = $user ? $user->getRoleNames() : collect();
+    $modo = session('modo_panel'); // 'usuario' | 'profesional' | null
 
-    // Ruta del panel según rol
     if ($roles->contains('admin')) {
+        // Admin manda siempre
         $panelRoute = route('admin.dashboard');
         $perfilRoute = route('admin.perfil');
+    } elseif ($modo === 'profesional' && $roles->contains('profesional')) {
+        $panelRoute = route('profesional.dashboard');
+        $perfilRoute = route('usuario.perfil'); // o el que uses
+    } elseif ($modo === 'usuario' && $roles->contains('usuario')) {
+        $panelRoute = route('usuario.dashboard');
+        $perfilRoute = route('usuario.perfil');
     } elseif ($roles->contains('profesional')) {
+        // Tiene profesional pero no hay modo fijado → por defecto pro
         $panelRoute = route('profesional.dashboard');
         $perfilRoute = route('usuario.perfil');
     } elseif ($roles->contains('usuario')) {
@@ -27,6 +35,7 @@
         $perfilRoute = route('home');
     }
 @endphp
+
 
 <nav class="navbar navbar-expand-lg navbar-light bg-white sticky-top border-bottom small shadow-sm">
     <div class="container">

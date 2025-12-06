@@ -60,6 +60,14 @@ Route::middleware(['rol.redirigir:usuario'])
         Route::delete('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'eliminar'])
             ->name('solicitudes.eliminar');
 
+        // Usuario - editar solicitud
+        Route::get('/solicitudes/{solicitud}/editar', [UsuarioSolicitudController::class, 'editar'])
+            ->name('solicitudes.editar');
+
+        Route::put('/solicitudes/{solicitud}', [UsuarioSolicitudController::class, 'actualizar'])
+            ->name('solicitudes.actualizar');
+
+
 
         // ----- PRESUPUESTOS -----
         // LISTADO de PRESUPUESTOS del cliente

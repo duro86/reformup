@@ -1,49 +1,43 @@
 @component('mail::message')
-    @php
-        $fechaIni = $trabajo->fecha_ini ? $trabajo->fecha_ini->format('d/m/Y H:i') : 'Sin inicio registrado';
-        $fechaFin = $trabajo->fecha_fin ? $trabajo->fecha_fin->format('d/m/Y H:i') : 'Sin fin registrado';
-    @endphp
+@php
+    $fechaIni = $trabajo->fecha_ini ? $trabajo->fecha_ini->format('d/m/Y H:i') : 'Sin inicio registrado';
+    $fechaFin = $trabajo->fecha_fin ? $trabajo->fecha_fin->format('d/m/Y H:i') : 'Sin fin registrado';
+@endphp
 
-    # Trabajo cancelado por el profesional
+# Trabajo cancelado por el cliente
 
-    Hola {{ $cliente->nombre ?? ($cliente->name ?? $cliente->email) }},
+Hola {{ $perfilPro->empresa ?? $perfilPro->email_empresa }},
 
-    El profesional ha cancelado el trabajo asociado a tu solicitud.
+El cliente ha cancelado el trabajo asociado a uno de tus presupuestos.
 
-    @isset($presupuesto)
-        - Presupuesto: **#{{ $presupuesto->id }}**
-    @endisset
+@isset($presupuesto)
+- Presupuesto: **#{{ $presupuesto->id }}**
+@endisset
 
-    - ID del trabajo: **{{ $trabajo->id }}**
-    - Fecha de inicio: **{{ $fechaIni }}**
-    - Fecha de fin: **{{ $fechaFin }}**
-    @isset($trabajo->dir_obra)
-        - Dirección de la obra: {{ $trabajo->dir_obra }}
-    @endisset
+- ID del trabajo: **{{ $trabajo->id }}**
+- Fecha de inicio: **{{ $fechaIni }}**
+- Fecha de fin: **{{ $fechaFin }}**
+@isset($trabajo->dir_obra)
+- Dirección de la obra: {{ $trabajo->dir_obra }}
+@endisset
 
-    @isset($motivo)
-        **Motivo indicado por el profesional:**
+---
 
-        > {{ $motivo }}
-    @endisset
+## Datos del cliente
 
-    Si necesitas continuar con la reforma, puedes crear una nueva solicitud en la plataforma
-    y seleccionar otros profesionales.
+- Nombre: **{{ $cliente->nombre ?? ($cliente->name ?? $cliente->email) }}**
+- Email: {{ $cliente->email }}
 
-    ---
+@isset($motivo)
+**Motivo indicado por el cliente:**
 
-    **Profesional que ha cancelado**
+> {{ $motivo }}
+@endisset
 
-    @if ($perfilPro)
-    {{ $perfilPro->empresa }}
+---
 
-    {{ $perfilPro->email_empresa }}
+Si necesitas seguir con la reforma, puedes contactar con el cliente para aclarar la situación.
 
-    @isset($perfilPro->telefono_empresa)
-    <b>Teléfono:</b> {{ $perfilPro->telefono_empresa }}
-    @endisset
-    @endif
-
-    Gracias,
-    {{ config('app.name') }}
+Gracias,  
+{{ config('app.name') }}
 @endcomponent

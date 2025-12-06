@@ -96,7 +96,6 @@ class AdminTrabajoController extends Controller
         ]);
     }
 
-
     /**
      * Mostrar trabajos en ventana modal
      */
@@ -197,18 +196,18 @@ class AdminTrabajoController extends Controller
      */
     public function actualizar(Request $request, Trabajo $trabajo)
     {
-        // Valores antiguos
+        // Valores antiguos (para email y reglas)
         $oldEstado   = $trabajo->estado;
         $oldDirObra  = $trabajo->dir_obra;
         $oldFechaIni = $trabajo->fecha_ini;
         $oldFechaFin = $trabajo->fecha_fin;
 
-        // Validación
+        // Validación (permitimos los 4 estados)
         $validated = $request->validate(
             [
                 'estado'    => 'required|in:previsto,en_curso,finalizado,cancelado',
                 'dir_obra'  => 'nullable|string|max:255',
-                'fecha_ini' => 'nullable|date',
+                'fecha_ini' => 'nullable|date',                      // NO required_if, lo controlamos por lógica
                 'fecha_fin' => 'nullable|date|after_or_equal:fecha_ini',
             ],
             [
@@ -223,79 +222,153 @@ class AdminTrabajoController extends Controller
             ]
         );
 
-        // Actualizar trabajo
-        $trabajo->estado   = $validated['estado'];
+        $nuevoEstado = $validated['estado'];
+
+        // Relacionamos ya presupuesto y solicitud para las reglas
+        $presupuesto = $trabajo->presupuesto;
+        $solicitud   = $presupuesto?->solicitud;
+
+        // 1) No permitir volver a "previsto" si ya ha empezado alguna vez
+        if (
+            $nuevoEstado === 'previsto'
+            && (
+                !is_null($oldFechaIni) ||
+                in_array($oldEstado, ['en_curso', 'finalizado'])
+            )
+        ) {
+            return back()
+                ->withInput()
+                ->with('error', 'No puedes volver a poner el trabajo en "previsto" porque ya ha comenzado.');
+        }
+
+        // 2) Si queremos ponerlo EN CURSO:
+        //    - Debe existir presupuesto
+        //    - El presupuesto debe estar "aceptado"
+        //    - Debe haber fecha_ini (en el request o ya en BD)
+        if ($nuevoEstado === 'en_curso') {
+
+            if (!$presupuesto) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'No puedes poner el trabajo "en curso" porque no tiene presupuesto asociado.');
+            }
+
+            if ($presupuesto->estado !== 'aceptado') {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Solo puedes poner el trabajo "en curso" si el presupuesto está aceptado.');
+            }
+
+            // Obligamos a que haya fecha_ini (en request o ya guardada)
+            $fechaIniForm = $validated['fecha_ini'] ?? null;
+            if (is_null($fechaIniForm) && is_null($oldFechaIni)) {
+                return back()
+                    ->withInput()
+                    ->with('error', 'Para iniciar el trabajo debes indicar una fecha de inicio.');
+            }
+        }
+
+        // 3) Si lo ponemos FINALIZADO desde previsto/en_curso:
+        //    - Si no hay fecha_ini, se la ponemos nosotros
+        //    - Si no hay fecha_fin, también
+        //    (esto lo hacemos justo después al asignar campos)
+
+        // --- ACTUALIZAR CAMPOS DEL TRABAJO ---
+
+        $trabajo->estado   = $nuevoEstado;
         $trabajo->dir_obra = $validated['dir_obra'] ?? null;
-        $trabajo->fecha_ini = $validated['fecha_ini'] ?? null;
-        $trabajo->fecha_fin = $validated['fecha_fin'] ?? null;
+
+        // Fechas según el nuevo estado
+        if ($nuevoEstado === 'en_curso') {
+            // Si viene del formulario, usamos esa; si no, mantenemos la antigua o ponemos ahora
+            if (!empty($validated['fecha_ini'])) {
+                $trabajo->fecha_ini = $validated['fecha_ini'];
+            } elseif (is_null($trabajo->fecha_ini)) {
+                $trabajo->fecha_ini = now();
+            }
+
+            // No tocamos fecha_fin aquí
+            if (!empty($validated['fecha_fin'])) {
+                $trabajo->fecha_fin = $validated['fecha_fin'];
+            }
+        } elseif ($nuevoEstado === 'finalizado') {
+
+            // Inicio: si viene del form, esa; si no hay ninguna, ahora
+            if (!empty($validated['fecha_ini'])) {
+                $trabajo->fecha_ini = $validated['fecha_ini'];
+            } elseif (is_null($trabajo->fecha_ini)) {
+                $trabajo->fecha_ini = now();
+            }
+
+            // Fin: si viene del form, esa; si no, ahora
+            if (!empty($validated['fecha_fin'])) {
+                $trabajo->fecha_fin = $validated['fecha_fin'];
+            } else {
+                $trabajo->fecha_fin = now();
+            }
+        } else {
+            // previsto o cancelado → usamos lo que venga del form (si viene)
+            $trabajo->fecha_ini = $validated['fecha_ini'] ?? $trabajo->fecha_ini;
+            $trabajo->fecha_fin = $validated['fecha_fin'] ?? $trabajo->fecha_fin;
+        }
+
         $trabajo->save();
 
-        // --- REGLAS DE NEGOCIO LIGADAS AL ESTADO ---
-
-        $presupuesto = $trabajo->presupuesto;          // relación trabajo -> presupuesto
-        $solicitud   = $presupuesto?->solicitud;       // relación presupuesto -> solicitud
+        // --- REGLAS PARA PRESUPUESTO / SOLICITUD ---
 
         if ($presupuesto) {
-            switch ($trabajo->estado) {
-
-                // 1) Si pongo el trabajo EN CURSO → presupuesto pasa a ACEPTADO
+            switch ($nuevoEstado) {
                 case 'en_curso':
+                    // aseguramos que siga aceptado
                     if ($presupuesto->estado !== 'aceptado') {
                         $presupuesto->estado = 'aceptado';
                         $presupuesto->save();
                     }
                     break;
 
-                // 2) Si pongo FINALIZADO:
                 case 'finalizado':
-                    if (is_null($trabajo->fecha_ini)) {
-                        // Finalizado sin haber empezado realmente → consideramos el presupuesto como RECHAZADO
-                        if ($presupuesto->estado !== 'rechazado') {
-                            $presupuesto->estado = 'rechazado';
-                            $presupuesto->save();
-                        }
-                    } else {
-                        // Finalizado habiendo empezado → nos aseguramos de que el presupuesto quede como ACEPTADO
-                        if ($presupuesto->estado !== 'aceptado') {
-                            $presupuesto->estado = 'aceptado';
-                            $presupuesto->save();
-                        }
+                    // trabajo terminado ⇒ presupuesto aceptado
+                    if ($presupuesto->estado !== 'aceptado') {
+                        $presupuesto->estado = 'aceptado';
+                        $presupuesto->save();
+                    }
+
+                    if ($solicitud && $solicitud->estado !== 'cerrada') {
+                        $solicitud->estado = 'cerrada';
+                        $solicitud->save();
                     }
                     break;
 
-                // 3) Si cancelo el trabajo → presupuesto RECHAZADO
                 case 'cancelado':
+                    // Cancelado ⇒ presupuesto rechazado y solicitud cancelada
                     if ($presupuesto->estado !== 'rechazado') {
                         $presupuesto->estado = 'rechazado';
                         $presupuesto->save();
                     }
 
-                    // opcional: cancelar también la solicitud si quieres
                     if ($solicitud && $solicitud->estado !== 'cancelada') {
                         $solicitud->estado = 'cancelada';
                         $solicitud->save();
                     }
-
                     break;
 
-                // 4) PREVISTO → no tocamos nada especial
                 case 'previsto':
                 default:
-                    // no hacemos nada
+                    // no tocamos nada
                     break;
             }
         }
 
-        // Cargar relaciones para el email
+        // --- EMAILS ---
+
         $trabajo->load('presupuesto.solicitud.cliente', 'presupuesto.solicitud.profesional');
 
-        $presupuesto = $trabajo->presupuesto;          // usa presu_id internamente
+        $presupuesto = $trabajo->presupuesto;
         $solicitud   = $presupuesto?->solicitud;
         $cliente     = $solicitud?->cliente;
         $perfilPro   = $solicitud?->profesional;
 
         try {
-            // Cliente
             if ($cliente && $cliente->email) {
                 Mail::to($cliente->email)->send(
                     new TrabajoModificadoPorAdminMailable(
@@ -313,7 +386,6 @@ class AdminTrabajoController extends Controller
                 );
             }
 
-            // Profesional
             if ($perfilPro && $perfilPro->email_empresa) {
                 Mail::to($perfilPro->email_empresa)->send(
                     new TrabajoModificadoPorAdminMailable(

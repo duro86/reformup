@@ -10,10 +10,11 @@ use Illuminate\Support\Facades\Mail;
 use App\Mail\TrabajoCanceladoMailable;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
 
+
 class UsuarioTrabajoController extends Controller
 {
     use FiltroRangoFechas;
-    
+
     /**
      * Listado de trabajos del usuario (cliente).
      */
@@ -184,28 +185,62 @@ class UsuarioTrabajoController extends Controller
         $trabajo->estado = 'cancelado';
         $trabajo->save();
 
-        // 2) Presupuesto y profesional
+        // 2) Presupuesto, profesional y solicitud
         $presupuesto = $trabajo->presupuesto;
-        $perfil      = $presupuesto?->profesional;   // Perfil_Profesional (pro_id)
+        $perfil      = $presupuesto?->profesional;   // Perfil_Profesional
+        $solicitud   = $presupuesto?->solicitud;
 
-        // IMPORTANTE: aquí usamos un estado que exista en la BBDD, por ejemplo 'rechazado'
+        // Presupuesto → rechazado
         if ($presupuesto) {
-            $presupuesto->estado = 'rechazado';   // o el que tengas definido en el ENUM
+            $presupuesto->estado = 'rechazado';
             $presupuesto->save();
         }
 
-        // 3) Enviar email a la empresa si tiene email_empresa
+        // Solicitud → cancelada (tu criterio para “cerrar todo el hilo”)
+        if ($solicitud) {
+            $solicitud->estado = 'cancelada';
+            $solicitud->save();
+        }
+
+        // 3) Intentar enviar email al profesional (si tiene email)
         if ($perfil && $perfil->email_empresa) {
             try {
                 Mail::to($perfil->email_empresa)->send(
-                    new TrabajoCanceladoMailable($trabajo, $presupuesto, $perfil, $user, $motivo)
+                    new TrabajoCanceladoMailable(
+                        $trabajo,
+                        $presupuesto,
+                        $perfil,
+                        $user,
+                        $motivo
+                    )
+                );
+
+                return back()->with(
+                    'success',
+                    'Has cancelado el trabajo correctamente. El profesional ha sido avisado por correo.'
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'No se ha podido cancelar el trabajo.');
+
+                \Log::error('Error enviando correo de trabajo cancelado por el cliente', [
+                    'trabajo_id'     => $trabajo->id,
+                    'presupuesto_id' => $presupuesto?->id,
+                    'solicitud_id'   => $solicitud?->id,
+                    'profesional_id' => $perfil?->id,
+                    'error'          => $e->getMessage(),
+                ]);
+
+                return back()->with(
+                    'warning',
+                    'Has cancelado el trabajo correctamente, pero no se ha podido enviar el correo al profesional.'
+                );
             }
         }
 
-        return back()->with('success', 'Has cancelado el trabajo correctamente.');
+        // Si no hay email de empresa, solo cancelamos y ya está
+        return back()->with(
+            'success',
+            'Has cancelado el trabajo correctamente. El profesional no tiene email de empresa configurado.'
+        );
     }
 
     /**

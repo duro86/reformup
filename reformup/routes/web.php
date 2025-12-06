@@ -71,5 +71,12 @@ Route::post('/contacto', [AuthController::class, 'contactoEnviar'])->name('conta
 //Politica de privacidad
 Route::view('/politica-de-privacidad', 'legal.privacidad')->name('privacidad');
 
+// Rutas para cambiar de modo
+Route::get('/panel/modo/usuario', [AuthController::class, 'modoUsuario'])
+    ->name('panel.modo.usuario');
+
+Route::get('/panel/modo/profesional', [AuthController::class, 'modoProfesional'])
+    ->name('panel.modo.profesional');
+
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
     ->name('admin.prueba');*/

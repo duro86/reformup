@@ -24,7 +24,7 @@
 
 <button type="button"
         id="{{ $btnId }}"
-        class="btn btn-warning btn-sm w-auto">
+        class="btn btn-outline-danger btn-sm w-auto">
     Cancelar
 </button>
 

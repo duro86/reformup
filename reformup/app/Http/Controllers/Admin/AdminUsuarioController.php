@@ -240,10 +240,35 @@ class AdminUsuarioController extends Controller
      */
     public function mostrar(User $usuario)
     {
-        // Axios envía la cabecera X-Requested-With: XMLHttpRequest porque Laravel la configura en resources/js/bootstrap.js, así que request()->ajax() será true y devolverá JSON.
         if (request()->ajax()) {
-            return response()->json($usuario);
+
+            // Cargamos el perfil profesional si existe
+            $usuario->load('perfil_Profesional'); // ojo al nombre de la relación en tu modelo User
+
+            $perfilPro = $usuario->perfil_Profesional;
+
+            return response()->json([
+                'id'        => $usuario->id,
+                'nombre'    => $usuario->nombre,
+                'apellidos' => $usuario->apellidos,
+                'email'     => $usuario->email,
+                'telefono'  => $usuario->telefono,
+                'ciudad'    => $usuario->ciudad,
+                'provincia' => $usuario->provincia,
+                'cp'        => $usuario->cp,
+                'direccion' => $usuario->direccion,
+                'avatar'    => $usuario->avatar,
+
+                // Bloque extra para el modal
+                'perfil_profesional' => $perfilPro ? [
+                    'empresa'          => $perfilPro->empresa,
+                    'email_empresa'    => $perfilPro->email_empresa,
+                    'telefono_empresa' => $perfilPro->telefono_empresa,
+                ] : null,
+            ]);
         }
+
+        // Petición "normal" (no Ajax) → vista blade
         return view('layouts.admin.usuarios.mostrar', compact('usuario'));
     }
 
@@ -422,19 +447,33 @@ class AdminUsuarioController extends Controller
      */
     public function eliminarUsuario($id)
     {
-        $usuario = User::findOrFail($id);
+        // Cargamos también el perfil profesional
+        $usuario = User::with('perfil_Profesional')->findOrFail($id);
 
-        // Si tiene perfil profesional, lo eliminamos también
-        if ($usuario->perfilProfesional) {
-            $usuario->perfilProfesional->delete();  // o ->forceDelete() 
+        $perfilPro = $usuario->perfil_Profesional;
+
+        // 1) Si tiene perfil profesional, borrar su avatar y el perfil
+        if ($perfilPro) {
+
+            if (
+                $perfilPro->avatar &&
+                $perfilPro->avatar !== 'img/avatarPro/avatarHombrePro.png' // avatar genérico pro
+            ) {
+                Storage::disk('public')->delete($perfilPro->avatar);
+            }
+
+            $perfilPro->delete(); // o ->forceDelete() si usas soft deletes
         }
 
-        // Borramos el avatar
-        if ($usuario->avatar && $usuario->avatar !== 'imagenes/avatarUser/avatar_default.png') {
+        // 2) Borrar avatar del usuario si no es el genérico
+        if (
+            $usuario->avatar &&
+            $usuario->avatar !== 'img/avatarUser/avatar_user_Hombre.webp'
+        ) {
             Storage::disk('public')->delete($usuario->avatar);
         }
 
-        // Ahora sí borramos el usuario
+        // 3) Borrar usuario
         $usuario->delete();
 
         return redirect()

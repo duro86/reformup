@@ -248,7 +248,7 @@
 
                                             {{-- Cancelar trabajo (solo si está previsto y no ha empezado) --}}
                                             @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
-                                                <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" />
+                                                <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" context="desktop" />
                                             @endif
 
                                             {{-- Valorar (solo si finalizado y sin comentario del cliente) --}}
@@ -406,9 +406,9 @@
 
                                     {{-- Cancelar trabajo --}}
                                     @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
-                                        {{-- asegúrate de que el componente use w-100 en su botón interno --}}
-                                        <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" />
+                                        <x-usuario.trabajos.btn_cancelar :trabajo="$trabajo" context="mobile" />
                                     @endif
+
 
                                     {{-- Valorar --}}
                                     @if ($trabajo->estado === 'finalizado' && !$yaComentado)

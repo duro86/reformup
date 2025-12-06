@@ -182,8 +182,7 @@
                                         @endif
                                         @if ($solicitud->estado === 'cerrada')
                                             <div class="small text-primary mt-1">
-                                                Tu solicitud está cerrada, tienes un presupuesto aceptado y trabajo en
-                                                marcha.
+                                                Tu solicitud está cerrada, tienes un presupuesto aceptado y se ha creado una orden de trabajo.
                                             </div>
                                         @endif
                                     </td>
@@ -203,9 +202,16 @@
                                     </td>
 
                                     {{-- Acciones --}}
+                                    @php
+                                        $puedeEditarUsuario =
+                                            $solicitud->estado === 'abierta' &&
+                                            !$solicitud->presupuestos
+                                                ->whereIn('estado', ['enviado', 'aceptado'])
+                                                ->count();
+                                    @endphp
+
                                     <td class="text-center">
                                         <div class="d-flex flex-row flex-wrap gap-1 justify-content-center">
-
                                             {{-- Ver (modal Vue) --}}
                                             <button type="button"
                                                 class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
@@ -213,12 +219,18 @@
                                                 Ver
                                             </button>
 
+                                            {{-- Editar (solo si aún editable) --}}
+                                            @if ($puedeEditarUsuario)
+                                                <a href="{{ route('usuario.solicitudes.editar', $solicitud) }}"
+                                                    class="btn btn-warning btn-sm px-2 py-1 d-inline-flex align-items-center gap-1">
+                                                    <i class="bi bi-pencil"></i> Editar
+                                                </a>
+                                            @endif
+
                                             @if ($solicitud->estado == 'abierta')
-                                                {{-- Versión escritorio --}}
                                                 <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="desktop" />
                                             @endif
 
-                                            {{-- Eliminar --}}
                                             <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />
                                         </div>
                                     </td>
@@ -325,7 +337,13 @@
                                     </div>
                                 </div>
 
-                                {{-- Acciones en columna, ancho completo --}}
+                                {{-- ACCIONES --}}
+                                @php
+                                    $puedeEditarUsuario =
+                                        $solicitud->estado === 'abierta' &&
+                                        !$solicitud->presupuestos->whereIn('estado', ['enviado', 'aceptado'])->count();
+                                @endphp
+
                                 <div class="d-grid gap-2">
                                     {{-- Ver --}}
                                     <button type="button" class="btn btn-info btn-sm"
@@ -333,16 +351,24 @@
                                         Ver
                                     </button>
 
-
-                                    {{-- Versión móvil --}}
-                                    @if ($solicitud->estado == 'abierta')
-                                        <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
+                                    {{-- Editar (móvil) --}}
+                                    @if ($puedeEditarUsuario)
+                                        <a href="{{ route('usuario.solicitudes.editar', $solicitud) }}"
+                                            class="btn btn-warning btn-sm">
+                                            Editar
+                                        </a>
                                     @endif
 
+                                    {{-- Cancelar --}}
+                                    @if ($solicitud->estado == 'abierta')
+                                                <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
+                                            @endif
 
                                     {{-- Eliminar --}}
                                     <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />
                                 </div>
+
+
 
                             </div>
                         </div>

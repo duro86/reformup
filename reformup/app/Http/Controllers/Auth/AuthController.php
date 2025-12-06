@@ -14,6 +14,7 @@ use App\Models\Comentario;
 use Illuminate\Support\Facades\Mail;
 use Mews\Purifier\Facades\Purifier;
 use App\Mail\ContactoWebMailable;
+use Illuminate\Support\Facades\Auth;
 
 //Controlador para la autenticación usando Laravel Sanctum
 class AuthController extends Controller
@@ -115,8 +116,18 @@ class AuthController extends Controller
 
         $user->assignRole('usuario'); // Usando Spatie asigando el rol de usuario
 
-        // Volver a la página de inicio con un mensaje de éxito
-        return redirect()->route('home')->with('success', 'Registro completado correctamente');
+        // Logueamos al usuario
+        Auth::login($user);
+
+        // Por defecto, fijamos modo usuario
+        session(['modo_panel' => 'usuario']);
+
+        // REDIRECCIÓN INTELLIGENTE:
+        // - si hay url.intended (por ejemplo, venir de "Contratar esta empresa") → irá ahí
+        // - si no, irá al dashboard de usuario
+        return redirect()
+            ->intended(route('usuario.dashboard'))
+            ->with('success', 'Registro completado correctamente.');
     }
 
     /* public function registrarAdmin(Request $request)--Crear 1 solo admin
@@ -262,10 +273,10 @@ class AuthController extends Controller
 
         // Mensaje: lo limpiamos con Purifier usando el perfil "solicitud" que ya tienes
         $mensajeLimpio = Purifier::clean($validated['mensaje'], 'solicitud');
-        
+
         // 3) Enviar email al administrador 
         try {
-            Mail::to('admin@reformup.es') 
+            Mail::to('admin@reformup.es')
                 ->send(new ContactoWebMailable(
                     $nombre,
                     $email,
@@ -277,14 +288,42 @@ class AuthController extends Controller
             return back()->with('success', 'Tu mensaje se ha enviado correctamente. El administrador revisará tu correo en breve.');
         } catch (\Throwable $e) {
             // Si algo revienta (SMTP, etc.)
-           /* return back()
+            /* return back()
                 ->withInput()
                 ->with('error', 'Ha ocurrido un problema al enviar el mensaje. Inténtalo de nuevo más tarde.');*/
-                  dd(
-        $e->getMessage(),
-        $e->getFile(),
-        $e->getLine()
-    );
+            dd(
+                $e->getMessage(),
+                $e->getFile(),
+                $e->getLine()
+            );
         }
+    }
+
+    public function modoUsuario()
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->hasRole('usuario')) {
+            return redirect()->route('home')
+                ->with('error', 'Esta cuenta no tiene panel de usuario.');
+        }
+
+        session(['modo_panel' => 'usuario']);
+
+        return redirect()->route('usuario.dashboard');
+    }
+
+    public function modoProfesional()
+    {
+        $user = Auth::user();
+
+        if (! $user || ! $user->hasRole('profesional')) {
+            return redirect()->route('home')
+                ->with('error', 'Esta cuenta no tiene panel profesional.');
+        }
+
+        session(['modo_panel' => 'profesional']);
+
+        return redirect()->route('profesional.dashboard');
     }
 }

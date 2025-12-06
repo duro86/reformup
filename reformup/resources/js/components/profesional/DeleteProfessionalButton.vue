@@ -44,7 +44,7 @@ export default {
         text += `\nUsuario asociado: ${userNombre} (${userEmail}). `;
       }
 
-      text += "Esta acción no se puede deshacer.";
+      text += "Esta acción no se puede deshacer. Se borrarán todos sus trabajos como profesional";
 
       // Si existe SweetAlert2, usamos eso
       if (window.Swal) {

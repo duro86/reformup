@@ -12,6 +12,8 @@ use Mews\Purifier\Facades\Purifier;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\Usuario\SolicitudClienteAccionMailable;
+use App\Mail\Usuario\EnvioSolicitudMailable;
+
 
 
 class UsuarioSolicitudController extends Controller
@@ -273,7 +275,7 @@ class UsuarioSolicitudController extends Controller
 
         // Creamos la solicitud: el estado por defecto en BBDD ya es 'abierta'
         try {
-            Solicitud::create([
+            $solicitud = Solicitud::create([
                 'pro_id'         => $validated['pro_id'],  // Asociada al profesional seleccionado
                 'cliente_id'      => $user->id,
                 'titulo'          => $validated['titulo'],
@@ -285,6 +287,22 @@ class UsuarioSolicitudController extends Controller
                 'presupuesto_max' => $validated['presupuesto_max'] ?? null,
                 'fecha'           => now(),
             ]);
+
+            // Cargamos relaciones necesarias para el correo
+            $solicitud->load(['cliente', 'profesional']);
+
+            $cliente     = $solicitud->cliente;       // User
+            $profesional = $solicitud->profesional;   // Perfil_Profesional
+
+            // Enviar email al profesional si tiene email
+            if ($profesional && $profesional->email_empresa) {
+                try {
+                    Mail::to($profesional->email_empresa)
+                        ->send(new EnvioSolicitudMailable($solicitud, $cliente, $profesional));
+                } catch (\Throwable $e) {
+                    return back()->with('error', 'Ha ocurrido un error al enviar correo al profesional. Trataremos de solucionarlo brevemente');
+                }
+            }
         } catch (\Throwable $e) {
             return back()->with('error', 'Ha ocurrido un error al crear la solicitud');
         }
@@ -400,5 +418,91 @@ class UsuarioSolicitudController extends Controller
         }
     }
 
-    
+    /**
+     * Formulario de edición de solicitud (USUARIO)
+     */
+    public function editar(Solicitud $solicitud)
+    {
+        $user = Auth::user();
+
+        // 1) Comprobar que la solicitud es suya
+        if (! $user || $solicitud->cliente_id !== $user->id) {
+            return redirect()
+                ->route('usuario.solicitudes.index')
+                ->with('error', 'No tienes permisos para editar esta solicitud.');
+        }
+
+        // 2) No dejar editar si ya está cerrada o cancelada
+        if (in_array($solicitud->estado, ['cerrada', 'cancelada'], true)) {
+            return redirect()
+                ->route('usuario.solicitudes.index')
+                ->with('error', 'No puedes editar una solicitud cerrada o cancelada.');
+        }
+
+        // 3) No dejar editar si ya hay un presupuesto enviado o aceptado
+        $tienePresupuestoNoEditable = $solicitud->presupuestos()
+            ->whereIn('estado', ['enviado', 'aceptado'])
+            ->exists();
+
+        if ($tienePresupuestoNoEditable) {
+            return redirect()
+                ->route('usuario.solicitudes.index')
+                ->with('error', 'No puedes editar la solicitud porque ya tiene un presupuesto enviado o aceptado.');
+        }
+
+        // Si quieres mostrar algo extra (no hace falta mucho más)
+        $solicitud->load('profesional');
+
+        return view('layouts.usuario.solicitudes.editar', compact('solicitud'));
+    }
+
+    /**
+     * Actualizar solicitud (USUARIO)
+     */
+    public function actualizar(Request $request, Solicitud $solicitud)
+    {
+        $user = Auth::user();
+
+        // 1) Comprobar que la solicitud es suya
+        if (! $user || $solicitud->cliente_id !== $user->id) {
+            return redirect()
+                ->route('usuario.solicitudes.index')
+                ->with('error', 'No tienes permisos para editar esta solicitud.');
+        }
+
+        // 2) No dejar editar si ya está cerrada o cancelada
+        if (in_array($solicitud->estado, ['cerrada', 'cancelada'], true)) {
+            return redirect()
+                ->route('usuario.solicitudes.index')
+                ->with('error', 'No puedes editar una solicitud cerrada o cancelada.');
+        }
+
+        // 3) No dejar editar si ya hay un presupuesto enviado o aceptado
+        $tienePresupuestoNoEditable = $solicitud->presupuestos()
+            ->whereIn('estado', ['enviado', 'aceptado'])
+            ->exists();
+
+        if ($tienePresupuestoNoEditable) {
+            return redirect()
+                ->route('usuario.solicitudes.index')
+                ->with('error', 'No puedes editar la solicitud porque ya tiene un presupuesto enviado o aceptado.');
+        }
+
+        // 4) Validación (igual que admin pero SIN permitir cambiar estado)
+        $validated = $request->validate([
+            'titulo'          => 'required|string|max:255',
+            'descripcion'     => 'nullable|string',
+            'ciudad'          => 'nullable|string|max:255',
+            'provincia'       => 'nullable|string|max:255',
+            'presupuesto_max' => 'nullable|numeric|min:0',
+        ]);
+
+        // 5) Actualizar solo estos campos, NO el estado
+        $solicitud->fill($validated);
+        $solicitud->save();
+
+        return redirect()
+            ->route('usuario.solicitudes.index')
+            ->with('success', 'Tu solicitud se ha actualizado correctamente.');
+    }
 }

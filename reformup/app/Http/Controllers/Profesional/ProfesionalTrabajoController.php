@@ -181,7 +181,6 @@ class ProfesionalTrabajoController extends Controller
         return view('layouts.profesional.trabajos.mostrar', compact('trabajo'));
     }
 
-
     /**
      * El profesional marca el trabajo como "en curso" (empieza) y avisa al cliente.
      */
@@ -210,7 +209,7 @@ class ProfesionalTrabajoController extends Controller
                     new TrabajoIniciadoMailable($trabajo, $presupuesto, $cliente, $perfilPro)
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'No se ha podido empezar el trabajo.');
+                return back()->with('error', 'No se ha podido avisar al cliente.');
             }
         }
 
@@ -236,14 +235,19 @@ class ProfesionalTrabajoController extends Controller
         $trabajo->estado    = 'finalizado';
         $trabajo->save();
 
-
-        // Avisar al cliente
+        // Relaciones
         $presupuesto = $trabajo->presupuesto;
         $solicitud   = $presupuesto?->solicitud;
         $cliente     = $solicitud?->cliente;
         $perfilPro   = $presupuesto?->profesional;
 
-        // Incrementar trabajos_realizados del perfil profesional
+        // Opcional: dejamos el presupuesto en aceptado si aún no lo está
+        if ($presupuesto && $presupuesto->estado !== 'aceptado') {
+            $presupuesto->estado = 'aceptado';
+            $presupuesto->save();
+        }
+
+        // Incrementar trabajos_realizados del profesional UNA sola vez
         if ($perfilPro) {
             $perfilPro->increment('trabajos_realizados');
         }
@@ -255,18 +259,15 @@ class ProfesionalTrabajoController extends Controller
                     new TrabajoFinalizadoMailable($trabajo, $presupuesto, $cliente, $perfilPro)
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'No se ha enviar el correo a los implicaods.');
+                return back()->with(
+                    'warning',
+                    'El trabajo se ha marcado como finalizado, pero no se ha podido enviar el correo al cliente.'
+                );
             }
-        }
-
-        if ($trabajo->presupuesto && $trabajo->presupuesto->profesional) {
-            $perfilPro = $trabajo->presupuesto->profesional;
-            $perfilPro->increment('trabajos_realizados'); // Sumamos en trabajos realizados
         }
 
         return back()->with('success', 'Has marcado el trabajo como finalizado. El cliente ha sido notificado.');
     }
-
 
     /**
      * El profesional cancela un trabajo que aún no ha comenzado.
@@ -276,47 +277,69 @@ class ProfesionalTrabajoController extends Controller
     {
         $this->autorizarProfesional($trabajo);
 
-        // Controlamos que el trabajo está en estado previsto y no ha comenzado
+        // Solo se puede cancelar si está previsto y no ha comenzado
         if ($trabajo->estado !== 'previsto' || !is_null($trabajo->fecha_ini)) {
             return back()->with('error', 'Solo puedes cancelar trabajos que aún no han comenzado.');
         }
 
-        // Validamos motivo opcional
+        // Motivo opcional
         $validated = $request->validate([
             'motivo' => 'nullable|string|max:500',
         ]);
 
-        // Datos necesarios para el email
         $motivo      = $validated['motivo'] ?? null;
         $presupuesto = $trabajo->presupuesto;
         $solicitud   = $presupuesto?->solicitud;
         $cliente     = $solicitud?->cliente;
         $perfilPro   = $presupuesto?->profesional;
 
-        // Cambiamos estado del trabajo
+        // 1) Trabajo → cancelado
         $trabajo->estado = 'cancelado';
         $trabajo->save();
 
-        // Opcional: marcar presupuesto como "rechazado" (o el estado que uses)
+        // 2) Presupuesto → rechazado
         if ($presupuesto) {
-            $presupuesto->estado = 'rechazado'; // usa uno que exista en tu ENUM
+            $presupuesto->estado = 'rechazado';
             $presupuesto->save();
         }
 
-        // Enviar email al cliente controlando los posibles errores
-        if ($cliente && $cliente->email && $perfilPro) {
+        // 3) Solicitud → abierta (el cliente puede buscar otro pro)
+        if ($solicitud) {
+            $solicitud->estado = 'abierta';
+            $solicitud->save();
+        }
+
+        // 4) Enviar email al cliente (si existe y tiene email)
+        if ($cliente && $cliente->email) {
             try {
-                // Enviamos el email
                 Mail::to($cliente->email)->send(
-                    new TrabajoCanceladoPorProfesionalMailable($trabajo, $presupuesto, $cliente, $motivo)
+                    new TrabajoCanceladoPorProfesionalMailable(
+                        $trabajo,
+                        $presupuesto,
+                        $cliente,
+                        $perfilPro,
+                        $motivo
+                    )
+                );
+
+                return back()->with(
+                    'success',
+                    'Has cancelado el trabajo correctamente. El cliente ha sido notificado por correo.'
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'No se ha podido cancelar el trabajo.');
+
+                return back()->with(
+                    'warning',
+                    'Has cancelado el trabajo correctamente, pero no se ha podido enviar el correo al cliente.'
+                );
             }
         }
 
-        // Respuesta de éxito
-        return back()->with('success', 'Has cancelado el trabajo correctamente. El cliente ha sido notificado.');
+        // Si no hay cliente o no tiene email, solo cancelamos
+        return back()->with(
+            'success',
+            'Has cancelado el trabajo correctamente. El cliente no tiene un email configurado.'
+        );
     }
 
     /**

@@ -240,7 +240,8 @@
                                                     </button>
                                                 </form>
 
-                                                <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" />
+                                                <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" context="desktop" />
+
 
                                                 {{-- EN CURSO: Finalizar --}}
                                             @elseif ($trabajo->estado === 'en_curso')
@@ -402,7 +403,8 @@
                                             </button>
                                         </form>
 
-                                        <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" contexto="mobile" />
+                                        <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" context="mobile" />
+
 
                                         {{-- EN CURSO: Finalizar --}}
                                     @elseif ($trabajo->estado === 'en_curso')

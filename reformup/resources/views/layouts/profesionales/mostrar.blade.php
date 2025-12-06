@@ -34,6 +34,17 @@
                             {{ $perfil->empresa }}
                         </h1>
 
+                        {{-- Oficios --}}
+                        @if ($perfil->oficios && $perfil->oficios->isNotEmpty())
+                            <p class="mb-2">
+                                @foreach ($perfil->oficios as $oficio)
+                                    <span class="badge rounded-pill bg-success text-white me-1 mb-1">
+                                        {{ $oficio->nombre }}
+                                    </span>
+                                @endforeach
+                            </p>
+                        @endif
+
                         {{-- Ciudad / provincia --}}
                         <p class="text-muted mb-2">
                             {{ $perfil->ciudad }}
@@ -41,6 +52,7 @@
                                 ({{ $perfil->provincia }})
                             @endif
                         </p>
+
 
                         {{-- Puntuación media --}}
                         @if (!is_null($perfil->puntuacion_media))
