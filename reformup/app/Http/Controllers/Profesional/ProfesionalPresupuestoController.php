@@ -15,6 +15,7 @@ use App\Http\Controllers\Traits\FiltroRangoFechas;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\Profesional\NuevoPresupuesto;
 use App\Mail\Profesional\CancelarPresupuesto;
+use Mews\Purifier\Facades\Purifier;
 
 
 class ProfesionalPresupuestoController extends Controller
@@ -172,8 +173,10 @@ class ProfesionalPresupuestoController extends Controller
             $total = $validated['total'];
             $notas = $validated['notas'] ?? null;
 
-            // Eliminar etiquetas por si acaso (no hace falta Purifier)
-            $notas_limpias = $notas ? strip_tags($notas) : null;
+            // Eliminar etiquetas  Purifier)
+            $notas_limpias = $notas
+                ? Purifier::clean($notas, 'default')
+                : null;
 
             $file = $request->file('docu_pdf');
             $dir  = 'presupuestos/documentos/' . now()->format('Ymd');

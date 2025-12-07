@@ -40,61 +40,77 @@ class LoginController extends Controller
 
         $remember = $request->boolean('remember', false);
 
+        // 2) PRIMER INTENTO → login normal por users.email
         if (Auth::attempt($credenciales, $remember)) {
-            $request->session()->regenerate();
 
+            $request->session()->regenerate();
             $user = Auth::user();
 
-            // 2) Si es admin, se va al panel de admin sí o sí
-            if ($user->hasRole('admin')) {
-                return redirect()
-                    ->route('admin.dashboard')
-                    ->with('success', 'Bienvenido/a al panel de administración');
-            }
-
-            // 3) Si tiene rol profesional, revisamos si tiene perfil profesional
-            if ($user->hasRole('profesional')) {
-                $perfilProfesional = $user->perfil_Profesional()->first();
-
-                if (!$perfilProfesional) {
-                    // Tiene rol profesional pero no perfil empresa
-                    return redirect()
-                        ->route('usuario.dashboard')
-                        ->with('warning', 'Tienes el rol de profesional pero aún no has completado tu perfil de empresa. Complétalo para poder usar el panel de profesional.');
-                }
-
-                // Ojo: aun así lo mantenemos entrando por usuario.dashboard
-                // Desde allí le pones un botón "Ir a mi panel profesional"
-                return redirect()
-                    ->route('usuario.dashboard')
-                    ->with('success', 'Bienvenido/a. Tienes acceso como profesional desde tu panel.');
-            }
-
-            // 4) Por defecto, cualquier usuario normal → dashboard usuario
-            if ($user->hasRole('usuario')) {
-                return redirect()
-                    ->route('usuario.dashboard')
-                    ->with('success', 'Bienvenido/a');
-            }
-
-            // 5) Fallback muy raro
-            return redirect()
-                ->route('home')
-                ->with('error', 'Error en el inicio de sesión.');
+            return $this->redirigirSegunRol($user);
         }
 
-        // 6) Credenciales incorrectas
-        $userExiste = User::where('email', $request->email)->exists();
+        // 3) SEGUNDO INTENTO → login por email de EMPRESA
+        $perfil = Perfil_Profesional::where('email_empresa', $request->email)->first();
 
-        if (!$userExiste) {
+        if ($perfil) {
+            $user = $perfil->user;
+
+            if ($user && Auth::attempt([
+                'email' => $user->email,
+                'password' => $request->password
+            ], $remember)) {
+
+                $request->session()->regenerate();
+
+                return redirect()
+                    ->route('profesional.dashboard')
+                    ->with('success', 'Bienvenido/a a tu panel profesional');
+            }
+
+            // Existe el profesional pero la contraseña es incorrecta
             return back()
                 ->withInput($request->only('email'))
-                ->with('error', 'El usuario no está registrado');
+                ->with('error', 'La contraseña es incorrecta');
         }
 
+        // 4) NO existe ni como usuario ni como profesional
         return back()
             ->withInput($request->only('email'))
-            ->with('error', 'La contraseña es incorrecta');
+            ->with('error', 'No existe ningún usuario ni profesional con ese email');
+    }
+
+    private function redirigirSegunRol($user)
+    {
+        if ($user->hasRole('admin')) {
+            return redirect()
+                ->route('admin.dashboard')
+                ->with('success', 'Bienvenido/a al panel de administración');
+        }
+
+        if ($user->hasRole('profesional')) {
+
+            $perfilProfesional = $user->perfil_Profesional()->first();
+
+            if (!$perfilProfesional) {
+                return redirect()
+                    ->route('usuario.dashboard')
+                    ->with('warning', 'Tienes el rol de profesional pero aún no has completado tu perfil de empresa.');
+            }
+
+            return redirect()
+                ->route('usuario.dashboard')
+                ->with('success', 'Bienvenido/a. Accede a tu panel profesional desde tu panel.');
+        }
+
+        if ($user->hasRole('usuario')) {
+            return redirect()
+                ->route('usuario.dashboard')
+                ->with('success', 'Bienvenido/a');
+        }
+
+        return redirect()
+            ->route('home')
+            ->with('error', 'Error en el inicio de sesión.');
     }
 
 

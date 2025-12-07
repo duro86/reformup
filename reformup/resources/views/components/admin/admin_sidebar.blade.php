@@ -87,6 +87,13 @@
                     <i class="bi bi-chat-left-text"></i> Comentarios
                 </a>
             </li>
+            <li class="nav-item">
+                {{-- Listado Oficios --}}
+                <a class="nav-link {{ request()->routeIs('admin.oficios*') ? 'active' : '' }}"
+                    href="{{ route('admin.oficios') }}">
+                    <i class="bi bi-tools"></i> Oficios
+                </a>
+            </li>
 
             <li>
                 <hr>

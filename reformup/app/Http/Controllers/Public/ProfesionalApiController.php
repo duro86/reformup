@@ -18,7 +18,7 @@ class ProfesionalApiController extends Controller
     {
         $query = Perfil_Profesional::query()
             ->where('visible', 1)
-            ->with('oficios');
+            ->with('oficios'); // ya trae los oficios completos (incluye descripcion)
 
         // Filtros texto
         if ($empresa = $request->get('empresa')) {
@@ -33,6 +33,7 @@ class ProfesionalApiController extends Controller
             $query->where('provincia', 'like', '%' . $provincia . '%');
         }
 
+        // Filtro por valoración mínima
         if (! is_null($request->get('min_rating'))) {
             $minRating = (float) $request->get('min_rating');
 
@@ -40,7 +41,7 @@ class ProfesionalApiController extends Controller
                 ->where('puntuacion_media', '>=', $minRating);
         }
 
-        //  Filtro por VARIOS oficios: ?oficios[]=1&oficios[]=3...
+        // Filtro por VARIOS oficios: ?oficios[]=1&oficios[]=3...
         $oficioIds = $request->input('oficios', []); // array o vacío
 
         if (! empty($oficioIds) && is_array($oficioIds)) {
@@ -71,18 +72,20 @@ class ProfesionalApiController extends Controller
                 'puntuacion_media' => $perfil->puntuacion_media,
                 'avatar'           => $perfil->avatar,
 
-                //  oficios para pintar chips en las cartas
+                // Oficios con nombre + descripción para chips y tooltips
                 'oficios'          => $perfil->oficios->map(function ($o) {
                     return [
-                        'id'     => $o->id,
-                        'nombre' => $o->nombre,
+                        'id'          => $o->id,
+                        'nombre'      => $o->nombre,
+                        'descripcion' => $o->descripcion,   // <-- aquí va la chicha
                     ];
                 }),
             ];
         });
 
-        //  Lista global de oficios para el filtro
-        $oficios = Oficio::orderBy('nombre')->get(['id', 'nombre']);
+        // Lista global de oficios para el filtro (con descripción también)
+        $oficios = Oficio::orderBy('nombre')
+            ->get(['id', 'nombre', 'descripcion']); // <-- añadimos descripcion
 
         return response()->json([
             'data' => $data,
@@ -95,6 +98,7 @@ class ProfesionalApiController extends Controller
             'oficios' => $oficios,
         ]);
     }
+
 
     /**
      * Detalle de un profesional (por si lo quieres consultar por API).

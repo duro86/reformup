@@ -67,11 +67,16 @@
                   :class="filters.oficios.includes(oficio.id)
                     ? 'btn-success'
                     : 'btn-outline-success'"
-                  @click="toggleOficio(oficio.id)"
+                  @click="toggleOficio(oficio.id, oficio)"
                 >
                   {{ oficio.nombre }}
                 </button>
               </div>
+
+              <!-- Descripción del oficio seleccionado -->
+              <p v-if="oficioSeleccionado" class="mt-2 small text-muted">
+                {{ oficioSeleccionado.descripcion }}
+              </p>
             </div>
 
             <div class="d-flex justify-content-between">
@@ -148,6 +153,7 @@
                       v-for="oficio in pro.oficios"
                       :key="oficio.id"
                       class="badge rounded-pill bg-success text-white me-1 mb-1"
+                      :title="oficio.descripcion || ''"
                     >
                       {{ oficio.nombre }}
                     </span>
@@ -266,6 +272,7 @@ export default {
   name: "ProfesionalesGrid",
   data() {
     return {
+      oficioSeleccionado: null,
       profesionales: [],
       meta: {
         current_page: 1,
@@ -278,7 +285,7 @@ export default {
         ciudad: "",
         provincia: "",
         min_rating: null,
-        oficios: [], //  varios oficios
+        oficios: [], // varios oficios
       },
       oficios: [], // lista global
       loading: false,
@@ -356,15 +363,26 @@ export default {
         min_rating: null,
         oficios: [],
       };
+      this.oficioSeleccionado = null;
       this.fetchProfesionales(1);
     },
 
-    toggleOficio(id) {
+    toggleOficio(id, oficioObj) {
       const idx = this.filters.oficios.indexOf(id);
+
       if (idx === -1) {
+        // Lo añadimos al filtro
         this.filters.oficios.push(id);
+        // Mostramos la descripción del último oficio pulsado
+        this.oficioSeleccionado = oficioObj;
       } else {
+        // Lo quitamos del filtro
         this.filters.oficios.splice(idx, 1);
+
+        // Si el oficio deseleccionado es el que está mostrado, lo limpiamos
+        if (this.oficioSeleccionado && this.oficioSeleccionado.id === id) {
+          this.oficioSeleccionado = null;
+        }
       }
     },
 
@@ -374,4 +392,3 @@ export default {
   },
 };
 </script>
-

@@ -356,32 +356,34 @@
 
                                     {{-- Nuevo presupuesto (si rechazado y solicitud abierta/en revisión) --}}
                                     @php
-                                                $solicitud = $presu->solicitud;
+                                        $solicitud = $presu->solicitud;
 
-                                                $esUltimoPresuDeSolicitud = $solicitud
-                                                    ? $solicitud->presupuestos->max('id') === $presu->id
-                                                    : false;
+                                        $esUltimoPresuDeSolicitud = $solicitud
+                                            ? $solicitud->presupuestos()->max('id') === $presu->id
+                                            : false;
 
-                                                $tieneOtroActivo = $solicitud
-                                                    ? $solicitud->presupuestos
-                                                        ->whereIn('estado', ['enviado', 'aceptado'])
-                                                        ->where('id', '!=', $presu->id)
-                                                        ->isNotEmpty()
-                                                    : false;
-                                            @endphp
+                                        $tieneOtroActivo = $solicitud
+                                            ? $solicitud
+                                                ->presupuestos()
+                                                ->whereIn('estado', ['enviado', 'aceptado'])
+                                                ->where('id', '!=', $presu->id)
+                                                ->exists()
+                                            : false;
+                                    @endphp
 
-                                            @if (
-                                                $presu->estado === 'rechazado' &&
-                                                    $solicitud &&
-                                                    in_array($solicitud->estado, ['abierta', 'en_revision']) &&
-                                                    $esUltimoPresuDeSolicitud &&
-                                                    !$tieneOtroActivo)
-                                                <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
-                                                    <i class="bi bi-plus-circle"></i>
-                                                    Nuevo presupuesto
-                                                </a>
-                                            @endif
+                                    @if (
+                                        $presu->estado === 'rechazado' &&
+                                            $solicitud &&
+                                            in_array($solicitud->estado, ['abierta', 'en_revision']) &&
+                                            $esUltimoPresuDeSolicitud &&
+                                            !$tieneOtroActivo)
+                                        <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
+                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
+                                            <i class="bi bi-plus-circle"></i>
+                                            Nuevo presupuesto
+                                        </a>
+                                    @endif
+
                                 </div>
 
                             </div>

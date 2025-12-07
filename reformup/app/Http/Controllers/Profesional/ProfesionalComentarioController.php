@@ -100,7 +100,7 @@ class ProfesionalComentarioController extends Controller
 
 
     /**
-     * Mostrar comentario concreto al profesional (modal JSON o vista normal).
+     * Mostrar comentario concreto al profesional 
      * Solo permite ver comentarios suyos, publicados y visibles.
      */
     public function mostrar(Comentario $comentario)
@@ -184,7 +184,7 @@ class ProfesionalComentarioController extends Controller
             ]);
         }
 
-        // 4) Fallback a vista normal (solo si en algún momento la usas)
+        // 4) Fallback a vista normal 
         return view('layouts.profesional.comentarios.mostrar', compact('comentario'));
     }
 }

@@ -12,12 +12,7 @@
                         Escribe tu correo y te enviaremos un enlace para restablecerla.
                     </p>
 
-                    @if (session('success'))
-                        <div class="alert alert-success">{{ session('success') }}</div>
-                    @endif
-                    @if (session('error'))
-                        <div class="alert alert-danger">{{ session('error') }}</div>
-                    @endif
+                    <x-alertas.alertasFlash />
 
                     <form method="POST" action="{{ route('password.email') }}">
                         @csrf

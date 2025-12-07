@@ -14,6 +14,7 @@ use App\Http\Controllers\Admin\AdminPresupuestoController;
 use App\Http\Controllers\Admin\AdminTrabajoController;
 use App\Http\Controllers\Admin\AdminComentarioController;
 use App\Http\Controllers\Admin\ProfesionalPerfilController;
+use App\Http\Controllers\Admin\OficioController;
 // --- ADMIN ---
 
 //Crear otro admin
@@ -207,4 +208,25 @@ Route::middleware(['rol.redirigir:admin'])->prefix('admin')
             [AdminTrabajoController::class, 'eliminarTrabajoAdmin']
         )
             ->name('trabajos.eliminar_admin');
+
+        // ----- LISTADO OFICIOS (ADMIN) -----
+        // Listado oficios
+        Route::get('/oficios', [OficioController::class, 'index'])
+            ->name('oficios');
+
+        // Guardar nuevo oficio
+        Route::post('/oficios', [OficioController::class, 'guardar'])
+            ->name('oficios.guardar');
+
+        // Formulario de edición
+        Route::get('/oficios/{oficio}/editar', [OficioController::class, 'editar'])
+            ->name('oficios.editar');
+
+        // Actualizar oficio
+        Route::put('/oficios/{oficio}', [OficioController::class, 'actualizar'])
+            ->name('oficios.actualizar');
+
+        // Eliminar oficio
+        Route::delete('/oficios/{oficio}', [OficioController::class, 'eliminar'])
+            ->name('oficios.eliminar');
     });

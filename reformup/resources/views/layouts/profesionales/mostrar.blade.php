@@ -8,7 +8,7 @@
     <div class="container py-4">
         {{-- Botón volver --}}
         <div class="mb-3">
-            <a href="{{ url()->previous() }}" class="btn btn-outline-secondary btn-sm">
+            <a href="{{ route('public.profesionales.index') }}" class="btn btn-outline-secondary btn-sm">
                 <i class="bi bi-arrow-left"></i> Volver
             </a>
         </div>
@@ -95,12 +95,46 @@
                             </p>
                         @endif
 
-                        {{-- Bio --}}
+                        {{-- Descripción de la empresa --}}
                         @if ($perfil->bio)
-                            <div class="text-start small mb-3" style="white-space: pre-line;">
-                                {{ $perfil->bio }}
+                            <div class="mt-5 text-start">
+                                <h2 class="h6 mb-1 text-uppercase text-muted">
+                                    Sobre nuestra empresa
+                                </h2>
+                                <div class="small" style="white-space: pre-line;">
+                                    {{ $perfil->bio }}
+                                </div>
                             </div>
                         @endif
+                        <hr>
+
+                        {{-- Detalle de oficios --}}
+                        @if ($perfil->oficios && $perfil->oficios->isNotEmpty())
+                            <div class="text-start mt-3">
+                                <h2 class="h6 mb-2">Servicios que ofrece</h2>
+
+                                @foreach ($perfil->oficios as $oficio)
+                                    <div class="mb-2 pb-2 border-bottom">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="me-2 text-success">
+                                                <i class="bi bi-hammer"></i>
+                                            </span>
+                                            <span class="fw-semibold">
+                                                {{ $oficio->nombre }}
+                                            </span>
+                                        </div>
+
+                                        @if (!empty($oficio->descripcion))
+                                            <div class="small text-muted ms-4">
+                                                {{ $oficio->descripcion }}
+                                            </div>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
+
+
 
                         {{-- Botón CONTRATAR --}}
                         <a href="{{ route('public.profesionales.contratar', $perfil) }}" class="btn btn-primary w-100">

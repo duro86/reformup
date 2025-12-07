@@ -532,7 +532,7 @@ class AdminSolicitudController extends Controller
             ]
         );
 
-        // 🔎 Validaciones extra uniendo lógica de perfiles_profesionales y roles
+        //  Validaciones extra uniendo lógica de perfiles_profesionales y roles
         $validator->after(function ($validator) use ($request) {
 
             $clienteId = $request->input('cliente_id');
@@ -576,7 +576,7 @@ class AdminSolicitudController extends Controller
                 ->with('error', 'Revisa los campos marcados en rojo.');
         }
 
-        // Si todo va bien, ya tienes datos validados
+        // Si todo va bien, ya datos validados
         $validated = $validator->validated();
 
         // Aquí creamos la solicitud:
@@ -611,7 +611,6 @@ class AdminSolicitudController extends Controller
         $cliente      = $solicitud->cliente;
         $profesional  = $solicitud->profesional;
 
-        // En tu lógica actual solo hay un presupuesto por solicitud,
         // Dejamos que pueda ser escalable mas adelante
         // así que usamos el primero (o null si no hay)
         $presupuesto  = $solicitud->presupuestos->first();
@@ -717,13 +716,14 @@ class AdminSolicitudController extends Controller
                     );
                 }
             }
-
+            // Si va todo bien
             return back()->with(
                 'success',
                 'Solicitud eliminada correctamente. Se han eliminado también el presupuesto, el trabajo y los comentarios asociados según su estado.'
             );
         } catch (\Throwable $e) {
 
+            // Fallo al eliminar solicitud
             return back()->with(
                 'error',
                 'Ha ocurrido un error al eliminar la solicitud y sus datos asociados.'

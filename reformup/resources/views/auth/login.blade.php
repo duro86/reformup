@@ -18,9 +18,7 @@
             <!-- Formulario centrado -->
             <div class="bg-white p-4 rounded shadow mt-5 mb-4" style="width: 350px; max-width: 90vw;">
                 <h2 class="mb-4 text-center">Iniciar Sesión</h2>
-                @if (session('error'))
-                    <div class="alert alert-danger">{{ session('error') }}</div>
-                @endif
+                <x-alertas.alertasFlash />
                 <form method="POST" action="{{ route('login.post') }}">
                     @csrf
                     <div class="mb-3">
@@ -38,6 +36,13 @@
                         @error('password')
                             <div class="invalid-feedback">{{ $message }}</div>
                         @enderror
+                    </div>
+
+                    <div class="form-check mb-3">
+                        <input class="form-check-input" type="checkbox" name="remember" id="remember">
+                        <label class="form-check-label" for="remember">
+                            Recuérdame
+                        </label>
                     </div>
 
                     <div class="d-flex justify-content-between align-items-center mb-3">
