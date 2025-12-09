@@ -4,30 +4,31 @@
 @section('content')
 
     {{-- Navbar común --}}
-    <x-navbar />
+    <x-navbar active="perfil"/>
     <x-profesional.profesional_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
     <x-usuario.nav_movil active="perfil" />
 
     {{-- CONTENIDO PRINCIPAL --}}
-    <div class="container my-2">
-        <div class="d-grid d-md-inline-block">
+    <div class="container my-1">
+        <div class="d-flex flex-column flex-md-row align-items-center gap-1">
+            {{-- Botón a la izquierda --}}
             <a href="{{ route('profesional.dashboard') }}"
-                class="btn btn-secondary d-inline-flex align-items-center justify-content-center gap-2">
+                class="btn btn-secondary d-inline-flex align-items-center justify-content-center gap-2 me-md-auto">
                 <i class="bi bi-arrow-left"></i>
                 <span>Volver al panel principal</span>
             </a>
+
+            {{-- Título centrado --}}
+            <h3 class="mb-0 text-center flex-grow-1">
+                Mi perfil Profesional
+            </h3>
         </div>
+
 
         <div class="row justify-content-center">
             <div class="col-lg-12 bg-white">
-                <div class="p-4 p-lg-5">
-
-                    {{-- Título --}}
-                    <h1 class="h4 mb-2 d-flex align-items-center gap-2">
-                        <i class="bi bi-person-bounding-box me-1"></i>
-                        Mi perfil profesional
-                    </h1>
+                <div class="p-lg-5">
 
                     {{-- Errores globales --}}
                     @if ($errors->any())

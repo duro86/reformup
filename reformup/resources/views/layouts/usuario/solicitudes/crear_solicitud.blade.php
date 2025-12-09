@@ -9,9 +9,9 @@
     <x-usuario.usuario_sidebar />
 
     <div class="container-fluid main-content-with-sidebar">
-        <div class="container py-4">
+        <div class="container py-2">
 
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-plus"></i> Nueva solicitud
                 </h1>
@@ -122,7 +122,7 @@
                             <button type="submit" class="btn btn-primary">
                                 Enviar solicitud
                             </button>
-                            <a href="{{ route('usuario.solicitudes.index') }}" class="btn btn-outline-secondary">
+                            <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}" class="btn btn-outline-secondary">
                                 Cancelar
                             </a>
                         </div>

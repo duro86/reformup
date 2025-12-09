@@ -127,4 +127,14 @@ class User extends Authenticatable
     {
         $this->notify(new ResetPasswordReformUp($token));
     }
+
+    /**
+     * Eliminación en cascada de los tokens de api de sanctum
+     */
+    protected static function booted()
+    {
+        static::deleting(function ($user) {
+            $user->tokens()->delete();
+        });
+    }
 }

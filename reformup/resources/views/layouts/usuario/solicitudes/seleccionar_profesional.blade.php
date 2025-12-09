@@ -8,9 +8,9 @@
     <x-usuario.usuario_sidebar />
 
     <div class="container-fluid main-content-with-sidebar">
-        <div class="container py-4">
+        <div class="container py-2">
 
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-search"></i> Elige un profesional
                 </h1>
@@ -23,7 +23,7 @@
             </div>
 
             {{-- FILTROS --}}
-            <form method="GET" action="{{ route('usuario.solicitudes.seleccionar_profesional') }}" class="card mb-4">
+            <form method="GET" action="{{ route('usuario.solicitudes.seleccionar_profesional') }}" class="card mb-2">
                 <div class="card-body">
                     <div class="row g-3">
                         <div class="col-md-4">
@@ -65,7 +65,8 @@
                             <i class="bi bi-search"></i> Buscar
                         </button>
 
-                        <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}"
+                            class="btn btn-outline-secondary">
                             <i class="bi bi-file-x"></i>Limpiar filtros
                         </a>
                     </div>
@@ -79,21 +80,6 @@
                     Prueba a ampliar la zona o quitar algún filtro.
                 </div>
             @else
-                @php
-                    // Helper para mostrar estrellas de 0-5
-                    $renderStars = function ($score) {
-                        $score = $score ?? 0;
-                        $full = floor($score);
-                        $half = $score - $full >= 0.5 ? 1 : 0;
-                        $empty = 5 - $full - $half;
-
-                        $html = str_repeat('<i class="bi bi-star-fill text-warning"></i>', $full);
-                        $html .= str_repeat('<i class="bi bi-star-half text-warning"></i>', $half);
-                        $html .= str_repeat('<i class="bi bi-star text-warning"></i>', $empty);
-
-                        return $html;
-                    };
-                @endphp
 
                 {{-- Listado Profesionales Cards --}}
                 <div class="row g-3">
@@ -156,14 +142,14 @@
                                             @endif
                                         </div>
 
-                                        <div class="text-end">
-                                            <div class="text-warning small">
-                                                {!! $renderStars($pro->puntuacion_media) !!}
-                                            </div>
-                                            <div class="small text-muted">
-                                                {{ $pro->puntuacion_media ? number_format($pro->puntuacion_media, 1) . ' / 5' : 'Sin valoraciones' }}
-                                            </div>
+                                        <div class="small">
+                                            <x-estrellas :valor="$pro->puntuacion_media ?? 0" />
                                         </div>
+
+                                        <div class="small text-muted">
+                                            {{ $pro->puntuacion_media !== null ? number_format($pro->puntuacion_media, 1) . ' / 5' : 'Sin valoraciones' }}
+                                        </div>
+
                                     </div>
 
                                     {{-- Botón seleccionar --}}

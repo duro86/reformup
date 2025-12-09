@@ -5,8 +5,9 @@
     Datos de usuario
 </h2>
 
+{{-- Fila 1  Nombre · Apellidos · Teléfono --}}
 <div class="row">
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
         <label class="form-label">Nombre<span class="text-danger">*</span></label>
         <input type="text" name="nombre" value="{{ old('nombre', $usuario->nombre) }}"
             class="form-control @error('nombre') is-invalid @enderror">
@@ -15,7 +16,7 @@
         @enderror
     </div>
 
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
         <label class="form-label">Apellidos<span class="text-danger">*</span></label>
         <input type="text" name="apellidos" value="{{ old('apellidos', $usuario->apellidos) }}"
             class="form-control @error('apellidos') is-invalid @enderror">
@@ -23,17 +24,55 @@
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
+
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Teléfono<span class="text-danger">*</span></label>
+        <input type="text" name="telefono" placeholder="612345678" value="{{ old('telefono', $usuario->telefono) }}"
+            class="form-control @error('telefono') is-invalid @enderror">
+        @error('telefono')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
 </div>
 
-<div class="mb-3">
-    <label class="form-label">Email<span class="text-danger">*</span></label>
-    <input type="email" name="email" value="{{ old('email', $usuario->email) }}"
-        class="form-control @error('email') is-invalid @enderror">
-    @error('email')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
+{{-- Fila 1  Email · Provincia · Municipio --}}
+<div class="row">
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Email<span class="text-danger">*</span></label>
+        <input type="email" name="email" value="{{ old('email', $usuario->email) }}"
+            class="form-control @error('email') is-invalid @enderror">
+        @error('email')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Provincia<span class="text-danger">*</span></label>
+        <select name="provincia_user" id="provincia_user"
+            class="form-control @error('provincia_user') is-invalid @enderror">
+            <option value="">Selecciona una provincia</option>
+            <option value="Huelva" {{ old('provincia_user', $usuario->provincia) == 'Huelva' ? 'selected' : '' }}>Huelva
+            </option>
+            <option value="Sevilla" {{ old('provincia_user', $usuario->provincia) == 'Sevilla' ? 'selected' : '' }}>
+                Sevilla</option>
+        </select>
+        @error('provincia_user')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Municipio</label>
+        <select name="ciudad_user" id="ciudad_user" class="form-control @error('ciudad_user') is-invalid @enderror">
+            <option value="">Selecciona primero una provincia</option>
+        </select>
+        @error('ciudad_user')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
 </div>
 
+{{-- Fila 1  Password --}}
 <div class="row">
     <div class="col-md-6 mb-3">
         <label class="form-label">
@@ -52,48 +91,19 @@
     </div>
 </div>
 
+{{-- Fila 1  Dirección · Código Postal --}}
 <div class="row">
-    <div class="col-md-6 mb-3">
-        <label class="form-label">Teléfono<span class="text-danger">*</span></label>
-        <input type="text" name="telefono" placeholder="612345678" value="{{ old('telefono', $usuario->telefono) }}"
-            class="form-control @error('telefono') is-invalid @enderror">
-        @error('telefono')
+    <div class="col-md-8 mb-3">
+        <label class="form-label">Dirección</label>
+        <input type="text" name="direccion" placeholder="Avd/Cabezo de la Joya 3, escalera 3, 4ºA"
+            value="{{ old('direccion', $usuario->direccion) }}"
+            class="form-control @error('direccion') is-invalid @enderror">
+        @error('direccion')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
 
-    {{-- Provincia --}}
-    <div class="col-md-6 mb-3">
-        <label class="form-label">Provincia<span class="text-danger">*</span></label>
-        <select name="provincia_user" id="provincia_user"
-            class="form-control @error('provincia_user') is-invalid @enderror">
-            <option value="">Selecciona una provincia</option>
-            <option value="Huelva" {{ old('provincia_user', $usuario->provincia) == 'Huelva' ? 'selected' : '' }}>Huelva
-            </option>
-            <option value="Sevilla" {{ old('provincia_user', $usuario->provincia) == 'Sevilla' ? 'selected' : '' }}>
-                Sevilla</option>
-        </select>
-
-        @error('provincia_user')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-</div>
-
-<div class="row">
-    {{-- Ciudad / Municipio --}}
-    <div class="col-md-6 mb-3">
-        <label class="form-label"> Municipio</label>
-        <select name="ciudad_user" id="ciudad_user" class="form-control @error('ciudad_user') is-invalid @enderror">
-            <option value="">Selecciona primero una provincia</option>
-
-        </select>
-        @error('ciudad_user')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="col-md-6 mb-3">
+    <div class="col-md-4 mb-3">
         <label class="form-label">Código postal</label>
         <input type="text" name="cp" placeholder="21004" value="{{ old('cp', $usuario->cp) }}"
             class="form-control @error('cp') is-invalid @enderror" maxlength="5">
@@ -101,16 +111,6 @@
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
-</div>
-
-<div class="mb-3">
-    <label class="form-label">Dirección</label>
-    <input type="text" name="direccion" placeholder="Avd/Cabezo de la Joya 3, escalera 3, 4ºA"
-        value="{{ old('direccion', $usuario->direccion) }}"
-        class="form-control @error('direccion') is-invalid @enderror">
-    @error('direccion')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
 </div>
 
 {{-- Avatar usuario --}}

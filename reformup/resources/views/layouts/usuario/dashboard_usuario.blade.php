@@ -5,10 +5,10 @@
 @section('content')
 
     {{-- Navbar principal --}}
-    <x-navbar />
+    <x-navbar active="panel"/>
 
     {{-- Sidebar usuario --}}
-    <x-usuario.usuario_sidebar />
+    <x-usuario.usuario_sidebar  />
     {{-- Bienvenida --}}
     <x-usuario.user_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}

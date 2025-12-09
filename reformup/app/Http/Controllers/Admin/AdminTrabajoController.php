@@ -13,7 +13,6 @@ use App\Exports\TrabajosExport;
 use Maatwebsite\Excel\Facades\Excel;
 use Illuminate\Support\Facades\Auth;
 
-
 class AdminTrabajoController extends Controller
 {
     /**
@@ -28,7 +27,7 @@ class AdminTrabajoController extends Controller
         $estado = $request->query('estado');           // previsto, en_curso, finalizado, cancelado o null
         $q      = trim((string) $request->query('q')); // texto buscador
 
-        $estados = [null => 'Todas'] + Trabajo::ESTADOS;
+        $estados = Trabajo::ESTADOS;
 
         $query = Trabajo::with([
             'presupuesto.solicitud.cliente',

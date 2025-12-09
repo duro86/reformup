@@ -86,6 +86,7 @@
                         <thead>
                             <tr class="fs-5">
                                 {{-- Siempre visible --}}
+                                <th class="text-center text-md-start">ID</th>
                                 <th class="text-center text-md-start">Profesional</th>
 
                                 {{-- En tablet (md+) y escritorio --}}
@@ -93,7 +94,7 @@
                                 <th class="d-none d-md-table-cell">Teléfono</th>
 
                                 {{-- Solo en escritorio (lg+) --}}
-                                <th class="d-none d-lg-table-cell">CIF</th>
+                                <th class="d-none d-lg-table-cell text-center">CIF</th>
                                 <th class="d-none d-lg-table-cell">Email</th>
                                 <th class="d-none d-lg-table-cell">Cuenta Usuario</th>
                                 <th class="d-none d-lg-table-cell text-center">Rol</th>
@@ -111,9 +112,10 @@
                                 @php
                                     $user = $perfil->user;
                                 @endphp
-
+                                
                                 <tr>
                                     {{-- COLUMNA PRINCIPAL --}}
+                                        <td class="d-none d-md-table-cell">{{ $perfil->id }}</td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             {{-- Avatar --}}

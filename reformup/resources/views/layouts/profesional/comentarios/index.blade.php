@@ -11,29 +11,35 @@
     <div class="container-fluid main-content-with-sidebar">
         <x-profesional.nav_movil active="comentarios" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                <h1 class="h4 mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-chat-left-quote"></i> Comentarios de mis clientes
-                </h1>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
+                <h4 class="mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-quote"></i>
+                    Listado Comentarios
+                </h4>
             </div>
 
             <x-alertas.alertasFlash />
 
             {{-- Buscador combinado: campos + fechas --}}
-            <form method="GET" action="{{ route('profesional.comentarios.index') }}" class="row g-2 mb-3">
+            <form method="GET"
+                  action="{{ route('profesional.comentarios.index') }}"
+                  class="row g-2 mb-3 align-items-end">
 
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-4 col-lg-3">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
-                        placeholder="Buscar por cliente, título o opinión...">
+                    <input type="text"
+                           name="q"
+                           value="{{ request('q') }}"
+                           class="form-control form-control-sm bg-pro-primary"
+                           placeholder="Buscar por cliente, título o opinión...">
                 </div>
 
                 {{-- Puntuación mínima --}}
                 <div class="col-6 col-md-4 col-lg-3">
-                    <select name="puntuacion_min" class="form-select form-select-sm">
+                    <select name="puntuacion_min" class="form-select form-select-sm bg-pro-primary">
                         <option value="">Cualquier puntuación</option>
                         @for ($i = 5; $i >= 1; $i--)
                             <option value="{{ $i }}"
@@ -49,7 +55,7 @@
 
                 {{-- Botón Buscar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    <button type="submit" class="btn btn-sm btn-primary">
+                    <button type="submit" class="btn btn-sm bg-pro-primary text-black">
                         <i class="bi bi-search"></i> Buscar
                     </button>
                 </div>
@@ -57,7 +63,8 @@
                 {{-- Botón Limpiar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
                     @if (request('q') || request('fecha_desde') || request('fecha_hasta') || request('puntuacion_min'))
-                        <a href="{{ route('profesional.comentarios.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('profesional.comentarios.index') }}"
+                           class="btn btn-sm btn-outline-pro">
                             Limpiar
                         </a>
                     @endif
@@ -69,8 +76,6 @@
                 Mostrando solo los comentarios <strong>publicados y visibles</strong> sobre tus trabajos.
             </p>
 
-
-
             @if ($comentarios->isEmpty())
                 <div class="alert alert-info">
                     No tienes comentarios
@@ -81,48 +86,62 @@
                 {{-- TABLA (solo en lg+)      --}}
                 {{-- ========================= --}}
                 <div class="table-responsive d-none d-lg-block">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr class="fs-5">
+                    <table class="table table-sm align-middle border border-pro-secondary rounded">
+                        <thead class="text-white">
+                            <tr class="small text-center align-middle bg-pro-secondary fs-5">
                                 {{-- Siempre visible --}}
-                                <th class="bg-secondary text-center text-md-start">Trabajo / Solicitud</th>
+                                <th class="text-center text-md-start bg-pro-secondary text-white">
+                                    Trabajo / Solicitud
+                                </th>
 
                                 {{-- En tablet (md+) --}}
-                                <th class=" bg-secondary d-none d-md-table-cell">Cliente</th>
+                                <th class="bg-pro-secondary text-white d-none d-md-table-cell">
+                                    Cliente
+                                </th>
 
                                 {{-- Siempre visibles --}}
-                                <th class="bg-secondary">Puntuación</th>
-                                <th class="bg-secondary">Estado</th>
+                                <th class="bg-pro-secondary text-white">
+                                    Puntuación
+                                </th>
+                                <th class="bg-pro-secondary text-white">
+                                    Estado
+                                </th>
 
                                 {{-- Solo en md+ --}}
-                                <th class=" bg-secondary d-none d-md-table-cell text-center">Fecha</th>
+                                <th class="bg-pro-secondary text-white d-none d-md-table-cell text-center">
+                                    Fecha
+                                </th>
 
                                 {{-- Solo en lg+ --}}
-                                <th class=" bg-secondary d-none d-lg-table-cell">Opinión</th>
+                                <th class="bg-pro-secondary text-white d-none d-lg-table-cell">
+                                    Opinión
+                                </th>
 
                                 {{-- Acciones --}}
-                                <th class="bg-secondary text-center">Acciones</th>
+                                <th class="bg-pro-secondary text-white text-center">
+                                    Acciones
+                                </th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($comentarios as $comentario)
                                 @php
-                                    $trabajo = $comentario->trabajo;
+                                    $trabajo     = $comentario->trabajo;
                                     $presupuesto = $trabajo?->presupuesto;
-                                    $solicitud = $presupuesto?->solicitud;
-                                    $cliente = $solicitud?->cliente;
+                                    $solicitud   = $presupuesto?->solicitud;
+                                    $cliente     = $solicitud?->cliente;
 
                                     $badgeClass = match ($comentario->estado) {
                                         'pendiente' => 'bg-warning text-dark',
                                         'publicado' => 'bg-success',
                                         'rechazado' => 'bg-secondary',
-                                        default => 'bg-light text-dark',
+                                        default     => 'bg-light text-dark',
                                     };
                                 @endphp
 
                                 <tr>
                                     {{-- Trabajo / Solicitud --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         <strong>
                                             @if ($solicitud?->titulo)
                                                 {{ $solicitud->titulo }}
@@ -133,7 +152,7 @@
                                     </td>
 
                                     {{-- Cliente (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-md-table-cell bg-pro-primary">
                                         @if ($cliente)
                                             {{ $cliente->nombre ?? $cliente->name }}
                                             {{ $cliente->apellidos ?? '' }}<br>
@@ -144,23 +163,24 @@
                                     </td>
 
                                     {{-- Puntuación --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         {{ $comentario->puntuacion }} / 5
                                     </td>
 
                                     {{-- Estado --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         <span class="badge {{ $badgeClass }}">
                                             {{ ucfirst($comentario->estado) }}
                                         </span>
                                     </td>
 
                                     {{-- Fecha (md+) --}}
-                                    <td class="d-none d-md-table-cell">
+                                    <td class="d-none d-md-table-cell bg-pro-primary">
                                         {{ $comentario->fecha?->format('d/m/Y H:i') ?? $comentario->created_at?->format('d/m/Y H:i') }}
                                     </td>
-                                    <td>
-                                        {{-- Opinión (resumen) --}}
+
+                                    {{-- Opinión (resumen) --}}
+                                    <td class="bg-pro-primary">
                                         @if ($comentario->opinion)
                                             <div class="mb-1">
                                                 {{ \Illuminate\Support\Str::limit(strip_tags($comentario->opinion), 50, '...') }}
@@ -168,13 +188,13 @@
                                         @endif
                                     </td>
 
-
                                     {{-- Acciones --}}
-                                    <td class="text-center">
+                                    <td class="text-center bg-pro-primary">
                                         <div class="d-flex flex-row flex-wrap justify-content-center gap-2">
+                                            {{-- OJO: este botón lo dejo tal cual me has dicho --}}
                                             <button type="button"
-                                                class="btn btn-sm btn-info d-inline-flex align-items-center gap-1"
-                                                @click="openComentarioModalPro({{ $comentario->id }})">
+                                                    class="btn btn-sm btn-info d-inline-flex align-items-center gap-1"
+                                                    @click="openComentarioModalPro({{ $comentario->id }})">
                                                 Ver detalle
                                             </button>
                                         </div>
@@ -191,20 +211,20 @@
                 <div class="d-block d-lg-none">
                     @foreach ($comentarios as $comentario)
                         @php
-                            $trabajo = $comentario->trabajo;
+                            $trabajo     = $comentario->trabajo;
                             $presupuesto = $trabajo?->presupuesto;
-                            $solicitud = $presupuesto?->solicitud;
-                            $cliente = $solicitud?->cliente;
+                            $solicitud   = $presupuesto?->solicitud;
+                            $cliente     = $solicitud?->cliente;
 
                             $badgeClass = match ($comentario->estado) {
                                 'pendiente' => 'bg-warning text-dark',
                                 'publicado' => 'bg-success',
                                 'rechazado' => 'bg-secondary',
-                                default => 'bg-light text-dark',
+                                default     => 'bg-light text-dark',
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm bg-light">
+                        <div class="card mb-3 shadow-sm bg-pro-primary">
                             <div class="card-body ">
 
                                 {{-- Cabecera: trabajo/solicitud --}}
@@ -262,8 +282,10 @@
 
                                 {{-- Acciones en columna --}}
                                 <div class="d-grid gap-2">
-                                    <button type="button" class="btn btn-sm btn-info"
-                                        @click="openComentarioModalPro({{ $comentario->id }})">
+                                    {{-- También aquí lo dejo igual: btn-info --}}
+                                    <button type="button"
+                                            class="btn btn-sm btn-info"
+                                            @click="openComentarioModalPro({{ $comentario->id }})">
                                         Ver detalle
                                     </button>
                                 </div>

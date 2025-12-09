@@ -19,13 +19,13 @@
     </button>
 
     {{-- Título Sidebar Roles --}}
-    <h4 class="fs-3 text-primary fst-italic">PERFILES</h4>
+    <h4 class="fs-4 text-primary fst-italic">PERFILES</h4>
     @if ($isAdmin)
-        <h4 class="m-2 color-black">Administrador</h4>
+        <h4 class="m-1 color-black">Administrador</h4>
 
         <div class="ms-3">
             @if ($isUsuario)
-                <div>Usuario</div>
+                <h3 class="fs-3">Usuario</h3>
             @endif
             @if ($isProfesional)
                 <div>Profesional</div>
@@ -33,10 +33,10 @@
         </div>
     @else
         @if ($isUsuario)
-            <h4 class="m-2 fs-3 color-black">Usuario</h4>
+            <h4 class="m-1 fs-5 color-black">Usuario</h4>
         @endif
         @if ($isProfesional)
-            <h4 class="m-2 text-secondary fs-6 text-muted">Profesional</h4>
+            <h4 class="m-1 text-secondary fs-6 text-muted">Profesional</h4>
         @endif
     @endif
     <hr>
@@ -44,23 +44,35 @@
         <ul class="nav flex-column ">
             <li class="nav-item">
                 {{-- Listado Solicitudes --}}
-                <a class="nav-link" href="{{ route('usuario.solicitudes.index') }}"><i
-                        class="bi bi-file-earmark-text"></i> Solicitudes</a>
+                <a class="nav-link {{ request()->routeIs('usuario.solicitudes.*') ? 'active fw-semibold bg-user-primary text-primary' : '' }}"
+                    href="{{ route('usuario.solicitudes.index') }}">
+                    <i class="bi bi-file-earmark-text"></i> Solicitudes
+                </a>
+
             </li>
             <li class="nav-item">
                 {{-- Listado Presupuestos --}}
-                <a class="nav-link" href="{{ route('usuario.presupuestos.index') }}"><i class="bi bi-receipt"></i>
-                    Presupuestos</a>
+                <a class="nav-link {{ request()->routeIs('usuario.presupuestos.*') ? 'active fw-semibold bg-user-primary text-primary' : '' }}"
+                    href="{{ route('usuario.presupuestos.index') }}">
+                    <i class="bi bi-receipt"></i> Presupuestos
+                </a>
+
             </li>
             <li class="nav-item">
                 {{-- Listado Trabajos --}}
-                <a class="nav-link" href="{{ route('usuario.trabajos.index') }}"><i class="bi bi-briefcase-fill"></i>
-                    Trabajos</a>
+                <a class="nav-link {{ request()->routeIs('usuario.trabajos.*') ? 'active fw-semibold bg-user-primary text-primary' : '' }}"
+                    href="{{ route('usuario.trabajos.index') }}">
+                    <i class="bi bi-briefcase-fill"></i> Trabajos
+                </a>
+
             </li>
             <li class="nav-item">
                 {{-- Listado Comentarios --}}
-                <a class="nav-link" href="{{ route('usuario.comentarios.index') }}"><i class="bi bi-chat-left-text"></i>
-                    Comentarios</a>
+                <a class="nav-link {{ request()->routeIs('usuario.comentarios.*') ? 'active fw-semibold bg-user-primary text-primary' : '' }}"
+                    href="{{ route('usuario.comentarios.index') }}">
+                    <i class="bi bi-chat-left-text"></i> Comentarios
+                </a>
+
             </li>
 
             {{-- Bloque acceso profesional --}}
@@ -69,17 +81,16 @@
                     $perfilProfesional = $user->perfil_Profesional()->first();
                 @endphp
 
-                <li class="nav-item mt-2">
+                <li class="nav-item mt-1">
                     @if ($perfilProfesional)
-                        <div class="px-2 py-2 small border rounded bg-white">
+                        <div class="px-2 py-2 small border rounded bg-white fs-7">
                             @if ($perfilProfesional->visible)
-                                <i class="bi bi-hourglass-split text-success" aria-label="Perfil profesional activo"
-                                    title="Perfil profesional activo"></i> Perfil profesional activo
+                                <i class="bi bi-check-lg">Perfil profesional activo</i> 
                             @else
                                 <i class="bi bi-hourglass-split text-warning" aria-label="Perfil profesional inactivo"
                                     title="Perfil profesional inactivo"></i> Perfil profesional Inactivo
                             @endif
-                            <p class="mb-2 text-muted">
+                            <p class="mb-1 text-muted">
                                 Accede a tu panel como profesional para gestionar solicitudes y trabajos.
                             </p>
                             <a href="{{ route('profesional.dashboard') }}" class="btn btn-primary btn-sm w-100">
@@ -108,7 +119,7 @@
         </ul>
 
         {{-- Inicio, Perfil y Cerrar sesión --}}
-        <ul class="nav flex-column mt-5  admin-sidebar">
+        <ul class="nav flex-column mt-2 admin-sidebar">
             {{-- Si es usuario y no tiene perfil profesional --}}
             @if ($isUsuario && !$isProfesional)
                 <li class="nav-item">

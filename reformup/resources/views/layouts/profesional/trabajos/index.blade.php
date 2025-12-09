@@ -15,24 +15,30 @@
         {{-- Nav superior móvil --}}
         <x-profesional.nav_movil active="trabajos" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row align-items-md-center mb-3 gap-2 justify-content-center">
-                <h3 class="mb-1 d-flex align-items-center gap-2 justify-content-center">
-                    <i class="bi bi-hammer"></i> Mis trabajos
-                </h3>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
+                <h4 class="mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-hammer"></i>
+                    Listado Trabajos
+                </h4>
             </div>
 
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
             {{-- Buscador combinado: campos + fechas --}}
-            <form method="GET" action="{{ route('profesional.trabajos.index') }}" class="row g-2 mb-3">
+            <form method="GET" action="{{ route('profesional.trabajos.index') }}"
+                  class="row g-2 mb-3 align-items-end">
+
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-6 col-lg-4">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
-                        placeholder="Buscar por título, cliente, ciudad, provincia, estado o importe...">
+                    <input type="text"
+                           name="q"
+                           value="{{ request('q') }}"
+                           class="form-control form-control-sm bg-pro-primary"
+                           placeholder="Buscar por título, cliente, ciudad, provincia, estado o importe...">
                 </div>
 
                 {{-- Rango de fechas reutilizable (creación del trabajo) --}}
@@ -40,7 +46,7 @@
 
                 {{-- Botón Buscar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    <button type="submit" class="btn btn-sm btn-primary">
+                    <button type="submit" class="btn btn-sm bg-pro-primary text-black">
                         <i class="bi bi-search"></i> Buscar
                     </button>
                 </div>
@@ -48,7 +54,7 @@
                 {{-- Botón Limpiar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
                     @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
-                        <a href="{{ route('profesional.trabajos.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('profesional.trabajos.index') }}" class="btn btn-sm btn-outline-pro">
                             Limpiar
                         </a>
                     @endif
@@ -72,8 +78,8 @@
                             );
                         @endphp
 
-                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
-                            href="{{ $urlTodos }}">
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active bg-pro-primary text-black fw-semibold' : 'text-muted' }}"
+                           href="{{ $urlTodos }}">
                             Todos
                         </a>
                     </li>
@@ -90,17 +96,19 @@
                                     'fecha_hasta' => request('fecha_hasta'),
                                 ]),
                             );
+
+                            $esActivo = $estado === $valor;
                         @endphp
 
                         <li class="nav-item">
-                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                            <a class="nav-link {{ $esActivo ? 'active bg-pro-primary text-black fw-semibold' : 'text-muted' }}"
+                               href="{{ $urlEstado }}">
                                 {{ $texto }}
                             </a>
                         </li>
                     @endforeach
                 </ul>
             @endif
-
 
             @if ($trabajos->isEmpty())
                 <div class="alert alert-info">
@@ -111,17 +119,17 @@
                 {{-- TABLA (solo en lg+)      --}}
                 {{-- ========================= --}}
                 <div class="table-responsive d-none d-lg-block">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr class="fs-5">
-                                <th class="bg-secondary">Trabajo</th>
-                                <th class="bg-secondary">Cliente</th>
-                                <th class="bg-secondary text-center">Estado</th>
-                                <th class="bg-secondary">Fecha inicio</th>
-                                <th class="bg-secondary ">Fecha fin</th>
-                                <th class="bg-secondary ">Dirección obra</th>
-                                <th class="bg-secondary  text-center">Total presupuesto</th>
-                                <th class="bg-secondary  text-center">Acciones</th>
+                    <table class="table table-sm align-middle border border-pro-secondary rounded">
+                        <thead class="text-white">
+                            <tr class="small text-center align-middle bg-pro-secondary fs-5">
+                                <th class="text-start bg-pro-secondary text-white">Trabajo</th>
+                                <th class="bg-pro-secondary text-white text-start">Cliente</th>
+                                <th class="bg-pro-secondary text-white">Estado</th>
+                                <th class="bg-pro-secondary text-white">Fecha inicio</th>
+                                <th class="bg-pro-secondary text-white">Fecha fin</th>
+                                <th class="bg-pro-secondary text-white">Dirección obra</th>
+                                <th class="bg-pro-secondary text-white">Total presupuesto</th>
+                                <th class="bg-pro-secondary text-white">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -132,17 +140,17 @@
                                     $cliente = $solicitud?->cliente;
 
                                     $badgeClass = match ($trabajo->estado) {
-                                        'previsto' => 'bg-primary',
-                                        'en_curso' => 'bg-warning text-dark',
+                                        'previsto'   => 'bg-primary',
+                                        'en_curso'   => 'bg-warning text-dark',
                                         'finalizado' => 'bg-success',
-                                        'cancelado' => 'bg-secondary',
-                                        default => 'bg-light text-dark',
+                                        'cancelado'  => 'bg-secondary',
+                                        default      => 'bg-light text-dark',
                                     };
                                 @endphp
 
                                 <tr>
                                     {{-- Trabajo / título --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         <strong>
                                             @if ($solicitud?->titulo)
                                                 {{ $solicitud->titulo }}
@@ -158,7 +166,7 @@
                                     </td>
 
                                     {{-- Cliente --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         @if ($cliente)
                                             {{ $cliente->nombre ?? $cliente->name }}
                                             {{ $cliente->apellidos ?? '' }}<br>
@@ -169,47 +177,50 @@
                                     </td>
 
                                     {{-- Estado --}}
-                                    <td class="text-center">
-                                        <span class="badge {{ $badgeClass }}">
-                                            {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
-                                        </span>
-                                        @if ($trabajo->estado === 'previsto')
-                                            <div class="small text-primary mt-1">
-                                                Puede usted comenzar el trabajo inicializándolo
-                                            </div>
-                                        @endif
-                                        @if ($trabajo->estado === 'en_curso')
-                                            <div class="small text-primary mt-1">
-                                                El trabajo está iniciado, si ha finalizado, puede comunicarlo en finalizar
-                                            </div>
-                                        @endif
-                                        @if ($trabajo->estado === 'finalizado')
-                                            <div class="small text-primary mt-1">
-                                                El trabajo se ha finalizado, ¡compruebe sus reseñas en comentarios!
-                                            </div>
-                                        @endif
-                                        @if ($trabajo->estado === 'cancelado')
-                                            <div class="small text-primary mt-1">
-                                                El trabajo ha sido cancelado y notificado al cliente y profesional
-                                            </div>
-                                        @endif
+                                    <td class="text-center align-middle bg-pro-primary">
+                                        <div class="d-flex flex-column align-items-center gap-1">
+                                            <span class="badge {{ $badgeClass }}">
+                                                {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
+                                            </span>
+
+                                            @if ($trabajo->estado === 'previsto')
+                                                <div class="small text-primary">
+                                                    Puede usted comenzar el trabajo inicializándolo
+                                                </div>
+                                            @endif
+                                            @if ($trabajo->estado === 'en_curso')
+                                                <div class="small text-primary">
+                                                    El trabajo está iniciado, si ha finalizado, puede comunicarlo en finalizar
+                                                </div>
+                                            @endif
+                                            @if ($trabajo->estado === 'finalizado')
+                                                <div class="small text-primary">
+                                                    El trabajo se ha finalizado, ¡compruebe sus reseñas en comentarios!
+                                                </div>
+                                            @endif
+                                            @if ($trabajo->estado === 'cancelado')
+                                                <div class="small text-primary">
+                                                    El trabajo ha sido cancelado y notificado al cliente y profesional
+                                                </div>
+                                            @endif
+                                        </div>
                                     </td>
 
                                     {{-- Fechas --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         {{ $trabajo->fecha_ini?->format('d/m/Y H:i') ?? 'Sin iniciar' }}
                                     </td>
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         {{ $trabajo->fecha_fin?->format('d/m/Y H:i') ?? 'Sin finalizar' }}
                                     </td>
 
                                     {{-- Dirección --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         {{ \Illuminate\Support\Str::limit($trabajo->dir_obra ?? 'No indicada', 40, '...') }}
                                     </td>
 
                                     {{-- Total --}}
-                                    <td class="text-center">
+                                    <td class="text-center bg-pro-primary">
                                         @if ($presupuesto?->total)
                                             {{ number_format($presupuesto->total, 2, ',', '.') }} €
                                         @else
@@ -218,9 +229,8 @@
                                     </td>
 
                                     {{-- Acciones --}}
-                                    <td class="text-center">
-                                        <div
-                                            class="d-flex flex-row flex-wrap justify-content-center align-items-center gap-2">
+                                    <td class="text-center bg-pro-primary">
+                                        <div class="d-flex flex-row flex-wrap justify-content-center align-items-center gap-2">
 
                                             {{-- Ver modal --}}
                                             <button type="button"
@@ -232,7 +242,7 @@
                                             {{-- PREVISTO: Empezar / Cancelar --}}
                                             @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
                                                 <form action="{{ route('profesional.trabajos.empezar', $trabajo) }}"
-                                                    method="POST" class="d-inline">
+                                                      method="POST" class="d-inline">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit" class="btn btn-success btn-sm px-2 py-1">
@@ -242,11 +252,10 @@
 
                                                 <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" context="desktop" />
 
-
-                                                {{-- EN CURSO: Finalizar --}}
+                                            {{-- EN CURSO: Finalizar --}}
                                             @elseif ($trabajo->estado === 'en_curso')
                                                 <form action="{{ route('profesional.trabajos.finalizar', $trabajo) }}"
-                                                    method="POST" class="d-inline">
+                                                      method="POST" class="d-inline">
                                                     @csrf
                                                     @method('PATCH')
                                                     <button type="submit" class="btn btn-danger btn-sm px-2 py-1">
@@ -258,7 +267,7 @@
                                             {{-- Ver presupuesto PDF --}}
                                             @if ($presupuesto?->docu_pdf)
                                                 <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}" target="_blank"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
+                                                   class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
                                                     <i class="bi bi-file-earmark-pdf"></i>
                                                     Ver PDF
                                                 </a>
@@ -285,15 +294,15 @@
                             $cliente = $solicitud?->cliente;
 
                             $badgeClass = match ($trabajo->estado) {
-                                'previsto' => 'bg-primary',
-                                'en_curso' => 'bg-warning text-dark',
+                                'previsto'   => 'bg-primary',
+                                'en_curso'   => 'bg-warning text-dark',
                                 'finalizado' => 'bg-success',
-                                'cancelado' => 'bg-secondary',
-                                default => 'bg-light text-dark',
+                                'cancelado'  => 'bg-secondary',
+                                default      => 'bg-light text-dark',
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm bg-light">
+                        <div class="card mb-3 shadow-sm bg-pro-primary">
                             <div class="card-body ">
 
                                 {{-- Cabecera: título --}}
@@ -387,15 +396,16 @@
                                 <div class="d-grid gap-2">
 
                                     {{-- Ver modal --}}
-                                    <button type="button" class="btn btn-info btn-sm"
-                                        @click="openTrabajoProModal({{ $trabajo->id }})">
+                                    <button type="button"
+                                            class="btn btn-info btn-sm"
+                                            @click="openTrabajoProModal({{ $trabajo->id }})">
                                         Ver
                                     </button>
 
                                     {{-- PREVISTO: Empezar / Cancelar --}}
                                     @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
                                         <form action="{{ route('profesional.trabajos.empezar', $trabajo) }}"
-                                            method="POST">
+                                              method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-success btn-sm w-100">
@@ -405,11 +415,10 @@
 
                                         <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" context="mobile" />
 
-
-                                        {{-- EN CURSO: Finalizar --}}
+                                    {{-- EN CURSO: Finalizar --}}
                                     @elseif ($trabajo->estado === 'en_curso')
                                         <form action="{{ route('profesional.trabajos.finalizar', $trabajo) }}"
-                                            method="POST">
+                                              method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-danger btn-sm w-100">
@@ -421,7 +430,7 @@
                                     {{-- Ver presupuesto PDF --}}
                                     @if ($presupuesto?->docu_pdf)
                                         <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
+                                           class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
                                             <i class="bi bi-file-earmark-pdf"></i>
                                             Ver PDF
                                         </a>

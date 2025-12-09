@@ -27,8 +27,7 @@
 
                     {{-- Enlaces utiles --}}
                     <div class="d-flex flex-wrap gap-2 justify-content-center">
-                        <a href="{{ route('admin.form.registrar.cliente') }}" class="btn btn-sm"
-                            style="background-color: #718355; color: white;">
+                        <a href="{{ route('admin.form.registrar.cliente') }}" class="btn btn-sm bg-primary text-white">
                             <i class="bi bi-plus-lg"></i> Añadir usuario
                         </a>
 
@@ -87,6 +86,7 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
+                                <th class="text-center text-md-start">ID</th>
                                 <th class="text-center text-md-start">Usuario</th>
                                 <th class="d-none d-md-table-cell">Email</th>
                                 <th class="d-none d-md-table-cell">Teléfono</th>
@@ -96,8 +96,13 @@
                         </thead>
                         <tbody>
                             @foreach ($usuarios as $usuario)
-                                <tr>
+                                <tr class="fs-6">
                                     {{-- Columna USUARIO --}}
+                                    <td>
+                                        <div class="fw-semibold">
+                                            {{ $usuario->id }}
+                                        </div>
+                                    </td>
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
                                             @if ($usuario->avatar)
@@ -184,6 +189,9 @@
                                     @endif
 
                                     <div>
+                                        <div class="fw-semibold">
+                                           ID# {{ $usuario->id }}
+                                        </div>
                                         <div class="fw-semibold">
                                             {{ $usuario->nombre }} {{ $usuario->apellidos }}
                                         </div>

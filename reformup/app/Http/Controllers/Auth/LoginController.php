@@ -113,7 +113,6 @@ class LoginController extends Controller
             ->with('error', 'Error en el inicio de sesión.');
     }
 
-
     /**
      * Cierra la sesión del usuario autenticado.
      */

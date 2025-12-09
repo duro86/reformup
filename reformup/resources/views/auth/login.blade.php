@@ -20,7 +20,7 @@
                 <h2 class="mb-4 text-center">Iniciar Sesión</h2>
                 <x-alertas.alertasFlash />
                 <form method="POST" action="{{ route('login.post') }}">
-                    @csrf
+                    @csrf 
                     <div class="mb-3">
                         <label for="email" class="form-label">Correo electrónico</label>
                         <input type="email" id="email" name="email" value="{{ old('email') }}"

@@ -1,54 +1,82 @@
 @push('scripts')
     <script>
+        // Esperamos a que todo el DOM esté completamente cargado
         document.addEventListener('DOMContentLoaded', function() {
+
+            // Cogemos el sidebar por su ID
             const sidebar = document.getElementById('sidebar');
+
+            // Cogemos el botón que abre/cierra el sidebar
             const toggleBtn = document.getElementById('sidebar-toggle');
 
+            // Si alguno de los dos no existe, salimos para evitar errores
             if (!sidebar || !toggleBtn) return;
 
+            // Dentro del botón cogemos el icono <i>
             const icon = toggleBtn.querySelector('i');
 
-            const isMobile = () => window.innerWidth < 992; // mismo breakpoint que el SCSS
+            // Función que detecta si estamos en vista móvil
+            const isMobile = () => window.innerWidth < 992;
 
+            // Función que sincroniza el icono según el estado del sidebar
             function syncIcon() {
+
+                // Si estamos en versión móvil
                 if (isMobile()) {
-                    // En móvil el sidebar suele estar oculto salvo que tenga .sidebar-open
+
+                    // Si el sidebar está abierto
                     if (sidebar.classList.contains('sidebar-open')) {
                         icon.classList.remove('bi-chevron-right');
                         icon.classList.add('bi-chevron-left');
-                    } else {
+                    }
+                    // Si el sidebar está cerrado
+                    else {
                         icon.classList.remove('bi-chevron-left');
                         icon.classList.add('bi-chevron-right');
                     }
-                } else {
-                    // En escritorio, por defecto expandido (chevron-left)
+
+                }
+                // Si estamos en versión escritorio
+                else {
+
+                    // Si el sidebar está colapsado
                     if (sidebar.classList.contains('sidebar-collapsed')) {
                         icon.classList.remove('bi-chevron-left');
                         icon.classList.add('bi-chevron-right');
-                    } else {
+                    }
+                    // Si el sidebar está expandido
+                    else {
                         icon.classList.remove('bi-chevron-right');
                         icon.classList.add('bi-chevron-left');
                     }
                 }
             }
 
-            // Estado inicial: solo ajustamos el icono, NO tocamos clases del sidebar
+            // Ejecutamos la función nada más cargar la página
             syncIcon();
 
+            // Evento click del botón del sidebar
             toggleBtn.addEventListener('click', function() {
+
+                // En vista móvil abrimos/cerramos con sidebar-open
                 if (isMobile()) {
-                    // En móvil: abrir/cerrar off-canvas
                     sidebar.classList.toggle('sidebar-open');
-                } else {
-                    // En escritorio: modo recogido/expandido
+
+                }
+                // En escritorio usamos sidebar-collapsed
+                else {
                     sidebar.classList.toggle('sidebar-collapsed');
+
+                    // También lo aplicamos al body para reajustar el contenido
+                    document.body.classList.toggle('sidebar-collapsed');
                 }
 
-                // Actualizar icono tras el cambio
+                // Actualizamos el icono después del cambio
                 syncIcon();
             });
 
-            // Si cambia el tamaño de ventana, reajustar icono
+            // Cuando se redimensiona la pantalla,
+            // recalculamos qué icono debe mostrarse
             window.addEventListener('resize', syncIcon);
         });
     </script>

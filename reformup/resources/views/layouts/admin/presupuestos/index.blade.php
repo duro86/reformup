@@ -8,16 +8,16 @@
     <x-admin.admin_sidebar />
     {{-- Bienvenida --}}
     <x-admin.admin_bienvenido />
-
+    {{-- Contenido con el aside  --}}
     <div class="container-fluid main-content-with-sidebar">
 
         {{-- Nav móvil admin --}}
         <x-admin.nav_movil active="presupuestos" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
             {{-- Título + botón nuevo --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-text"></i> Gestión de presupuestos
                 </h1>
@@ -115,7 +115,7 @@
                 <div class="table-responsive d-none d-lg-block">
                     <table class="table table-sm align-middle">
                         <thead>
-                            <tr class="fs-6">
+                            <tr class="fs-5">
                                 <th>Presupuesto / Solicitud</th>
                                 <th>Cliente</th>
                                 <th>Profesional</th>
@@ -143,7 +143,7 @@
                                     };
                                 @endphp
 
-                                <tr>
+                                <tr class="fs-6">
                                     {{-- Presupuesto / Solicitud --}}
                                     <td>
                                         <strong>

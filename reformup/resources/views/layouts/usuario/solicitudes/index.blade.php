@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <x-navbar />
+    <x-navbar active="panel"/>
 
     {{-- SIDEBAR FIJO (escritorio) --}}
     <x-usuario.usuario_sidebar />
@@ -17,13 +17,14 @@
         {{-- Nav móvil usuario --}}
         <x-usuario.nav_movil active="solicitudes" />
 
-        <div class="container py-4">
+        <div class="container py-2">
 
             {{-- Título + botón nueva --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-text"></i> Mis solicitudes
                 </h1>
+                
 
                 <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}"
                     class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
@@ -182,7 +183,8 @@
                                         @endif
                                         @if ($solicitud->estado === 'cerrada')
                                             <div class="small text-primary mt-1">
-                                                Tu solicitud está cerrada, tienes un presupuesto aceptado y se ha creado una orden de trabajo.
+                                                Tu solicitud está cerrada, tienes un presupuesto aceptado y se ha creado una
+                                                orden de trabajo.
                                             </div>
                                         @endif
                                     </td>
@@ -361,8 +363,8 @@
 
                                     {{-- Cancelar --}}
                                     @if ($solicitud->estado == 'abierta')
-                                                <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
-                                            @endif
+                                        <x-usuario.solicitudes.btn_cancelar :solicitud="$solicitud" contexto="mobile" />
+                                    @endif
 
                                     {{-- Eliminar --}}
                                     <x-usuario.solicitudes.btn_eliminar :solicitud="$solicitud" />
@@ -387,18 +389,5 @@
     </div>
 
 @endsection
-
-@if (session('info_solicitudes'))
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            Swal.fire({
-                title: 'Presupuestos pendientes',
-                text: @json(session('info_solicitudes')),
-                icon: 'info',
-                confirmButtonText: 'Ver mis solicitudes'
-            });
-        });
-    </script>
-@endif
 
 <x-alertas_sweet />

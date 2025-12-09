@@ -1,8 +1,12 @@
 <template>
   <div class="modal fade" id="ComentarioModalPro" tabindex="-1" aria-hidden="true" ref="modal">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
+
+      <!-- CONTENEDOR PRO -->
+      <div class="modal-content bg-pro-primary">
+
+        <!-- CABECERA PRO -->
+        <div class="modal-header bg-pro-secondary text-white">
           <h5 class="modal-title">
             Comentario #{{ comentario.id }}
             <span v-if="comentario.titulo">
@@ -15,24 +19,24 @@
         <!-- Contenido cargado -->
         <div class="modal-body" v-if="loaded">
 
-        <!-- Cabecera: Trabajo / Solicitud -->
-        <div class="mb-3">
-        <h5 class="fw-semibold mb-1">
-            Trabajo #{{ comentario.trabajo_id }}
-            <span v-if="comentario.titulo">
-            - {{ comentario.titulo }}
-            </span>
-        </h5>
+          <!-- Cabecera: Trabajo / Solicitud -->
+          <div class="mb-3">
+            <h5 class="fw-semibold mb-1">
+              Trabajo #{{ comentario.trabajo_id }}
+              <span v-if="comentario.titulo">
+                - {{ comentario.titulo }}
+              </span>
+            </h5>
 
-        <p class="mb-0 text-muted" v-if="comentario.ciudad">
-            {{ comentario.ciudad }}
-        </p>
-        <p class="mb-0 text-muted" v-else>
-            Ciudad no indicada
-        </p>
-        </div>
+            <p class="mb-0 text-muted" v-if="comentario.ciudad">
+              {{ comentario.ciudad }}
+            </p>
+            <p class="mb-0 text-muted" v-else>
+              Ciudad no indicada
+            </p>
+          </div>
 
-        <hr>
+          <hr>
 
           <!-- Estado y puntuación -->
           <div class="row mb-3">
@@ -123,7 +127,9 @@
             <h5 class="fw-semibold mb-2">Opinión del cliente</h5>
 
             <template v-if="comentario.visible">
-              <div v-if="comentario.opinion" class="mb-0" v-html="comentario.opinion"></div>
+              <div v-if="comentario.opinion"
+                   class="border rounded p-2 bg-pro-primary small border-pro-secondary"
+                   v-html="comentario.opinion"></div>
 
               <p v-else class="text-muted mb-0">
                 El cliente no ha escrito opinión, solo puntuación.
@@ -145,15 +151,20 @@
           <div>Cargando comentario...</div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <!-- FOOTER PRO -->
+        <div class="modal-footer bg-pro-primary">
+          <button type="button"
+                  class="btn btn-sm bg-pro-secondary text-white"
+                  data-bs-dismiss="modal">
             Cerrar
           </button>
         </div>
+
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import { Modal } from "bootstrap";

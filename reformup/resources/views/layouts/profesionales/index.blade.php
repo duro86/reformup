@@ -3,7 +3,7 @@
 @section('title', 'Buscar profesionales - ReformUp')
 
 @section('content')
-    <x-navbar />
+    <x-navbar active="perfil"/>
 
     <div class="container-fluid main-content-with-sidebar">
         <div class="container py-4">

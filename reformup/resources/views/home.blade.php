@@ -73,97 +73,74 @@
     </section>
 
     {{-- Profesionales --}}
-<section class="py-5 bg-light" id="profesionales-destacados">
-    <div class="container">
-        <h2 class="fw-bold mb-3 text-center">Profesionales destacados</h2>
-        <p class="text-center text-muted mb-5">
-            Profesionales mejor valorados del mes <i class="bi bi-trophy-fill"></i>
-        </p>
+    <section class="py-5 bg-light" id="profesionales-destacados">
+        <div class="container">
+            <h2 class="fw-bold mb-3 text-center">Profesionales destacados</h2>
+            <p class="text-center text-muted mb-5">
+                Profesionales mejor valorados del mes <i class="bi bi-trophy-fill"></i>
+            </p>
 
-        {{-- Card Profesionales mejor valorados --}}
-        <div class="row g-4 justify-content-center">
-            @forelse ($profesionalesDestacados as $perfil)
-                <div class="col-12 col-sm-6 col-lg-3">
-                    <div class="card h-100 shadow-sm card-pro">
-                        <div class="d-flex align-items-center p-3">
-                            @if ($perfil->avatar)
-                                <img class="rounded-circle me-3"
-                                     src="{{ Storage::url($perfil->avatar) }}"
-                                     alt="Foto {{ $perfil->empresa }}"
-                                     width="60" height="60"
-                                     style="object-fit:cover;">
-                            @else
-                                <i class="bi bi-building me-3" style="font-size:2.5rem;"></i>
-                            @endif
+            {{-- Card Profesionales mejor valorados --}}
+            <div class="row g-4 justify-content-center">
+                @forelse ($profesionalesDestacados as $perfil)
+                    <div class="col-12 col-sm-6 col-lg-3">
+                        <div class="card h-100 shadow-sm card-pro">
+                            <div class="d-flex align-items-center p-3">
+                                @if ($perfil->avatar)
+                                    <img class="rounded-circle me-3" src="{{ Storage::url($perfil->avatar) }}"
+                                        alt="Foto {{ $perfil->empresa }}" width="60" height="60"
+                                        style="object-fit:cover;">
+                                @else
+                                    <i class="bi bi-building me-3" style="font-size:2.5rem;"></i>
+                                @endif
 
-                            <div class="flex-grow-1" style="min-width:0;">
-                                <h5 class="mb-0 text-truncate d-block">
-                                    {{ $perfil->empresa }}
-                                </h5>
-                                <small class="text-muted d-block text-truncate">
-                                    {{ $perfil->ciudad }}
-                                    @if ($perfil->provincia)
-                                        - {{ $perfil->provincia }}
-                                    @endif
-                                </small>
-                            </div>
-
-                            <i class="bi bi-star-fill text-warning ms-2"></i>
-                        </div>
-
-                        <div class="card-body">
-                            @if (!is_null($perfil->puntuacion_media))
-                                <div class="d-flex align-items-center mb-2">
-                                    <div class="text-warning me-2">⭐⭐⭐⭐⭐</div>
-                                    <small class="text-muted">
-                                        ({{ number_format($perfil->puntuacion_media, 1) }})
+                                <div class="flex-grow-1" style="min-width:0;">
+                                    <h5 class="mb-0 text-truncate d-block">
+                                        {{ $perfil->empresa }}
+                                    </h5>
+                                    <small class="text-muted d-block text-truncate">
+                                        {{ $perfil->ciudad }}
+                                        @if ($perfil->provincia)
+                                            - {{ $perfil->provincia }}
+                                        @endif
                                     </small>
                                 </div>
-                            @endif
 
-                            @if ($perfil->relationLoaded('oficios') && $perfil->oficios->isNotEmpty())
-                                <div class="mb-3 d-flex flex-wrap gap-2">
-                                    @foreach ($perfil->oficios as $oficio)
-                                        <span class="badge bg-light text-dark rounded-pill px-3 py-1">
-                                            {{ $oficio->nombre }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            @endif
-                        </div>
+                                <i class="bi bi-star-fill text-warning ms-2"></i>
+                            </div>
 
-                        <div class="card-footer bg-transparent border-top-0">
-                            <a href="{{ route('public.profesionales.mostrar', $perfil) }}"
-                               class="btn btn-primary w-100">
-                                Ver perfil
-                            </a>
+                            <div class="card-body">
+                                @if (!is_null($perfil->puntuacion_media))
+                                    <div class="d-flex align-items-center mb-2">
+                                        <x-estrellas :valor="$perfil->puntuacion_media" />
+                                    </div>
+                                @endif
+
+                                @if ($perfil->relationLoaded('oficios') && $perfil->oficios->isNotEmpty())
+                                    <div class="mb-3 d-flex flex-wrap gap-2">
+                                        @foreach ($perfil->oficios as $oficio)
+                                            <span class="badge bg-light text-dark rounded-pill px-3 py-1">
+                                                {{ $oficio->nombre }}
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                @endif
+                            </div>
+
+                            <div class="card-footer bg-transparent border-top-0">
+                                <a href="{{ route('public.profesionales.mostrar', $perfil) }}"
+                                    class="btn btn-primary w-100">
+                                    Ver perfil
+                                </a>
+                            </div>
                         </div>
                     </div>
-                </div>
-            @empty
-                <p class="text-center text-muted">Aún no hay profesionales destacados.</p>
-            @endforelse
+                @empty
+                    <p class="text-center text-muted">Aún no hay profesionales destacados.</p>
+                @endforelse
+            </div>
         </div>
-    </div>
-</section>
-
-
-    {{-- Sección: Comentarios y Valoraciones --}}
-    {{-- Función para renderizar estrellas según la puntuación --}}
-    @php
-        $renderizarEstrellas = function ($puntuacion) {
-            $puntuacion = (float) $puntuacion;
-            $llenas = floor($puntuacion); // Número de estrellas llenas
-            $media = $puntuacion - $llenas >= 0.5 ? 1 : 0; // Media estrella si es necesario
-            $vacias = 5 - $llenas - $media; // Estrellas vacías
-
-            $html = str_repeat('<i class="bi bi-star-fill text-warning"></i>', $llenas);
-            $html .= str_repeat('<i class="bi bi-star-half text-warning"></i>', $media);
-            $html .= str_repeat('<i class="bi bi-star text-warning"></i>', $vacias);
-
-            return $html;
-        };
-    @endphp
+    </section>
 
     {{-- Sección Comentarios --}}
     <section class="py-5">
@@ -244,10 +221,7 @@
                                                         </div>
 
                                                         <div class="text-nowrap text-end">
-                                                            {!! $renderizarEstrellas($comentario->puntuacion) !!}
-                                                            <span class="fw-semibold ms-1">
-                                                                {{ number_format($comentario->puntuacion, 1) }}
-                                                            </span>
+                                                            <x-estrellas :valor="$comentario->puntuacion" />
                                                         </div>
                                                     </div>
                                                 </div>
@@ -312,10 +286,8 @@
                                                         </div>
 
                                                         <div class="text-nowrap text-end">
-                                                            {!! $renderizarEstrellas($comentario2->puntuacion) !!}
-                                                            <span class="fw-semibold ms-1">
-                                                                {{ number_format($comentario2->puntuacion, 1) }}
-                                                            </span>
+                                                            <x-estrellas :valor="$comentario2->puntuacion" />
+
                                                         </div>
                                                     </div>
                                                 </div>
@@ -342,7 +314,6 @@
             @endif
         </div>
     </section>
-
 
     {{-- Footer  --}}
     <x-footer />

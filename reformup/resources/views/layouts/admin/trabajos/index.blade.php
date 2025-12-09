@@ -13,10 +13,10 @@
         {{-- NAV MÓVIL ADMIN --}}
         <x-admin.nav_movil active="trabajos" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-briefcase"></i>
                     Gestión de trabajos
@@ -143,7 +143,7 @@
                                     };
                                 @endphp
 
-                                <tr>
+                                <tr class="fs-6">
                                     {{-- Trabajo / Solicitud --}}
                                     <td>
                                         <strong>

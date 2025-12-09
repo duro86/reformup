@@ -121,7 +121,7 @@ class ProfesionalApiController extends Controller
      */
     public function misTrabajos(Request $request)
     {
-        $user = $request->user(); // usuario autenticado por Sanctum
+        $user = $request->user(); // usuario autenticado por Sanctum por token
 
         // 1) Comprobar que el usuario tiene rol profesional
         if (! $user->hasRole('profesional')) {
@@ -135,7 +135,7 @@ class ProfesionalApiController extends Controller
         if (! $perfil) {
             return response()->json([
                 'message' => 'No tienes un perfil profesional asociado.',
-            ], 404);
+            ], 409);
         }
 
         // 3) Cargar trabajos asociados a ese profesional
@@ -185,4 +185,5 @@ class ProfesionalApiController extends Controller
             'data' => $data,
         ]);
     }
+
 }

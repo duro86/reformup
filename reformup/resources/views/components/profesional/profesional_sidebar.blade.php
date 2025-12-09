@@ -24,8 +24,8 @@
 
     {{-- BLOQUE AVATAR + NOMBRE EMPRESA --}}
     @if ($perfilProfesional)
-        <div class="text-center mb-3 p-3 rounded">
-            <div class="mb-2 d-flex justify-content-center">
+        <div class="text-center mb-1 p-3 rounded">
+            <div class="mb-1 d-flex justify-content-center">
                 <i class="bi bi-building rounded-circle fs-2"></i>
             </div>
             <div class="fw-semibold small">
@@ -68,24 +68,32 @@
     <nav class="mt-3 d-flex flex-column" id="pro-sidebar">
         <ul class="nav flex-column admin-sidebar">
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('profesional.solicitudes.index') }}">
+                <a class="nav-link {{ request()->routeIs('profesional.solicitudes.*') ? 'active fw-semibold bg-pro-secondary text-primary' : '' }}"
+                    href="{{ route('profesional.solicitudes.index') }}">
                     <i class="bi bi-file-earmark-text"></i> Solicitudes
                 </a>
+
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('profesional.presupuestos.index') }}">
+                <a class="nav-link {{ request()->routeIs('profesional.presupuestos.*') ? 'active fw-semibold bg-pro-secondary  text-primary' : '' }}"
+                    href="{{ route('profesional.presupuestos.index') }}">
                     <i class="bi bi-receipt"></i> Presupuestos
                 </a>
+
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('profesional.trabajos.index') }}">
+                <a class="nav-link {{ request()->routeIs('profesional.trabajos.*') ? 'active fw-semibold bg-pro-secondary  text-primary' : '' }}"
+                    href="{{ route('profesional.trabajos.index') }}">
                     <i class="bi bi-briefcase-fill"></i> Trabajos
                 </a>
+
             </li>
             <li class="nav-item">
-                <a class="nav-link" href="{{ route('profesional.comentarios.index') }}">
+                <a class="nav-link {{ request()->routeIs('profesional.comentarios.*') ? 'active fw-semibold bg-pro-secondary  text-primary' : '' }}"
+                    href="{{ route('profesional.comentarios.index') }}">
                     <i class="bi bi-chat-left-text"></i> Comentarios
                 </a>
+
             </li>
 
             <li>
@@ -94,17 +102,15 @@
 
             {{-- MOSTRAR PERFIL PROFESIONAL ACTIVO O NO --}}
             @if ($perfilProfesional->visible)
-                <i class="bi bi-hourglass-split text-success" aria-label="Perfil profesional activo"
-                    title="Perfil profesional activo"></i> Perfil profesional activo
+                <i class="bi bi-check-lg">Perfil profesional activo</i> 
             @else
-                <i class="bi bi-hourglass-split text-warning" aria-label="Perfil profesional inactivo"
-                    title="Perfil profesional inactivo"></i> Perfil profesional Inactivo
+                <i class="bi bi-ban">Perfil profesional Inactivo</i> 
             @endif
 
         </ul>
 
         {{-- Zona inferior PERFIL Y CERRAR SESION --}}
-        <ul class="nav flex-column mt-5 admin-sidebar">
+        <ul class="nav flex-column mt-4 admin-sidebar">
             <li class="nav-item">
                 <a class="nav-link" href="{{ route('home') }}">
                     <i class="bi bi-house-door"></i> Inicio
@@ -129,4 +135,6 @@
     </nav>
 </div>
 
-<x-usuario.sidebar_usuario_toggle_script />
+<div class="sidebar-toggle-profesional">
+    <x-usuario.sidebar_usuario_toggle_script />
+</div>

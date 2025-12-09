@@ -1,8 +1,9 @@
 <template>
   <div class="modal fade" id="trabajoProModal" tabindex="-1" aria-hidden="true" ref="modal">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
+      <!-- MODAL CON ESTILO PRO -->
+      <div class="modal-content bg-pro-primary">
+        <div class="modal-header bg-pro-secondary text-white">
           <h5 class="modal-title">
             Trabajo #{{ trabajo.id }}
             <span v-if="trabajo.solicitud && trabajo.solicitud.titulo">
@@ -64,15 +65,11 @@
               <span v-else class="text-muted">No indicado</span>
             </p>
 
-            <!--<p class="mb-1" v-if="trabajo.presupuesto && trabajo.presupuesto.notas">
-              <strong>Notas:</strong><br>
-              <span>{{ trabajo.presupuesto.notas }}</span>
-            </p>-->
-             <!-- Notas - Detalle -->
+            <!-- Notas - Detalle -->
             <div class="mb-3" v-if="trabajo.presupuesto && trabajo.presupuesto.notas">
               <h6 class="fw-semibold mb-1">Notas del presupuesto</h6>
-              <div class="border rounded p-2 bg-light small"
-                  v-html="trabajo.presupuesto.notas">
+              <div class="border rounded p-2 bg-pro-primary small border-pro-secondary"
+                   v-html="trabajo.presupuesto.notas">
               </div>
             </div>
 
@@ -114,8 +111,12 @@
           <div>Cargando trabajo...</div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <div class="modal-footer bg-pro-primary">
+          <button
+            type="button"
+            class="btn btn-sm bg-pro-secondary text-white"
+            data-bs-dismiss="modal"
+          >
             Cerrar
           </button>
         </div>
@@ -123,6 +124,7 @@
     </div>
   </div>
 </template>
+
 
 <script>
 import { Modal } from "bootstrap";

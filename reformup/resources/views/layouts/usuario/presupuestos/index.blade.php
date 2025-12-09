@@ -18,21 +18,21 @@
 
     {{-- Contenedor principal --}}
     <div class="container-fluid main-content-with-sidebar">
-        <div class="container py-4">
+        <div class="container py-2">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
+                <h4 class="mb-1 d-flex align-items-center gap-2">
                     <i class="bi bi-receipt"></i>
-                    Mis presupuestos
-                </h1>
+                    Listado Presupuestos
+                </h4>
             </div>
 
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
             {{-- Buscador combinado: campos + fechas --}}
-            <form method="GET" action="{{ route('usuario.presupuestos.index') }}" class="row g-2 mb-3">
+            <form method="GET" action="{{ route('usuario.presupuestos.index') }}" class="row g-2 mb-2">
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
@@ -103,13 +103,13 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th>Solicitud</th>
-                                <th>Profesional</th>
+                                <th class="bg-secondary">Solicitud</th>
+                                <th class="bg-secondary">Profesional</th>
                                 {{-- Estado en el centro --}}
-                                <th class="text-center">Estado</th>
-                                <th>Importe</th>
-                                <th class="text-center">Fecha</th>
-                                <th class="text-center">Acciones</th>
+                                <th class="text-center bg-secondary">Estado</th>
+                                <th class="bg-secondary">Importe</th>
+                                <th class="text-center bg-secondary">Fecha</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

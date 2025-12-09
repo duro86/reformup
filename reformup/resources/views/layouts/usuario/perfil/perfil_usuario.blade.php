@@ -4,30 +4,32 @@
 @section('content')
 
     {{-- Navbar común --}}
-    <x-navbar />
+    <x-navbar active="perfil"/>
     <x-usuario.user_bienvenido />
     {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
     <x-usuario.nav_movil active="perfil" />
 
     {{-- CONTENIDO PRINCIPAL (desplazado a la derecha del sidebar) --}}
-    <div class="container my-2">
-        <div class="d-grid d-md-inline-block">
+    <div class="container my-1">
+        <div class="d-flex flex-column flex-md-row align-items-center gap-1">
+            {{-- Botón a la izquierda --}}
             <a href="{{ route('usuario.dashboard') }}"
-                class="btn btn-secondary d-inline-flex align-items-center justify-content-center gap-2">
+                class="btn btn-secondary d-inline-flex align-items-center justify-content-center gap-2 me-md-auto">
                 <i class="bi bi-arrow-left"></i>
                 <span>Volver al panel principal</span>
             </a>
         </div>
 
+        {{-- Formulario editar perfil usuario --}}
         <div class="row justify-content-center">
             <div class="col-lg-12 bg-white">
                 <div class="p-4 p-lg-5">
 
                     {{-- Título --}}
-                    <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+                    <h4 class="mb-2 d-flex align-items-center gap-2 fw-semibold">
                         <i class="bi bi-person-bounding-box me-1"></i>
                         Mi perfil
-                    </h1>
+                    </h4>
 
                     {{-- Roles sólo informativos --}}
                     <div class="mb-3">

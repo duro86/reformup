@@ -6,6 +6,8 @@ use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Http\Exceptions\PostTooLargeException;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Laravel\Sanctum\Http\Middleware\AuthenticateRequests;
+
 
 // IMPORTAMOS MIDDLEWARE:
 use App\Http\Middleware\VerificarRolORedireccionar;

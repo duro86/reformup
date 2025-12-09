@@ -3,7 +3,7 @@
 
 @section('content')
 
-    <x-navbar />
+    <x-navbar active="perfil" />
     {{-- Contenedor Principal --}}
     <div class="container my-1">
         <div class="d-grid d-md-inline-block">
@@ -15,7 +15,7 @@
         </div>
         <div class="row g-0 shadow rounded overflow-hidden">
             <div class="col-lg-12 bg-white">
-                <div class="p-3 p-lg-3">
+                <div class="p-1 p-lg-3">
 
                     <h1 class="h4 mb-1 d-flex align-items-center gap-2">
                         <i class="bi bi-person-gear me-1"></i>
@@ -44,14 +44,43 @@
                         @csrf
                         @method('PUT')
 
-                        {{-- Bloque usuario --}}
-                        <x-admin.perfil.usuario :usuario="$usuario" />
+                        {{-- NAV TABS --}}
+                        <ul class="nav nav-tabs" id="perfilTabs" role="tablist">
+                            <li class="nav-item" role="presentation">
+                                <button class="nav-link active" id="tab-usuario-tab" data-bs-toggle="tab"
+                                    data-bs-target="#tab-usuario" type="button" role="tab" aria-controls="tab-usuario"
+                                    aria-selected="true">
+                                    Datos de usuario
+                                </button>
+                            </li>
 
-                        {{-- Bloque profesional (solo si tiene rol profesional) --}}
-                        @if ($roles->contains('profesional'))
-                            <hr class="my-4">
-                            <x-admin.perfil.profesional :perfil-profesional="$perfilProfesional" :oficios="$oficios" :oficios-seleccionados="$oficiosSeleccionados" />
-                        @endif
+                            @if ($roles->contains('profesional'))
+                                <li class="nav-item" role="presentation">
+                                    <button class="nav-link" id="tab-profesional-tab" data-bs-toggle="tab"
+                                        data-bs-target="#tab-profesional" type="button" role="tab"
+                                        aria-controls="tab-profesional" aria-selected="false">
+                                        Datos de profesional
+                                    </button>
+                                </li>
+                            @endif
+                        </ul>
+
+                        {{-- CONTENIDO TABS --}}
+                        <div class="tab-content mt-3" id="perfilTabsContent">
+                            {{-- TAB USUARIO --}}
+                            <div class="tab-pane fade show active" id="tab-usuario" role="tabpanel"
+                                aria-labelledby="tab-usuario-tab">
+                                <x-admin.perfil.usuario :usuario="$usuario" />
+                            </div>
+
+                            {{-- TAB PROFESIONAL --}}
+                            @if ($roles->contains('profesional'))
+                                <div class="tab-pane fade" id="tab-profesional" role="tabpanel"
+                                    aria-labelledby="tab-profesional-tab">
+                                    <x-admin.perfil.profesional :perfil-profesional="$perfilProfesional" :oficios="$oficios" :oficios-seleccionados="$oficiosSeleccionados" />
+                                </div>
+                            @endif
+                        </div>
 
                         {{-- Sólo dejamos tocar roles si el usuario tiene rol admin --}}
                         @if ($roles->contains('admin'))

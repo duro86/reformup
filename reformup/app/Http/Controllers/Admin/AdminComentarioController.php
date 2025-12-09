@@ -376,10 +376,11 @@ class AdminComentarioController extends Controller
             return;
         }
 
+        // Filtramos por estado
         $media = Comentario::where('estado', 'publicado')
             ->where('visible', true)
             ->whereHas('trabajo.presupuesto', function ($q) use ($perfilPro) {
-                // IMPORTANTE: aquí la FK real de presupuesto -> profesional
+                // Definimos relaciones
                 $q->where('pro_id', $perfilPro->id);
             })
             ->avg('puntuacion'); // Media aritmetica de los comentarios del profesional

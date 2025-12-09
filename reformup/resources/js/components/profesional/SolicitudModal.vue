@@ -1,8 +1,8 @@
 <template>
   <div class="modal fade" id="solicitudModal" tabindex="-1" aria-hidden="true" ref="modal">
     <div class="modal-dialog modal-lg modal-dialog-scrollable">
-      <div class="modal-content">
-        <div class="modal-header">
+      <div class="modal-content bg-pro-primary">
+        <div class="modal-header bg-pro-secondary text-white">
           <h5 class="modal-title">
             Solicitud #{{ solicitud.id }} - {{ solicitud.titulo || '' }}
           </h5>
@@ -14,7 +14,7 @@
           <!-- Descripción -->
           <div class="mb-3" v-if="solicitud.descripcion">
             <h6 class="fw-semibold mb-1">Descripción de la solicitud</h6>
-            <div class="border rounded p-2 bg-light small"
+            <div class="p-2 small border rounded bg-pro-primary border-pro-secondary"
                  v-html="solicitud.descripcion">
             </div>
           </div>
@@ -68,8 +68,8 @@
           <div>Cargando solicitud...</div>
         </div>
 
-        <div class="modal-footer">
-          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+        <div class="modal-footer bg-pro-primary">
+          <button type="button" class="btn btn-sm bg-pro-secondary text-white" data-bs-dismiss="modal">
             Cerrar
           </button>
         </div>

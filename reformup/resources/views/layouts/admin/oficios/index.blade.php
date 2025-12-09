@@ -46,7 +46,7 @@
                                     @enderror
                                 </div>
 
-                                <button type="submit" class="btn btn-success w-100">
+                                <button type="submit" class="btn btn-success w-100 bg-primary text-white">
                                     <i class="bi bi-plus-circle"></i> Crear oficio
                                 </button>
                             </form>

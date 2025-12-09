@@ -12,25 +12,28 @@
     <div class="container-fluid main-content-with-sidebar">
         <x-profesional.nav_movil active="presupuestos" />
 
-        <div class="container py-4">
+        <div class="container py-2">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
+                <h4 class="mb-1 d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-text"></i>
-                    Mis presupuestos
-                </h1>
+                    Listado Presupuestos
+                </h4>
             </div>
 
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
             {{-- Buscador combinado: campos + fechas --}}
-            <form method="GET" action="{{ route('profesional.presupuestos.index') }}" class="row g-2 mb-3">
+            <form method="GET" action="{{ route('profesional.presupuestos.index') }}" class="row g-2 mb-3 align-items-end">
+
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-6 col-lg-4">
-                    <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
+                    <input type="text" name="q" value="{{ request('q') }}"
+                        class="form-control form-control-sm bg-pro-primary"
                         placeholder="Buscar por título, cliente, ciudad, estado o importe...">
+
                 </div>
 
                 {{-- Rango de fechas reutilizable (fecha del presupuesto) --}}
@@ -38,15 +41,16 @@
 
                 {{-- Botón Buscar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
-                    <button type="submit" class="btn btn-sm btn-primary">
+                    <button type="submit" class="btn btn-sm bg-pro-primary text-black">
                         <i class="bi bi-search"></i> Buscar
                     </button>
+
                 </div>
 
                 {{-- Botón Limpiar --}}
                 <div class="col-6 col-md-3 col-lg-2 d-grid">
                     @if (request('q') || request('estado') || request('fecha_desde') || request('fecha_hasta'))
-                        <a href="{{ route('profesional.presupuestos.index') }}" class="btn btn-sm btn-outline-secondary">
+                        <a href="{{ route('profesional.presupuestos.index') }}" class="btn btn-sm btn-outline-pro">
                             Limpiar
                         </a>
                     @endif
@@ -70,10 +74,11 @@
                             );
                         @endphp
 
-                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                        <a class="nav-link {{ $estado === null || $estado === '' ? 'active bg-pro-primary text-black fw-semibold' : 'text-muted' }}"
                             href="{{ $urlTodos }}">
                             Todos
                         </a>
+
                     </li>
 
                     {{-- Pestañas por cada estado del modelo --}}
@@ -88,14 +93,18 @@
                                     'fecha_hasta' => request('fecha_hasta'),
                                 ]),
                             );
+
+                            $esActivo = $estado === $valor;
                         @endphp
 
                         <li class="nav-item">
-                            <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                            <a class="nav-link {{ $esActivo ? 'active bg-pro-primary text-black fw-semibold' : 'text-muted' }}"
+                                href="{{ $urlEstado }}">
                                 {{ $texto }}
                             </a>
                         </li>
                     @endforeach
+
                 </ul>
             @endif
 
@@ -112,17 +121,19 @@
                 {{-- TABLA SOLO ESCRITORIO (lg+)                         --}}
                 {{-- ===================================================== --}}
                 <div class="table-responsive d-none d-lg-block">
-                    <table class="table table-sm align-middle">
-                        <thead>
-                            <tr class="fs-5">
-                                <th class="bg-secondary">Presupuesto</th>
-                                <th class="bg-secondary">Cliente</th>
-                                <th class="bg-secondary">Importe</th>
-                                <th class="bg-secondary text-center">Estado</th>
-                                <th class="bg-secondary text-center">Fecha</th>
-                                <th class=" bg-secondary text-center">Acciones</th>
+                    <table class="table table-sm align-middle border border-pro-secondary rounded">
+
+                        <thead class="text-white">
+                            <tr class="small text-center align-middle bg-pro-secondary fs-5">
+                                <th class="text-start bg-pro-secondary text-white">Presupuesto</th>
+                                <th class="bg-pro-secondary text-white text-start">Cliente</th>
+                                <th class="bg-pro-secondary text-white">Importe</th>
+                                <th class="bg-pro-secondary text-white">Estado</th>
+                                <th class="bg-pro-secondary text-white">Fecha</th>
+                                <th class="bg-pro-secondary text-white">Acciones</th>
                             </tr>
                         </thead>
+
                         <tbody>
                             @foreach ($presupuestos as $presu)
                                 @php
@@ -131,14 +142,13 @@
                                         'enviado' => 'bg-primary',
                                         'aceptado' => 'bg-success',
                                         'rechazado' => 'bg-danger',
-                                        'caducado' => 'bg-secondary',
                                         default => 'bg-light text-dark',
                                     };
                                 @endphp
 
                                 <tr>
                                     {{-- Solicitud / título --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         <strong>
                                             {{ $presu->solicitud->titulo ?? '—' }}
                                         </strong>
@@ -151,7 +161,7 @@
                                     </td>
 
                                     {{-- Cliente --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         @if ($cliente)
                                             {{ $cliente->nombre }} {{ $cliente->apellidos }}
                                         @else
@@ -160,50 +170,59 @@
                                     </td>
 
                                     {{-- Importe --}}
-                                    <td>
+                                    <td class="bg-pro-primary text-center">
                                         {{ number_format($presu->total, 2, ',', '.') }} €
                                     </td>
 
                                     {{-- Estado (centrado) --}}
-                                    <td class="text-center">
-                                        <span class="badge {{ $badgeClass }}">
-                                            {{ ucfirst($presu->estado) }}
-                                        </span>
-                                        @if ($presu->estado === 'enviado')
-                                            <div class="small text-primary mt-1">
-                                                El cliente está valorando el presupuesto
-                                            </div>
-                                        @endif
-                                        @if ($presu->estado === 'aceptado')
-                                            <div class="small text-primary mt-1">
-                                                El cliente ha aceptado el presupuesto, revisa tus trabajos.
-                                            </div>
-                                        @endif
-                                        @if ($presu->estado === 'rechazado')
-                                            <div class="small text-primary mt-1">
-                                                Se ha rechazado el presupuesto, puedes enviar uno nuevo.
-                                            </div>
-                                        @endif
-                                        @if ($presu->estado === 'caducado')
-                                            <div class="small text-primary mt-1">
-                                                La solicitud está cerrada, el trabajo ya está en marcha o finalizado.
-                                            </div>
-                                        @endif
+                                    <td class="text-center align-middle bg-pro-primary">
+                                        <div class="d-flex flex-column align-items-center gap-1">
+
+                                            <span class="badge {{ $badgeClass }}">
+                                                {{ ucfirst($presu->estado) }}
+                                            </span>
+
+                                            @if ($presu->estado === 'enviado')
+                                                <div class="small text-primary">
+                                                    El cliente está valorando el presupuesto
+                                                </div>
+                                            @endif
+
+                                            @if ($presu->estado === 'aceptado')
+                                                <div class="small text-primary">
+                                                    Presupuesto aceptado, revisa tus trabajos.
+                                                </div>
+                                            @endif
+
+                                            @if ($presu->estado === 'rechazado')
+                                                <div class="small text-primary">
+                                                    Presupuesto rechazado, puedes enviar uno nuevo.
+                                                </div>
+                                            @endif
+
+                                            @if ($presu->estado === 'caducado')
+                                                <div class="small text-primary">
+                                                    Solicitud cerrada, el trabajo ya está en marcha o finalizado.
+                                                </div>
+                                            @endif
+
+                                        </div>
                                     </td>
 
+
                                     {{-- Fecha --}}
-                                    <td>
+                                    <td class="bg-pro-primary">
                                         {{ $presu->fecha?->format('d/m/Y H:i') ?? $presu->created_at?->format('d/m/Y H:i') }}
                                     </td>
 
                                     {{-- Acciones --}}
-                                    <td class="text-start">
+                                    <td class="text-start bg-pro-primary">
                                         <div class="d-flex flex-row flex-wrap gap-1 justify-content-start">
 
                                             {{-- Ver PDF (sólo si existe) --}}
                                             @if ($presu->docu_pdf)
                                                 <a href="{{ route('presupuestos.ver_pdf', $presu) }}" target="_blank"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
+                                                    class="btn btn-sm btn-outline-pro d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
                                                     <i class="bi bi-file-earmark-pdf"></i> Ver PDF
                                                 </a>
                                             @else
@@ -238,7 +257,7 @@
                                                     $esUltimoPresuDeSolicitud &&
                                                     !$tieneOtroActivo)
                                                 <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
-                                                    class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
+                                                    class="btn btn-sm bg-pro-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
                                                     <i class="bi bi-plus-circle"></i>
                                                     Nuevo presupuesto
                                                 </a>
@@ -268,7 +287,7 @@
                             };
                         @endphp
 
-                        <div class="card mb-3 shadow-sm bg-light">
+                        <div class="card mb-3 shadow-sm bg-pro-primary">
                             <div class="card-body">
 
                                 {{-- Título solicitud + refs --}}
@@ -341,7 +360,7 @@
                                     {{-- Ver PDF --}}
                                     @if ($presu->docu_pdf)
                                         <a href="{{ route('presupuestos.ver_pdf', $presu) }}" target="_blank"
-                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
+                                            class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
                                             <i class="bi bi-file-earmark-pdf"></i>
                                             Ver PDF
                                         </a>
@@ -378,7 +397,7 @@
                                             $esUltimoPresuDeSolicitud &&
                                             !$tieneOtroActivo)
                                         <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
-                                            class="btn btn-sm btn-outline-secondary d-inline-flex align-items-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded">
+                                            class="btn btn-sm bg-pro-secondary d-inline-flex align-items-center justify-content-center gap-1 mx-1 fw-semibold text-dark px-2 py-1 rounded w-100">
                                             <i class="bi bi-plus-circle"></i>
                                             Nuevo presupuesto
                                         </a>

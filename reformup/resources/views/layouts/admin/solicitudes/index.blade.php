@@ -17,7 +17,7 @@
         <div class="container py-2" id="app">
 
             {{-- Título + botón nueva --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-text"></i> Gestión de solicitudes
                 </h1>
@@ -71,11 +71,11 @@
                                 'q' => request('q'),
                                 'fecha_desde' => request('fecha_desde'),
                                 'fecha_hasta' => request('fecha_hasta'),
-                               
                             ]),
                         );
                     @endphp
-                    <a class="nav-link {{ $estado === null || $estado === '' ? 'active' : '' }}" href="{{ $urlTodos }}">
+                    <a class="nav-link fs-6 {{ $estado === null || $estado === '' ? 'active' : '' }}"
+                        href="{{ $urlTodos }}">
                         Todas
                     </a>
                 </li>
@@ -95,7 +95,7 @@
                     @endphp
 
                     <li class="nav-item">
-                        <a class="nav-link {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
+                        <a class="nav-link fs-6 {{ $estado === $valor ? 'active' : '' }}" href="{{ $urlEstado }}">
                             {{ $texto }}
                         </a>
                     </li>

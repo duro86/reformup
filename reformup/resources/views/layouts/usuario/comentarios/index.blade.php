@@ -10,13 +10,14 @@
     <div class="container-fluid main-content-with-sidebar">
         <x-usuario.nav_movil active="comentarios" />
 
-        <div class="container py-4">
+        <div class="container py-2">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                <h1 class="h4 mb-0 d-flex align-items-center gap-2">
-                    <i class="bi bi-chat-left-text"></i> Mis comentarios
-                </h1>
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
+                <h4 class="mb-1 d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-left-text"></i>
+                    Listado Comentarios
+                </h4>
             </div>
 
             {{-- Mensajes flash --}}
@@ -139,12 +140,12 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th class="text-center text-md-start">Trabajo</th>
-                                <th class="d-none d-md-table-cell">Profesional</th>
-                                <th>Puntuación</th>
-                                <th class="d-none d-md-table-cell">Estado</th>
-                                <th class="d-none d-md-table-cell">Fecha</th>
-                                <th class="text-end">Acciones</th>
+                                <th class="text-center text-md-start bg-secondary">Trabajo</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Profesional</th>
+                                <th class="bg-secondary">Puntuación</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Estado</th>
+                                <th class="d-none d-md-table-cell bg-secondary">Fecha</th>
+                                <th class="text-end bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -193,13 +194,9 @@
 
                                     {{-- Puntuación (estrellas) --}}
                                     <td>
-                                        @for ($i = 1; $i <= 5; $i++)
-                                            @if ($i <= $comentario->puntuacion)
-                                                <i class="bi bi-star-fill text-warning"></i>
-                                            @else
-                                                <i class="bi bi-star text-muted"></i>
-                                            @endif
-                                        @endfor
+                                        <div class="text-nowrap text-start">
+                                            <x-estrellas :valor="$comentario->puntuacion" />
+                                        </div>
                                     </td>
 
                                     {{-- Estado (md+) --}}
@@ -223,7 +220,7 @@
                                             </button>
                                         @endif
 
-                                        @if ($comentario->estado === 'pendiente')
+                                        @if (in_array($comentario->estado, ['pendiente', 'rechazado']))
                                             <a href="{{ route('usuario.comentarios.editar', $comentario) }}"
                                                 class="btn btn-sm btn-warning mb-1">
                                                 Editar

@@ -17,9 +17,9 @@
         Crear perfil profesional
     </a>
 @else
-    {{-- Empresa + CIF --}}
+    {{-- Empresa + CIF + Teléfono --}}
     <div class="row">
-        <div class="col-md-7 mb-3">
+        <div class="col-md-4 mb-3">
             <label class="form-label">Nombre de la empresa<span class="text-danger">*</span></label>
             <input type="text" name="empresa" value="{{ old('empresa', $perfilProfesional->empresa) }}"
                 class="form-control @error('empresa') is-invalid @enderror">
@@ -28,7 +28,7 @@
             @enderror
         </div>
 
-        <div class="col-md-5 mb-3">
+        <div class="col-md-4 mb-3">
             <label class="form-label">CIF<span class="text-danger">*</span></label>
             <input type="text" name="cif" value="{{ old('cif', $perfilProfesional->cif) }}"
                 class="form-control @error('cif') is-invalid @enderror">
@@ -36,7 +36,76 @@
                 <div class="invalid-feedback">{{ $message }}</div>
             @enderror
         </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Teléfono empresa<span class="text-danger">*</span></label>
+            <input type="text" name="telefono_empresa"
+                value="{{ old('telefono_empresa', $perfilProfesional->telefono_empresa) }}"
+                class="form-control @error('telefono_empresa') is-invalid @enderror">
+            @error('telefono_empresa')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
     </div>
+
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Email empresa<span class="text-danger">*</span></label>
+            <input type="email" name="email_empresa"
+                value="{{ old('email_empresa', $perfilProfesional->email_empresa) }}"
+                class="form-control @error('email_empresa') is-invalid @enderror">
+            @error('email_empresa')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Provincia<span class="text-danger">*</span></label>
+            <select name="provincia" id="provincia" class="form-control @error('provincia') is-invalid @enderror">
+                <option value="">Selecciona una provincia</option>
+                <option value="Huelva" {{ old('provincia') == 'Huelva' ? 'selected' : '' }}>Huelva</option>
+                <option value="Sevilla" {{ old('provincia') == 'Sevilla' ? 'selected' : '' }}>Sevilla</option>
+            </select>
+            @error('provincia')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Municipio</label>
+            <select name="ciudad" id="ciudad" class="form-control @error('ciudad') is-invalid @enderror">
+                <option value="">Selecciona primero una provincia</option>
+            </select>
+            @error('ciudad')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+
+
+
+
+
+    <div class="col-md-4 mb-3">
+        <label class="form-label">CIF<span class="text-danger">*</span></label>
+        <input type="text" name="cif" value="{{ old('cif', $perfilProfesional->cif) }}"
+            class="form-control @error('cif') is-invalid @enderror">
+        @error('cif')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="col-md-4 mb-3">
+        <label class="form-label">Teléfono empresa<span class="text-danger">*</span></label>
+        <input type="text" name="telefono_empresa"
+            value="{{ old('telefono_empresa', $perfilProfesional->telefono_empresa) }}"
+            class="form-control @error('telefono_empresa') is-invalid @enderror">
+        @error('telefono_empresa')
+            <div class="invalid-feedback">{{ $message }}</div>
+        @enderror
+    </div>
+    </div>
+
 
     {{-- Email y teléfono empresa --}}
     <div class="row">
@@ -120,7 +189,8 @@
 
     <div class="mb-3">
         <label class="form-label">Bio / Descripción</label>
-        <textarea name="bio" rows="3" style="resize: none;" class="form-control @error('bio') is-invalid @enderror">{{ old('bio', $perfilProfesional->bio) }}</textarea>
+        <textarea name="bio" rows="3" style="resize: none;"
+            class="form-control @error('bio') is-invalid @enderror">{{ old('bio', $perfilProfesional->bio) }}</textarea>
         @error('bio')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror

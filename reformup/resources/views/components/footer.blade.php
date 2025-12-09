@@ -19,7 +19,6 @@
                             profesionales</a></li>
                     <li><a href="{{ route('registrar.profesional.opciones') }}"class="footer-link">Registro de
                             Profesionales</a></li>
-                    <li><a href="#reviewsCarousel" class="footer-link">Comentarios</a></li>
                 </ul>
             </div>
             <!-- Legal -->

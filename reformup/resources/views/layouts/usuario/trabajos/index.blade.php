@@ -17,21 +17,21 @@
         {{-- Nav móvil, pestaña activa trabajos --}}
         <x-usuario.nav_movil active="trabajos" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
             {{-- Título --}}
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
-                <h1 class="h4 mb-0 d-flex align-items-center gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
+                <h4 class="mb-1 d-flex align-items-center gap-2">
                     <i class="bi bi-hammer"></i>
-                    Mis trabajos
-                </h1>
+                    Listado Trabajos
+                </h4>
             </div>
 
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
             {{-- Buscador combinado: texto + fechas --}}
-            <form method="GET" action="{{ route('usuario.trabajos.index') }}" class="row g-2 mb-3">
+            <form method="GET" action="{{ route('usuario.trabajos.index') }}" class="row g-2 mb-2">
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-6 col-lg-4">
                     <input type="text" name="q" value="{{ request('q') }}" class="form-control form-control-sm"
@@ -102,14 +102,14 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th>Trabajo / Referencia</th>
-                                <th>Empresa</th>
-                                <th class="text-center">Estado</th>
-                                <th>Fecha inicio</th>
-                                <th>Fecha fin</th>
-                                <th>Dirección obra</th>
-                                <th class="text-center">Total presupuesto</th>
-                                <th class="text-center">Acciones</th>
+                                <th class="bg-secondary">Trabajo / Referencia</th>
+                                <th class="bg-secondary">Empresa</th>
+                                <th class="text-center bg-secondary">Estado</th>
+                                <th class="bg-secondary">Fecha inicio</th>
+                                <th class="bg-secondary">Fecha fin</th>
+                                <th class="bg-secondary">Dirección obra</th>
+                                <th class="text-center bg-secondary">Total presupuesto</th>
+                                <th class="text-center bg-secondary">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>

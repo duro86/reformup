@@ -5,7 +5,7 @@
 @section('content')
 
     {{-- Navbar principal --}}
-    <x-navbar />
+    <x-navbar active="panel"/>
 
     {{-- Sidebar admin --}}
     <x-admin.admin_sidebar />

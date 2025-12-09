@@ -15,9 +15,9 @@
         {{-- NAV SUPERIOR SOLO MÓVIL/TABLET --}}
         <x-admin.nav_movil active="comentarios" />
 
-        <div class="container py-4" id="app">
+        <div class="container py-2" id="app">
 
-            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-3 gap-2">
+            <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-2 gap-2">
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-chat-left-text"></i> Comentarios de usuarios
                 </h1>
@@ -25,7 +25,6 @@
 
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
-
 
             {{-- Buscador combinado: texto + fechas + puntuación --}}
             <form method="GET" action="{{ route('admin.comentarios') }}" class="row g-2 mb-3">
@@ -69,7 +68,7 @@
 
             {{-- Filtros por estado --}}
             @if (isset($estados) && is_array($estados))
-                <ul class="nav nav-pills mb-3">
+                <ul class="nav nav-pills mb-2">
                     {{-- Tab "Todos" --}}
                     <li class="nav-item">
                         @php
@@ -80,7 +79,7 @@
                                     'puntuacion_min' => request('puntuacion_min'),
                                     'fecha_desde' => request('fecha_desde'),
                                     'fecha_hasta' => request('fecha_hasta'),
-                                    // OJO: sin 'estado'
+                                    
                                 ]),
                             );
                         @endphp
@@ -115,7 +114,7 @@
                 </ul>
             @endif
 
-
+            {{-- Menasaje sin comentarios --}}    
             @if ($comentarios->isEmpty())
                 <div class="alert alert-info">
                     No hay comentarios
@@ -161,7 +160,7 @@
                                     };
                                 @endphp
 
-                                <tr>
+                                <tr class="fs-7">
                                     {{-- Trabajo / Solicitud --}}
                                     <td>
                                         <strong>
@@ -248,11 +247,8 @@
                                                 @csrf
                                                 @method('PATCH')
 
-                                                <div class="d-flex flex-column align-items-center">
-                                                    <small class="text-muted mb-1">
-                                                        Publicación
-                                                    </small>
 
+                                                <div class="d-flex flex-column align-items-center">
                                                     <div class="form-check form-switch d-flex align-items-center gap-1">
                                                         <input class="form-check-input" type="checkbox"
                                                             onChange="this.form.submit()"

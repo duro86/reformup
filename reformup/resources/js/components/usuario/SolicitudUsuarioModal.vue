@@ -19,22 +19,22 @@
             <h6 class="fw-semibold mb-1">Datos generales</h6>
 
             <p class="mb-1">
-              <strong>Estado:</strong>
+              <strong class="me-2">Estado:</strong>
               <span class="badge" :class="estadoBadgeClass">
                 {{ estadoLabel }}
               </span>
             </p>
 
             <p class="mb-1">
-              <strong>Ubicación:</strong>
-              <span>{{ solicitud.ciudad || 'No indicada' }}</span>
+              <strong class="me-2">Ubicación:</strong>
+              <span >{{ solicitud.ciudad || 'No indicada' }}</span>
               <span v-if="solicitud.provincia">
                 - {{ solicitud.provincia }}
               </span>
             </p>
 
             <p class="mb-1">
-              <strong>Presupuesto máximo:</strong>
+              <strong class="me-2">Presupuesto máximo:</strong>
               <span v-if="solicitud.presupuesto_max != null">
                 {{ formatMoney(solicitud.presupuesto_max) }} €
               </span>
@@ -42,7 +42,7 @@
             </p>
 
             <p class="mb-1">
-              <strong>Fecha de solicitud:</strong>
+              <strong class="me-2">Fecha de solicitud:</strong>
               <span>{{ solicitud.fecha }}</span>
             </p>
 
@@ -129,17 +129,17 @@
                   <strong>Ref #</strong> {{ solicitud.trabajo.id }}
                 </p>
                 <p class="mb-1">
-                  <strong>Estado:</strong>
+                  <strong class="me-2">Estado:</strong>
                   <span class="badge" :class="trabajoBadgeClass">
                     {{ trabajoEstadoLabel }}
                   </span>
                 </p>
                 <p class="mb-0">
-                  <strong>Fechas:</strong>
+                  <strong class="me-2">Fechas:</strong>
                   <span>
-                    {{ solicitud.trabajo.fecha_ini || 'Sin inicio' }}
+                    {{ formatFecha(solicitud.trabajo.fecha_ini) || 'Sin inicio' }}
                     &nbsp;–&nbsp;
-                    {{ solicitud.trabajo.fecha_fin || 'Sin fin' }}
+                    {{ formatFecha(solicitud.trabajo.fecha_fin) || 'Sin fin' }}
                   </span>
                 </p>
               </template>
@@ -278,6 +278,19 @@ export default {
         maximumFractionDigits: 2,
       });
     },
+    formatFecha(fecha) {
+      if (!fecha) return null;
+
+      const date = new Date(fecha);
+
+      return new Intl.DateTimeFormat("es-ES", {
+        day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit"
+      }).format(date);
+    }
   },
 };
 </script>
