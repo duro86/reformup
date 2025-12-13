@@ -15,7 +15,7 @@
 
             <h1 class="h4 mb-3 d-flex align-items-center gap-2">
                 <i class="bi bi-file-earmark-text"></i>
-                Editar solicitud #{{ $solicitud->id }}
+                Editar solicitud #{{ $numeroSolicitud }}
             </h1>
 
             <x-alertas.alertasFlash />

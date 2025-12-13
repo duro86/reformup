@@ -60,14 +60,20 @@ class ProfesionalSolicitudController extends Controller
 
         // Filtro por rango de fechas (tiene sentido usar 'fecha' de la solicitud)
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha');
-        // Si alguna solicitud no tiene 'fecha' y solo usar created_at:
+        // Si alguna solicitud no tiene 'fecha' , usamos created_at:
         // $this->aplicarFiltroRangoFechas($query, $request, 'created_at');
 
         // Orden + paginación
         $solicitudes = $query
-            ->orderByDesc('fecha')   // o 'created_at' si cambias arriba
+            ->orderByDesc('fecha')   // o 'created_at' 
             ->paginate(5)
             ->withQueryString();
+
+        // Ref correlativa (visible solo para ESE profesional)
+        $solicitudes->getCollection()->transform(function ($s, $i) use ($solicitudes) {
+            $s->ref_pro = $solicitudes->total() - ($solicitudes->firstItem() + $i) + 1;
+            return $s;
+        });
 
         return view('layouts.profesional.solicitudes.index', [
             'solicitudes' => $solicitudes,
@@ -91,7 +97,24 @@ class ProfesionalSolicitudController extends Controller
             abort(403, 'No tienes acceso a esta solicitud.');
         }
 
-        $solicitud->load(['cliente', 'profesional']);
+        // Cargamos también presupuestos y su trabajo
+        $solicitud->load([
+            'cliente',
+            'profesional',
+            'presupuestos.trabajo',
+        ]);
+
+        // Escoger el presupuesto principal: el último por id
+        $presupuestoPrincipal = $solicitud->presupuestos
+            ->sortByDesc('id')
+            ->first();
+
+        // $presupuestoPrincipal = $solicitud->presupuestos
+        //     ->whereIn('estado', ['enviado', 'aceptado'])
+        //     ->sortByDesc('id')
+        //     ->first();
+
+        $trabajoPrincipal = $presupuestoPrincipal?->trabajo;
 
         // Si la petición pide JSON (Vue modal)
         if (request()->wantsJson()) {
@@ -105,18 +128,42 @@ class ProfesionalSolicitudController extends Controller
                 'estado'          => $solicitud->estado,
                 'presupuesto_max' => $solicitud->presupuesto_max,
                 'fecha'           => optional($solicitud->fecha)->format('d/m/Y H:i'),
-                'cliente'         => [
-                    'nombre'    => $solicitud->cliente?->nombre,
-                    'apellidos' => $solicitud->cliente?->apellidos,
-                    'email'     => $solicitud->cliente?->email,
-                    'telefono'  => $solicitud->cliente?->telefono,
-                ],
+
+                'cliente' => $solicitud->cliente ? [
+                    'nombre'    => $solicitud->cliente->nombre,
+                    'apellidos' => $solicitud->cliente->apellidos,
+                    'email'     => $solicitud->cliente->email,
+                    'telefono'  => $solicitud->cliente->telefono,
+                ] : null,
+
+                'profesional' => $solicitud->profesional ? [
+                    'empresa'          => $solicitud->profesional->empresa,
+                    'email_empresa'    => $solicitud->profesional->email_empresa,
+                    'telefono_empresa' => $solicitud->profesional->telefono_empresa,
+                    'ciudad'           => $solicitud->profesional->ciudad,
+                    'provincia'        => $solicitud->profesional->provincia,
+                ] : null,
+
+                'presupuesto' => $presupuestoPrincipal ? [
+                    'id'     => $presupuestoPrincipal->id,
+                    'estado' => $presupuestoPrincipal->estado,
+                    'total'  => $presupuestoPrincipal->total,
+                ] : null,
+
+                'trabajo' => $trabajoPrincipal ? [
+                    'id'        => $trabajoPrincipal->id,
+                    'estado'    => $trabajoPrincipal->estado,
+                    'fecha_ini' => $trabajoPrincipal->fecha_ini->format('d/m/Y H:i'),
+                    'fecha_fin' => $trabajoPrincipal->fecha_fin->format('d/m/Y H:i'),
+                    'dir_obra'  => $trabajoPrincipal->dir_obra,
+                ] : null,
             ]);
         }
 
         // Fallback por si quieres una vista normal
         return view('layouts.profesional.solicitudes.show', compact('solicitud'));
     }
+
 
     /**
      * Cancelar una solicitud (cambiar estado a cancelada).
@@ -145,7 +192,7 @@ class ProfesionalSolicitudController extends Controller
 
         $cliente     = $solicitud->cliente;          // User
         $perfilPro   = $solicitud->profesional;      // Perfil_Profesional
-        $presupuesto = $solicitud->presupuestos->first(); // si tienes varios, aquí coges el primero
+        $presupuesto = $solicitud->presupuestos->first(); 
         $trabajo     = $presupuesto?->trabajo;
 
         // 5) Enviar correo al cliente (si tiene email)

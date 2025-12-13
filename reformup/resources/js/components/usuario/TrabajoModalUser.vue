@@ -4,7 +4,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            Trabajo #{{ trabajo.id }}
+            Trabajo #{{ refCliente }}
             <span v-if="trabajo.solicitud && trabajo.solicitud.titulo">
               - {{ trabajo.solicitud.titulo }}
             </span>
@@ -50,13 +50,6 @@
           <div class="mb-3">
             <h5 class="fw-semibold mb-2">Datos del presupuesto</h5>
 
-            <p class="mb-1" v-if="trabajo.presupuesto">
-              <strong>Nombre:</strong>
-              <span>
-                {{ trabajo.presupuesto.nombre || (' Presupuesto #' + trabajo.presupuesto.id) }}
-              </span>
-            </p>
-
             <p class="mb-1" v-if="trabajo.solicitud && trabajo.solicitud.presupuesto_max">
               <strong>Presupuesto Solicitud Max:</strong>
               <span v-if="trabajo.solicitud.presupuesto_max != null">
@@ -90,15 +83,15 @@
               No hay datos de presupuesto asociados.
             </p>
           </div>
-
+<hr>
           <!-- Solicitud -->
           <div class="mb-3">
             <h5 class="fw-semibold mb-2">Datos de la Solicitud</h5>
 
             <p class="mb-1" v-if="trabajo.solicitud">
-              <strong>ID:</strong>
+              <strong>Fecha:</strong>
               <span>
-                {{ ('  Solicitud #' + trabajo.solicitud.id) }}
+                {{ (' ') + trabajo.solicitud.fecha || 'No indicada' }}
               </span>
             </p>
 
@@ -197,15 +190,17 @@ export default {
       trabajo: {},
       loaded: false,
       modalInstance: null,
+      refCliente: null,
     };
   },
   mounted() {
       this.modalInstance = new Modal(this.$refs.modal);
   },
   methods: {
-    async openModal(id) {
+    async openModal(id, refCliente= null) {
       this.loaded  = false;
       this.trabajo = {};
+      this.refCliente = refCliente;
 
       try {
         const resp = await window.axios.get(`/usuario/trabajos/${id}`, {

@@ -177,18 +177,33 @@ class AuthProController extends Controller
         }
 
         // Insertamos en la tabla users y asignamos el rol de cliente
-        $user = User::create([
-            'nombre' => $request->nombre,
-            'apellidos' => $request->apellidos,
-            'email' => $request->email,
-            'password' => bcrypt($request->password),
-            'telefono' => $request->telefono,
-            'ciudad' => $request->ciudad,
-            'provincia' => $request->provincia,
-            'cp' => $request->cp,
-            'direccion' => $request->direccion,
-            'avatar' => $avatarPath
-        ]);
+        try {
+
+            // Insertamos en la tabla users
+            $user = User::create([
+                'nombre' => $request->nombre,
+                'apellidos' => $request->apellidos,
+                'email' => $request->email,
+                'password' => bcrypt($request->password),
+                'telefono' => $request->telefono,
+                'ciudad' => $request->ciudad,
+                'provincia' => $request->provincia,
+                'cp' => $request->cp,
+                'direccion' => $request->direccion,
+                'avatar' => $avatarPath
+            ]);
+
+            // Asignar rol
+            $user->assignRole('usuario');
+
+            // Guardamos ID en sesión
+            session(['pendiente_pro_user_id' => $user->id]);
+        } catch (\Throwable $e) {
+
+            return redirect()
+                ->route('home')
+                ->with('error', 'Ha ocurrido un error al crear el usuario. Inténtalo de nuevo.');
+        }
 
 
         // Asignar rol "usuario" 
@@ -214,7 +229,7 @@ class AuthProController extends Controller
         $request->validate([
             'user_id' => ['required', 'exists:users,id'],
 
-            'empresa' => ['required', 'string', 'max:255'],
+            'empresa' => ['required', 'string', 'max:255', 'unique:perfiles_profesionales,empresa'],
 
             'cif' => [
                 'required',
@@ -255,6 +270,7 @@ class AuthProController extends Controller
 
             'empresa.required' => 'El nombre de la empresa es obligatorio.',
             'empresa.max'      => 'El nombre de la empresa es demasiado largo.',
+            'empresa.unique' => 'Ya existe una empresa registrada con ese nombre.',
 
             'cif.required' => 'El CIF es obligatorio.',
             'cif.unique'   => 'Este CIF ya está registrado.',
@@ -336,23 +352,39 @@ class AuthProController extends Controller
             }
         }
 
-        // Guardar empresa asociada a user_id
-        $perfil = Perfil_Profesional::create([
-            'user_id' => $request->user_id,
-            'empresa' => $request->empresa,
-            'cif' => $request->cif,
-            'email_empresa' => $request->email_empresa,
-            'bio' => $request->bio,
-            'web' => $request->web,
-            'telefono_empresa' => $request->telefono_empresa,
-            'ciudad' => $request->ciudad_empresa,
-            'provincia' => $request->provincia_empresa,
-            'dir_empresa' => $request->direccion_empresa,
-            'avatar' => $avatarPath,
-        ]);
+        try {
 
-        // Oficios
-        $perfil->oficios()->sync($request->oficios);
+            $perfil = Perfil_Profesional::create([
+                'user_id' => $request->user_id,
+                'empresa' => $request->empresa,
+                'cif' => $request->cif,
+                'email_empresa' => $request->email_empresa,
+                'bio' => $request->bio,
+                'web' => $request->web,
+                'telefono_empresa' => $request->telefono_empresa,
+                'ciudad' => $request->ciudad,
+                'provincia' => $request->provincia,
+                'dir_empresa' => $request->direccion_empresa,
+                'avatar' => $avatarPath,
+            ]);
+
+            // Oficios
+            $perfil->oficios()->sync($request->oficios);
+
+            // Roles
+            if (! $user->hasRole('usuario')) {
+                $user->assignRole('usuario');
+            }
+            if (! $user->hasRole('profesional')) {
+                $user->assignRole('profesional');
+            }
+        } catch (\Throwable $e) {
+
+            return redirect()
+                ->route('home')
+                ->with('error', 'No se ha podido registrar la empresa. Inténtalo de nuevo.');
+        }
+
 
         // Roles
         if (! $user->hasRole('usuario')) {
@@ -362,11 +394,19 @@ class AuthProController extends Controller
             $user->assignRole('profesional');
         }
 
-        // Enviar mainl al admin notificando nuevo profesional pendiente de revisión
-        $admins = User::role('admin')->get();
+        try {
+            $admins = User::role('admin')->get();
 
-        foreach ($admins as $admin) {
-            Mail::to($admin->email)->send(new NuevoProfesionalRegistrado($user, $perfil));
+
+            foreach ($admins as $admin) {
+                Mail::to($admin->email)->send(new NuevoProfesionalRegistrado($user, $perfil));
+            }
+        } catch (\Throwable $e) {
+
+            // Mensaje suave para el usuario
+            return redirect()
+                ->route('home')
+                ->with('warning', 'La empresa se ha registrado correctamente, pero no se ha podido enviar el correo de notificación.');
         }
 
         // Si venía del flujo pendiente (invitado), ahora sí hacemos login y limpiamos la sesión

@@ -87,6 +87,12 @@ class ProfesionalPresupuestoController extends Controller
             ->paginate(6)
             ->withQueryString();
 
+        // Ref correlativa (visible solo para ESE profesional)
+        $presupuestos->getCollection()->transform(function ($p, $i) use ($presupuestos) {
+            $p->ref_pro = $presupuestos->total() - ($presupuestos->firstItem() + $i) + 1;
+            return $p;
+        });
+
         return view('layouts.profesional.presupuestos.index', [
             'presupuestos' => $presupuestos,
             'estado'       => $estado,

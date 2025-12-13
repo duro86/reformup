@@ -14,7 +14,7 @@
                 Volver a solicitudes
             </a>
 
-            <h1 class="h4 mb-3">Enviar presupuesto</h1>
+            <h4 class="mb-3">Enviar presupuesto</h4>
 
             {{-- Info rápida de la solicitud --}}
             <div class="card mb-2">
@@ -139,7 +139,7 @@
                         <div id="bloque-archivo">
 
                             <div class="mb-3">
-                                <label class="form-label">Importe total</label>
+                                <label class="form-label">Importe total<span class="text-danger">*</span></label>
                                 <input type="number"
                                     name="total"
                                     step="0.01"
@@ -148,7 +148,7 @@
                             </div>
 
                             <div class="mb-3">
-                                <label class="form-label">Adjuntar presupuesto (PDF / Word)</label>
+                                <label class="form-label">Adjuntar presupuesto (PDF / Word)<span class="text-danger">*</span></label>
                                 <input type="file"
                                     name="docu_pdf"
                                     accept=".pdf,.doc,.docx"

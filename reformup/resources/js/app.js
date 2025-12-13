@@ -1,3 +1,9 @@
+/**
+ * En el archivo resources/js/app.js se inicializa la aplicación Vue utilizada en el frontend.
+Se importan los componentes Vue correspondientes a los distintos modales (usuarios, profesionales, solicitudes, trabajos, comentarios, etc.) y se registran de forma global.
+Además, se definen métodos como openUserModal, openProfessionalModal o openTrabajoAdminModal, que actúan como puente entre las vistas Blade y los componentes Vue utilizando referencias ($refs).
+Esto permite abrir modales dinámicos desde enlaces o botones HTML sin recargar la página, mejorando la experiencia de usuario y la fluidez de la interfaz.
+ */
 import "./bootstrap";
 import { createApp } from "vue";
 import ClassicEditor from "@ckeditor/ckeditor5-build-classic";
@@ -17,6 +23,7 @@ import PresupuestoAdminModal from "./components/admin/PresupuestoAdminModal.vue"
 import TrabajoAdminModal from "./components/admin/TrabajoAdminModal.vue";
 import ProfesionalesGrid from "./components/public/ProfesionalesGrid.vue";
 import SolicitudUsuarioModal from "./components/usuario/SolicitudUsuarioModal.vue";
+import ComentarioModalUser from "./components/usuario/ComentarioModalUser.vue";
 
 const app = createApp({
     methods: {
@@ -27,15 +34,14 @@ const app = createApp({
         openProfessionalModal(id) {
             this.$refs.professionalModal.openModal(id);
         },
-        openSolicitudModal(id) {
-            this.$refs.solicitudModal.openModal(id);
+        openSolicitudModal(id, refPro = null) {
+            this.$refs.solicitudModal.openModal(id, refPro);
         },
-        openTrabajoModal(id) {
-            this.$refs.trabajoModal.openModal(id);
+        openTrabajoModal(id, refCliente = null) {
+            this.$refs.trabajoModal.openModal(id, refCliente);
         },
-        openTrabajoProModal(id) {
-            // profesional
-            this.$refs.trabajoProModal.openModal(id);
+        openTrabajoProModal(id, refPro = null) {
+            this.$refs.trabajoProModal.openModal(id, refPro);
         },
         openComentarioModalPro(id) {
             this.$refs.ComentarioModalPro.openModal(id);
@@ -57,9 +63,12 @@ const app = createApp({
             }
             this.$refs.trabajoAdminModal.openModal(id);
         },
-        openSolicitudUsuarioModal(id) {
+        openSolicitudUsuarioModal(id, numeroSolicitud) {
             // Llama al método openModal del componente referenciado en Blade
-            this.$refs.solicitudUsuarioModal.openModal(id);
+            this.$refs.solicitudUsuarioModal.openModal(id, numeroSolicitud);
+        },
+        openComentarioUserModal(id, refCliente = null) {
+            this.$refs.comentarioUserModal.openModal(id, refCliente);
         },
     },
 });
@@ -78,6 +87,7 @@ app.component("presupuesto-admin-modal", PresupuestoAdminModal);
 app.component("trabajo-admin-modal", TrabajoAdminModal);
 app.component("profesionales-grid", ProfesionalesGrid);
 app.component("solicitud-usuario-modal", SolicitudUsuarioModal);
+app.component("comentario-user-modal", ComentarioModalUser);
 
 const el = document.getElementById("app");
 if (el) {

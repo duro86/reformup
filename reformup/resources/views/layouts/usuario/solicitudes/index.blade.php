@@ -4,7 +4,7 @@
 
 @section('content')
 
-    <x-navbar active="panel"/>
+    <x-navbar active="panel" />
 
     {{-- SIDEBAR FIJO (escritorio) --}}
     <x-usuario.usuario_sidebar />
@@ -24,7 +24,7 @@
                 <h1 class="h4 mb-0 d-flex align-items-center gap-2">
                     <i class="bi bi-file-earmark-text"></i> Mis solicitudes
                 </h1>
-                
+
 
                 <a href="{{ route('usuario.solicitudes.seleccionar_profesional') }}"
                     class="btn btn-primary d-flex align-items-center justify-content-center gap-2">
@@ -127,15 +127,20 @@
                                         default => 'bg-light text-dark',
                                     };
                                 @endphp
+                                @php
+                                    // Número correlativo para ese cliente, según el orden actual y la paginación
+                                    $numeroSolicitud =
+                                        $solicitudes->total() - ($solicitudes->firstItem() + $loop->index) + 1;
+                                @endphp
 
                                 <tr>
                                     {{-- Título / Ref --}}
                                     <td>
                                         <strong>
-                                            {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
+                                            {{ $solicitud->titulo ?? 'Solicitud #' . $numeroSolicitud }}
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref: #{{ $solicitud->id }}
+                                            Ref: #{{ $numeroSolicitud }}
                                         </div>
                                     </td>
 
@@ -217,7 +222,7 @@
                                             {{-- Ver (modal Vue) --}}
                                             <button type="button"
                                                 class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
-                                                @click="openSolicitudUsuarioModal({{ $solicitud->id }})">
+                                                @click="openSolicitudUsuarioModal({{ $solicitud->id }}, {{ $numeroSolicitud }})">
                                                 Ver
                                             </button>
 
@@ -257,16 +262,20 @@
                                 default => 'bg-light text-dark',
                             };
                         @endphp
+                        @php
+                            // Número correlativo para ese cliente, según el orden actual y la paginación
+                            $numeroSolicitud = $solicitudes->total() - ($solicitudes->firstItem() + $loop->index) + 1;
+                        @endphp
 
                         <div class="card mb-3 shadow-sm bg-light">
                             <div class="card-body ">
                                 {{-- Título + ref --}}
                                 <div class="mb-2">
                                     <div class="fw-semibold">
-                                        {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
+                                        {{ $solicitud->titulo ?? 'Solicitud #' . $numeroSolicitud }}
                                     </div>
                                     <div class="small text-muted">
-                                        Ref: #{{ $solicitud->id }}
+                                        Ref: #{{ $numeroSolicitud }}
                                     </div>
                                 </div>
 
@@ -349,7 +358,7 @@
                                 <div class="d-grid gap-2">
                                     {{-- Ver --}}
                                     <button type="button" class="btn btn-info btn-sm"
-                                        @click="openSolicitudUsuarioModal({{ $solicitud->id }})">
+                                        @click="openSolicitudUsuarioModal({{ $solicitud->id }}, {{ $numeroSolicitud }})">
                                         Ver
                                     </button>
 

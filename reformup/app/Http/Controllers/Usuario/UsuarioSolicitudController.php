@@ -115,8 +115,8 @@ class UsuarioSolicitudController extends Controller
         $cliente   = $solicitud->cliente;
         $perfilPro = $solicitud->profesional;
 
-        // Escogemos un presupuesto asociado "principal"
-        $presupuestoAsociado = $solicitud->presupuestos->first();
+        // Escogemos un presupuesto asociado "principal" el último
+        $presupuestoAsociado = $solicitud->presupuestos->sortByDesc('id')->first();
         $trabajoAsociado     = $presupuestoAsociado?->trabajo;
 
         // 4) Petición JSON (Axios desde el modal)
@@ -450,10 +450,22 @@ class UsuarioSolicitudController extends Controller
                 ->with('error', 'No puedes editar la solicitud porque ya tiene un presupuesto enviado o aceptado.');
         }
 
-        // Si quieres mostrar algo extra (no hace falta mucho más)
+        // Extra
         $solicitud->load('profesional');
 
-        return view('layouts.usuario.solicitudes.editar', compact('solicitud'));
+        // Calcular número correlativo (Ref) para ese cliente
+        // Misma lógica que el listado: orden por fecha DESC (ajusta si tu listado usa otro orden)
+        $idsOrdenados = Solicitud::where('cliente_id', $user->id)
+            ->orderByDesc('fecha')
+            ->orderByDesc('id')
+            ->pluck('id'); // colección de ids en el orden mostrado
+
+        $pos = $idsOrdenados->search($solicitud->id); 
+        // Calculamos el numero de solicitud aosciada
+        $numeroSolicitud = $pos === false ? $solicitud->id : ($idsOrdenados->count() - $pos);
+
+        return view('layouts.usuario.solicitudes.editar', compact('solicitud', 'numeroSolicitud'));
+
     }
 
     /**

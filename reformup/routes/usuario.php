@@ -103,6 +103,9 @@ Route::middleware(['rol.redirigir:usuario'])
         Route::get('/comentario', [UsuarioComentarioController::class, 'index'])
             ->name('comentarios.index');
 
+        Route::get('/comentarios/{comentario}', [UsuarioComentarioController::class, 'showJson'])
+            ->name('comentarios.json');
+
         // FORMULARIO nuevo comentario sobre un trabajo
         Route::get('/comentarios/trabajo/{trabajo}', [UsuarioComentarioController::class, 'crear'])
             ->name('comentarios.crear');

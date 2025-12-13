@@ -10,7 +10,7 @@
     <div class="container-fluid main-content-with-sidebar">
         <x-usuario.nav_movil active="comentarios" />
 
-        <div class="container py-2">
+        <div class="container py-2" id="app">
 
             {{-- Título --}}
             <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center mb-1 gap-2">
@@ -170,12 +170,10 @@
                                         <div class="fw-semibold">
                                             @if ($solicitud?->titulo)
                                                 {{ $solicitud->titulo }}
-                                            @else
-                                                Trabajo #{{ $trabajo?->id }}
                                             @endif
                                         </div>
                                         <div class="small text-muted">
-                                            Comentario #{{ $comentario->id }}
+                                            Ref. comentario: #{{ $comentario->ref_cliente }}
                                         </div>
                                     </td>
 
@@ -213,12 +211,15 @@
 
                                     {{-- Acciones --}}
                                     <td class="text-end">
-                                        @if ($comentario->opinion)
-                                            <button type="button" class="btn btn-sm btn-info mb-1" data-bs-toggle="modal"
-                                                data-bs-target="#comentarioUserModal{{ $comentario->id }}">
-                                                Ver
-                                            </button>
+                                        @if ($comentario->estado !== 'rechazado')
+                                            @if ($comentario->estado !== 'rechazado')
+                                                <button type="button" class="btn btn-sm btn-info mb-1 mx-1"
+                                                    @click="openComentarioUserModal({{ $comentario->id }}, {{ $comentario->ref_cliente }})">
+                                                    Ver
+                                                </button>
+                                            @endif
                                         @endif
+
 
                                         @if (in_array($comentario->estado, ['pendiente', 'rechazado']))
                                             <a href="{{ route('usuario.comentarios.editar', $comentario) }}"
@@ -260,12 +261,10 @@
                                     <div class="fw-semibold">
                                         @if ($solicitud?->titulo)
                                             {{ $solicitud->titulo }}
-                                        @else
-                                            Trabajo #{{ $trabajo?->id }}
                                         @endif
                                     </div>
                                     <div class="small text-muted">
-                                        Comentario #{{ $comentario->id }}
+                                        Ref. comentario: #{{ $comentario->ref_cliente }}
                                     </div>
                                 </div>
 
@@ -322,16 +321,23 @@
 
                                 {{-- Acciones --}}
                                 <div class="d-grid gap-2">
-                                    @if ($comentario->opinion)
-                                        <button type="button" class="btn btn-sm btn-info" data-bs-toggle="modal"
-                                            data-bs-target="#comentarioUserModal{{ $comentario->id }}">
-                                            Ver
-                                        </button>
+                                    @if ($comentario->estado !== 'rechazado')
+                                        <div class="d-flex flex-row flex-wrap justify-content-center gap-2">
+                                            @if ($comentario->estado !== 'rechazado')
+                                                <button type="button"
+                                                    class="btn btn-sm btn-info w-100 d-inline-flex align-items-center justify-content-center gap-1"
+                                                    @click="openComentarioUserModal({{ $comentario->id }}, {{ $comentario->ref_cliente }})">
+                                                    Ver detalle
+                                                </button>
+                                            @endif
+
+
+                                        </div>
                                     @endif
 
                                     @if ($comentario->estado === 'pendiente')
-                                        <a href="{{ route('usuario.comentarios.editar', $comentario) }}"
-                                            class="btn btn-sm btn-warning">
+                                        <a href="{{ route('usuario.comentarios.editar', $comentario) }}?ref={{ $comentario->ref_cliente }}"
+                                            class="btn btn-sm btn-warning mb-1">
                                             Editar
                                         </a>
                                     @endif
@@ -343,33 +349,7 @@
                 </div>
 
                 {{-- Modales para ver opinión --}}
-                @foreach ($comentarios as $comentario)
-                    @if ($comentario->opinion)
-                        <div class="modal fade" id="comentarioUserModal{{ $comentario->id }}" tabindex="-1"
-                            aria-hidden="true">
-                            <div class="modal-dialog modal-dialog-scrollable">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h5 class="modal-title">
-                                            Comentario #{{ $comentario->id }}
-                                        </h5>
-                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                    </div>
-                                    <div class="modal-body">
-                                        <p><strong>Puntuación:</strong> {{ $comentario->puntuacion }} / 5</p>
-                                        <p><strong>Estado:</strong> {{ ucfirst($comentario->estado) }}</p>
-                                        <p><strong>Opinión:</strong><br>{!! $comentario->opinion !!}</p>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
-                                            Cerrar
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    @endif
-                @endforeach
+                <comentario-user-modal ref="comentarioUserModal"></comentario-user-modal>
 
                 {{-- Paginación --}}
                 <div class="mt-3">

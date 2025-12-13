@@ -167,10 +167,10 @@
                                     {{-- Título / Ref --}}
                                     <td class="bg-pro-primary">
                                         <strong>
-                                            {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
+                                            {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->ref_pro }}
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref: #{{ $solicitud->id }}
+                                            Ref: #{{ $solicitud->ref_pro }}
                                         </div>
                                     </td>
 
@@ -222,7 +222,7 @@
                                             {{-- Ver (modal Vue) --}}
                                             <button type="button"
                                                 class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
-                                                @click="openSolicitudModal({{ $solicitud->id }})">
+                                                @click="openSolicitudModal({{ $solicitud->id }}, {{ $solicitud->ref_pro }})">
                                                 Ver
                                             </button>
 
@@ -287,10 +287,10 @@
                                     {{-- Título / Ref --}}
                                     <td>
                                         <strong>
-                                            {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->id }}
+                                            {{ $solicitud->titulo ?? 'Solicitud #' . $solicitud->ref_pro }}
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref: <strong>#{{ $solicitud->id }}</strong>
+                                            Ref: <strong>#{{ $solicitud->ref_pro }}</strong>
                                         </div>
                                     </td>
 
@@ -346,7 +346,7 @@
                                 <div class="d-grid gap-2">
                                     {{-- Ver --}}
                                     <button type="button" class="btn btn-info btn-sm"
-                                        @click="openSolicitudModal({{ $solicitud->id }})">
+                                        @click="openSolicitudModal({{ $solicitud->id }}, {{ $solicitud->ref_pro }})">
                                         Ver
                                     </button>
 
@@ -354,7 +354,7 @@
                                     @if ($solicitud->estado === 'abierta')
                                         <a href="{{ route('profesional.presupuestos.crear_desde_solicitud', $solicitud) }}"
                                             class="btn btn-sm bg-pro-secondary text-white">
-                                            Crear presupuesto 
+                                            Crear presupuesto
                                         </a>
                                     @endif
 
@@ -371,8 +371,8 @@
 
                 {{-- Paginación --}}
                 <div class="paginacion-pro">
-    {{ $solicitudes->links('pagination::bootstrap-5') }}
-</div>
+                    {{ $solicitudes->links('pagination::bootstrap-5') }}
+                </div>
 
             @endif
 

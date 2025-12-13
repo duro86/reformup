@@ -49,107 +49,108 @@
 
     <div class="col-md-4 mb-3">
         <label class="form-label">Provincia *</label>
-        <select name="provincia_user" id="provincia_user"
-            class="form-control @error('provincia_user') is-invalid @enderror">
+        <select name="provincia" id="provincia" class="form-control @error('provincia') is-invalid @enderror">
             <option value="">Selecciona una provincia</option>
-            <option value="Huelva" {{ old('provincia_user', $usuario->provincia) == 'Huelva' ? 'selected' : '' }}>Huelva
+            <option value="Huelva" {{ old('provincia', $usuario->provincia) == 'Huelva' ? 'selected' : '' }}>Huelva
             </option>
-            <option value="Sevilla" {{ old('provincia_user', $usuario->provincia) == 'Sevilla' ? 'selected' : '' }}>
-                Sevilla</option>
+            <option value="Sevilla" {{ old('provincia', $usuario->provincia) == 'Sevilla' ? 'selected' : '' }}>Sevilla
+            </option>
         </select>
-        @error('provincia_user')
+        @error('provincia')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
 
     <div class="col-md-4 mb-3">
         <label class="form-label">Municipio</label>
-        <select name="ciudad_user" id="ciudad_user" class="form-control @error('ciudad_user') is-invalid @enderror">
+        <select name="ciudad" id="ciudad" class="form-control @error('ciudad') is-invalid @enderror">
             <option value="">Selecciona primero una provincia</option>
         </select>
-        @error('ciudad_user')
+        @error('ciudad')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
     </div>
-</div>
 
 
-{{-- Contraseña --}}
-<div class="row">
-    <div class="col-md-4 mb-3">
-        <label class="form-label">
-            Contraseña actual
-        </label>
-        <input type="password" name="current_password"
-            class="form-control @error('current_password') is-invalid @enderror">
-        @error('current_password')
+
+    {{-- Contraseña --}}
+    <div class="row">
+        <div class="col-md-4 mb-3">
+            <label class="form-label">
+                Contraseña actual
+            </label>
+            <input type="password" name="current_password"
+                class="form-control @error('current_password') is-invalid @enderror">
+            @error('current_password')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+            <small class="form-text text-muted">
+                Solo si quieres cambiar la contraseña.
+            </small>
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">
+                Nueva contraseña
+            </label>
+            <input type="password" name="password" class="form-control @error('password') is-invalid @enderror">
+            @error('password')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Repite nueva contraseña</label>
+            <input type="password" name="password_confirmation" class="form-control">
+        </div>
+    </div>
+
+
+
+    {{-- Dirección + Código Postal --}}
+    <div class="row">
+        <div class="col-md-8 mb-3">
+            <label class="form-label">Dirección</label>
+            <input type="text" name="direccion" value="{{ old('direccion', $usuario->direccion) }}"
+                class="form-control @error('direccion') is-invalid @enderror">
+            @error('direccion')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+
+        <div class="col-md-4 mb-3">
+            <label class="form-label">Código postal</label>
+            <input type="text" name="cp" value="{{ old('cp', $usuario->cp) }}"
+                class="form-control @error('cp') is-invalid @enderror">
+            @error('cp')
+                <div class="invalid-feedback">{{ $message }}</div>
+            @enderror
+        </div>
+    </div>
+
+    {{-- Avatar usuario --}}
+    <div class="mb-4">
+        <label class="form-label">Avatar (imagen)</label>
+
+        <div class="d-flex align-items-center mb-2">
+            @if ($usuario->avatar)
+                <img src="{{ Storage::url($usuario->avatar) }}" alt="avatar" class="rounded-circle me-3"
+                    style="width:40px;height:40px;object-fit:cover">
+            @else
+                <i class="bi bi-person-circle me-2" style="font-size: 2rem;"></i>
+            @endif
+            <span class="text-muted small">Avatar actual</span>
+        </div>
+
+        <input type="file" name="avatar" accept="image/*"
+            class="form-control @error('avatar') is-invalid @enderror">
+        @error('avatar')
             <div class="invalid-feedback">{{ $message }}</div>
         @enderror
         <small class="form-text text-muted">
-            Solo si quieres cambiar la contraseña.
+            Si no seleccionas nada, se mantendrá el avatar actual.
         </small>
     </div>
-
-    <div class="col-md-4 mb-3">
-        <label class="form-label">
-            Nueva contraseña
-        </label>
-        <input type="password" name="password" class="form-control @error('password') is-invalid @enderror">
-        @error('password')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <label class="form-label">Repite nueva contraseña</label>
-        <input type="password" name="password_confirmation" class="form-control">
-    </div>
-</div>
-
-
-
-{{-- Dirección + Código Postal --}}
-<div class="row">
-    <div class="col-md-8 mb-3">
-        <label class="form-label">Dirección</label>
-        <input type="text" name="direccion" value="{{ old('direccion', $usuario->direccion) }}"
-            class="form-control @error('direccion') is-invalid @enderror">
-        @error('direccion')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="col-md-4 mb-3">
-        <label class="form-label">Código postal</label>
-        <input type="text" name="cp" value="{{ old('cp', $usuario->cp) }}"
-            class="form-control @error('cp') is-invalid @enderror">
-        @error('cp')
-            <div class="invalid-feedback">{{ $message }}</div>
-        @enderror
-    </div>
-</div>
-
-{{-- Avatar usuario --}}
-<div class="mb-4">
-    <label class="form-label">Avatar (imagen)</label>
-
-    <div class="d-flex align-items-center mb-2">
-        @if ($usuario->avatar)
-            <img src="{{ Storage::url($usuario->avatar) }}" alt="avatar" class="rounded-circle me-3"
-                style="width:40px;height:40px;object-fit:cover">
-        @else
-            <i class="bi bi-person-circle me-2" style="font-size: 2rem;"></i>
-        @endif
-        <span class="text-muted small">Avatar actual</span>
-    </div>
-
-    <input type="file" name="avatar" accept="image/*" class="form-control @error('avatar') is-invalid @enderror">
-    @error('avatar')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-    <small class="form-text text-muted">
-        Si no seleccionas nada, se mantendrá el avatar actual.
-    </small>
-</div>
-{{-- Editar usuario --}}
-<x-ciudadProvincia.ciudades_provincias :oldProvincia="old('provincia', $usuario->provincia)" :oldCiudad="old('ciudad', $usuario->ciudad)" />
+    {{-- Editar usuario --}}
+    <x-ciudadProvincia.ciudades_provincias provinciaId="provincia" ciudadId="ciudad" :oldProvincia="old('provincia', $usuario->provincia)"
+        :oldCiudad="old('ciudad', $usuario->ciudad)" />

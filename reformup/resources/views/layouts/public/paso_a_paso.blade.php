@@ -9,7 +9,9 @@
 
         {{-- TÍTULO PRINCIPAL --}}
         <div class="text-center mb-5">
-            <h1 class="fw-bold mb-3">Cómo funciona ReformUp</h1>
+           
+            <h1 class="fw-bold mb-3">Cómo funciona  <img src="{{ asset('img/footer/reformupFooter.svg') }}" alt="ReformUp" class="img-fluid mb-3" style="max-height: 70px;"></h1>
+
             <p class="text-muted">
                 Sigue estos pasos y deja que la plataforma haga el trabajo duro.
                 Tú solo te preocupas de tu reforma.
@@ -549,3 +551,5 @@
         cards.forEach(card => observer.observe(card));
     });
 </script>
+
+

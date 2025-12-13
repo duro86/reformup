@@ -387,6 +387,23 @@ $sidebar-width: 210px;
     }
 }
 
+.btn-danger,
+.btn-warning,
+.btn-info {
+    border: none;
+    font-weight: 500;
+}
+
+.btn-danger:hover,
+.btn-danger:focus,
+.btn-warning:hover,
+.btn-warning:focus,
+.btn-info:hover,
+.btn-info:focus {
+    filter: brightness(0.92); // pequeño oscurecido en hover
+}
+
+
 
 //btn hover pro
 .btn-outline-pro{

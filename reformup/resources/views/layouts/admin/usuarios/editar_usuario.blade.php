@@ -22,6 +22,37 @@
                         Modifica los datos del usuario. Recuerda guardar los cambios.
                     </p>
 
+                    {{-- Bloque perfil profesional asociado (solo en escritorio) --}}
+                    <div class="mt-3">
+                        @if ($usuario->perfil_Profesional)
+                            <div class="p-3 bg-white rounded shadow-sm small">
+                                <p class="mb-1"><strong>Perfil profesional asociado:</strong></p>
+
+                                <p class="mb-0">
+                                    {{ $usuario->perfil_Profesional->empresa ?? 'Sin nombre de empresa' }}<br>
+                                    <span class="text-muted">
+                                        {{ $usuario->perfil_Profesional->ciudad }}
+                                        @if ($usuario->perfil_Profesional->provincia)
+                                            ({{ $usuario->perfil_Profesional->provincia }})
+                                        @endif
+                                    </span>
+                                </p>
+
+                                <p class="mb-0 mt-2">
+                                    <a href="{{ route('admin.profesionales.editar', $usuario->perfil_Profesional->id) }}"
+                                        class="btn btn-outline-primary btn-sm">
+                                        Editar perfil profesional
+                                    </a>
+                                </p>
+                            </div>
+                        @else
+                            <div class="p-3 bg-white rounded shadow-sm small text-muted">
+                                Este usuario no tiene un perfil profesional asociado.
+                            </div>
+                        @endif
+
+                    </div>
+
                     <div class="text-center mt-3">
                         <img src="{{ asset('img/User/panel_registro/panel_registro_user.png') }}" alt="Reformas"
                             class="img-fluid rounded mx-auto d-block" style="max-width:85%; height:auto;">
@@ -32,11 +63,40 @@
             {{-- CONTENEDOR PRINCIPAL --}}
             <div class="col-lg-7 bg-white">
                 <div class="p-4 p-lg-5">
+                    {{-- Bloque perfil profesional asociado (solo en móvil / tablets pequeñas) --}}
+                    <div class="mb-3 d-block d-lg-none">
+                        @if ($usuario->perfil_Profesional)
+                            <div class="p-3 bg-white rounded shadow-sm small">
+                                <p class="mb-1"><strong>Perfil profesional asociado:</strong></p>
 
+                                <p class="mb-0">
+                                    {{ $usuario->perfil_Profesional->empresa ?? 'Sin nombre de empresa' }}<br>
+                                    <span class="text-muted">
+                                        {{ $usuario->perfil_Profesional->ciudad }}
+                                        @if ($usuario->perfil_Profesional->provincia)
+                                            ({{ $usuario->perfil_Profesional->provincia }})
+                                        @endif
+                                    </span>
+                                </p>
+
+                                <p class="mb-0 mt-2">
+                                    <a href="{{ route('admin.profesionales.editar', $usuario->perfil_Profesional->id) }}"
+                                        class="btn btn-outline-primary btn-sm">
+                                        Editar perfil profesional
+                                    </a>
+                                </p>
+                            </div>
+                        @else
+                            <div class="p-3 bg-white rounded shadow-sm small text-muted">
+                                Este usuario no tiene un perfil profesional asociado.
+                            </div>
+                        @endif
+                    </div>
                     <h1 class="h4 mb-4">
                         <i class="bi-person-bounding-box me-2"></i>
                         Editar cuenta <span class="text-primary">(Cliente)</span>
                     </h1>
+
 
                     @if ($errors->any())
                         <div class="alert alert-danger">

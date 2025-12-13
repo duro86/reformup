@@ -103,7 +103,7 @@
                                 Completa tu perfil profesional
                             </div>
                             <p class="mb-2 text-muted">
-                                Tienes el rol de profesional, pero aún no has creado tu perfil de empresa.
+                                Debes completar tu perfil de profesional para registrar la empresa.
                             </p>
                             <a href="{{ route('registro.pro.empresa') }}" class="btn btn-sm btn-warning w-100">
                                 Crear perfil profesional

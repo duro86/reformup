@@ -4,7 +4,7 @@
       <div class="modal-content">
         <div class="modal-header">
           <h5 class="modal-title">
-            Solicitud #{{ solicitud.id }}
+            Solicitud #{{ numeroSolicitud }}
             <span v-if="solicitud.titulo">
               - {{ solicitud.titulo }}
             </span>
@@ -98,9 +98,6 @@
 
               <template v-if="solicitud.presupuesto">
                 <p class="mb-1">
-                  <strong>Ref #</strong> {{ solicitud.presupuesto.id }}
-                </p>
-                <p class="mb-1">
                   <strong>Estado:</strong>
                   <span class="badge" :class="presuBadgeClass">
                     {{ presuEstadoLabel }}
@@ -125,9 +122,6 @@
               <h5 class="fw-semibold mb-2">Trabajo asociado</h5>
 
               <template v-if="solicitud.trabajo">
-                <p class="mb-1">
-                  <strong>Ref #</strong> {{ solicitud.trabajo.id }}
-                </p>
                 <p class="mb-1">
                   <strong class="me-2">Estado:</strong>
                   <span class="badge" :class="trabajoBadgeClass">
@@ -180,6 +174,7 @@ export default {
       solicitud: {},
       loaded: false,
       modalInstance: null,
+      numeroSolicitud: null, 
     };
   },
   computed: {
@@ -254,8 +249,9 @@ export default {
     this.modalInstance = new Modal(this.$refs.modal);
   },
   methods: {
-    async openModal(id) {
+    async openModal(id,numeroSolicitud = null) {
       this.loaded = false;
+      this.numeroSolicitud = numeroSolicitud; 
       this.solicitud = {};
 
       try {

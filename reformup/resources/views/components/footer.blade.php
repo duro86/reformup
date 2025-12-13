@@ -2,10 +2,11 @@
     <div class="container">
         <div class="row text-center text-md-start">
             <!-- Logo y texto -->
-            <div class="col-12 col-md-4 mb-4 mb-md-0 d-flex flex-column align-items-center align-items-md-start">
-                <img src="{{ asset('img/logo/Reformup_favicon_prueba.png') }}" alt="Logo"
-                    style="width: 36px; margin-bottom: 10px;">
-                <p class="mb-1 mt-2" style="color: #bec2cf;">
+            <div class="col-12 col-md-4 mb-4 mb-md-0 d-flex flex-column align-items-center text-center">
+                <img src="{{ asset('img/footer/reformupFooter.svg') }}" alt="Logo" class="mb-2"
+                    style="width: 120px; height:auto;">
+
+                <p class="mb-0" style="color: #bec2cf; line-height: 1.4;">
                     Conectamos a profesionales y clientes<br>
                     con tecnología, confianza y agilidad.
                 </p>

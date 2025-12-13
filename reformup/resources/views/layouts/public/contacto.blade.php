@@ -24,7 +24,7 @@
                 </div>
                 <div class="col-12 col-lg-5 about-fade" data-delay="2">
                     {{-- Imagen genérica, cámbiala por la tuya --}}
-                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_conectando.jpg') }}"
+                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_conectando.webp') }}"
                         alt="Ordenador con panel de ReformUp" class="about-image shadow-sm">
                 </div>
             </div>
@@ -57,7 +57,7 @@
                 </div>
                 <div class="col-12 col-lg-6">
                     <div class="position-relative">
-                        <img src="{{ asset('/img/sobreNosotros/sobre_nosotros_colon.jpg') }}" alt="ReformUp en Huelva"
+                        <img src="{{ asset('/img/sobreNosotros/sobre_nosotros_colon.webp') }}" alt="ReformUp en Huelva"
                             class="about-image shadow-sm w-100 rounded-4">
 
                         <a href="https://www.youtube.com/watch?v=7_Ulp2lXWiA" target="_blank" rel="noopener noreferrer"
@@ -91,7 +91,7 @@
                 </div>
                 <div class="col-12 col-lg-6 order-lg-1">
                     {{-- Imagen tipo ordenador / interfaz --}}
-                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_unir_partes.jpg') }}"
+                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_unir_partes.webp') }}"
                         alt="Interfaz de la aplicación ReformUp" class="about-image shadow-sm">
                 </div>
             </div>
@@ -120,7 +120,7 @@
                 </div>
                 <div class="col-12 col-lg-6">
                     {{-- Imagen tipo código / ordenador --}}
-                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_web.png') }}"
+                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_web.webp') }}"
                         alt="Código de la aplicación ReformUp en pantalla" class="about-image shadow-sm">
                 </div>
             </div>
@@ -147,7 +147,7 @@
                 </div>
                 <div class="col-12 col-lg-6 order-lg-1">
                     {{-- Imagen dos personas / reunión --}}
-                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_solucion.jpg') }}"
+                    <img src="{{ asset('img/sobreNosotros/sobre_nosotros_solucion.webp') }}"
                         alt="Cliente y profesional hablando sobre una reforma" class="about-image shadow-sm">
                 </div>
             </div>
@@ -168,7 +168,8 @@
         </section>
 
         {{-- BLOQUE CONTACTO DENTRO DE "SOBRE NOSOTROS" --}}
-        <section class="about-fade mb-5" data-delay="2">
+        <section id="contacto-form" class="about-fade mb-5" data-delay="2">
+
             <div class="row g-4 align-items-center">
                 {{-- Columna info + imagen autor --}}
                 <div class="col-12 col-lg-5">
@@ -354,27 +355,13 @@
 </script>
 
 <x-alertas_sweet />
-{{-- Aparición de los bloques "Sobre nosotros" al hacer scroll --}}
+
 <script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const sections = document.querySelectorAll('.about-fade');
-
-        if (!('IntersectionObserver' in window)) {
-            sections.forEach(s => s.classList.add('is-visible'));
-            return;
-        }
-
-        const observer = new IntersectionObserver((entries, obs) => {
-            entries.forEach(entry => {
-                if (entry.isIntersecting) {
-                    entry.target.classList.add('is-visible');
-                    obs.unobserve(entry.target);
-                }
-            });
-        }, {
-            threshold: 0.25
-        });
-
-        sections.forEach(section => observer.observe(section));
-    });
+document.addEventListener('DOMContentLoaded', () => {
+    const hasErrors = {{ $errors->any() ? 'true' : 'false' }};
+    if (hasErrors) {
+        const el = document.getElementById('contacto-form');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+});
 </script>

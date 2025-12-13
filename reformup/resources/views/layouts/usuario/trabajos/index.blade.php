@@ -141,14 +141,11 @@
                                             @if ($solicitud?->titulo)
                                                 {{ $solicitud->titulo }}
                                             @else
-                                                Trabajo #{{ $trabajo->id }}
+                                                Trabajo #{{ $trabajo->ref_cliente }}
                                             @endif
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref. trabajo: #{{ $trabajo->id }}
-                                            @if ($presupuesto)
-                                                · Presupuesto #{{ $presupuesto->id }}
-                                            @endif
+                                            Ref. trabajo: #{{ $trabajo->ref_cliente }}
                                         </div>
                                     </td>
 
@@ -232,7 +229,7 @@
                                             {{-- Ver detalle trabajo (modal Vue) --}}
                                             <button type="button"
                                                 class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
-                                                @click="openTrabajoModal({{ $trabajo->id }})">
+                                                @click="openTrabajoModal({{ $trabajo->id}}, {{ $trabajo->ref_cliente }} )">
                                                 Ver
                                             </button>
 
@@ -299,14 +296,11 @@
                                         @if ($solicitud?->titulo)
                                             {{ $solicitud->titulo }}
                                         @else
-                                            Trabajo #{{ $trabajo->id }}
+                                            Trabajo #{{  $trabajo->ref_cliente }}
                                         @endif
                                     </div>
                                     <div class="small text-muted">
-                                        Ref. trabajo: #{{ $trabajo->id }}
-                                        @if ($presupuesto)
-                                            · Presupuesto #{{ $presupuesto->id }}
-                                        @endif
+                                        Ref. trabajo: #{{  $trabajo->ref_cliente }}
                                     </div>
                                 </div>
 
@@ -390,7 +384,7 @@
                                 <div class="d-grid gap-2">
                                     {{-- Ver detalle trabajo --}}
                                     <button type="button" class="btn btn-info btn-sm w-100"
-                                        @click="openTrabajoModal({{ $trabajo->id }})">
+                                        @click="openTrabajoModal({{ $trabajo->id }}, {{ $trabajo->ref_cliente }})">
                                         Ver Detalle
                                     </button>
 

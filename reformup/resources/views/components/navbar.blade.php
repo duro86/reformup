@@ -1,8 +1,6 @@
 @props([
     // resalta el enlace activo => 'buscar'|'pasos'|'valoraciones'|''
     'active' => '',
-    // URL del logo (por si cambiamos desde layout)
-    'logo' => asset('img/logoPNGReformupNuevo.svg'),
 ])
 
 {{-- Roles --}}
@@ -44,7 +42,8 @@
     <div class="container">
         {{-- Marca (logo + texto accesible) --}}
         <a class="navbar-brand d-flex align-items-center gap-2" href="{{ route('home') }}" aria-label="Inicio ReformUp">
-            <img src="{{ $logo }}" alt="ReformUp" height="60" class="d-inline-block align-text-top">
+            <img src="{{ asset('img/logo/reformupNav.svg') }}" alt="ReformUp" height="55">
+
         </a>
 
         {{-- Botón hamburguesa --}}

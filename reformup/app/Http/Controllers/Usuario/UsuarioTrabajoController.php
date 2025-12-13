@@ -79,9 +79,15 @@ class UsuarioTrabajoController extends Controller
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha_ini');
 
         $trabajos = $query
-            ->orderByDesc('fecha_ini')   // o 'created_at' si has cambiado arriba
+            ->orderByDesc('created_at')   // Listado general por creacion
             ->paginate(5)
             ->withQueryString();
+
+        // Añadir "ref_cliente" a cada trabajo (número correlativo del cliente)
+        $trabajos->getCollection()->transform(function ($trabajo, $index) use ($trabajos) {
+            $trabajo->ref_cliente = $trabajos->total() - ($trabajos->firstItem() + $index) + 1;
+            return $trabajo;
+        });
 
         return view('layouts.usuario.trabajos.index', [
             'trabajos' => $trabajos,
@@ -128,7 +134,6 @@ class UsuarioTrabajoController extends Controller
                 'presupuesto' => $presupuesto ? [
                     'id'      => $presupuesto->id,
                     // AJUSTA ESTE CAMPO al que tengas de "nombre del presupuesto":
-                    'nombre'  => $presupuesto->nombre ?? $presupuesto->titulo ?? null,
                     'total'   => $presupuesto->total,
                     'notas'   => $presupuesto->notas ?? null,
                     'profesional' => $perfilPro ? [
@@ -152,6 +157,7 @@ class UsuarioTrabajoController extends Controller
                     'titulo' => $solicitud->titulo,
                     'ciudad' => $solicitud->ciudad,
                     'presupuesto_max' => $solicitud->presupuesto_max,
+                    'fecha' => $solicitud->fecha->format('d/m/Y H:i'),
                 ] : null,
             ]);
         }

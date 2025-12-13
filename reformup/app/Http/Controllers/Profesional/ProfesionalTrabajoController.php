@@ -103,6 +103,12 @@ class ProfesionalTrabajoController extends Controller
             ->paginate(6)
             ->withQueryString();
 
+        // Ref correlativa (visible solo para ESE profesional)
+        $trabajos->getCollection()->transform(function ($t, $i) use ($trabajos) {
+            $t->ref_pro = $trabajos->total() - ($trabajos->firstItem() + $i) + 1;
+            return $t;
+        });
+
         return view('layouts.profesional.trabajos.index', [
             'trabajos' => $trabajos,
             'estado'   => $estado,

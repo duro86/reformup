@@ -153,10 +153,7 @@
                                             {{ $presu->solicitud->titulo ?? '—' }}
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref. presupuesto: #{{ $presu->id }}
-                                            @if ($presu->solicitud)
-                                                · Solicitud #{{ $presu->solicitud->id }}
-                                            @endif
+                                            Ref. presupuesto: #{{ $presu->ref_pro }}
                                         </div>
                                     </td>
 
@@ -183,26 +180,21 @@
                                             </span>
 
                                             @if ($presu->estado === 'enviado')
-                                                <div class="small text-primary">
+                                                <div class="small text-black">
                                                     El cliente está valorando el presupuesto
                                                 </div>
                                             @endif
 
                                             @if ($presu->estado === 'aceptado')
-                                                <div class="small text-primary">
+                                                <div class="small text-black">
                                                     Presupuesto aceptado, revisa tus trabajos.
                                                 </div>
                                             @endif
 
                                             @if ($presu->estado === 'rechazado')
-                                                <div class="small text-primary">
-                                                    Presupuesto rechazado, puedes enviar uno nuevo.
-                                                </div>
-                                            @endif
-
-                                            @if ($presu->estado === 'caducado')
-                                                <div class="small text-primary">
-                                                    Solicitud cerrada, el trabajo ya está en marcha o finalizado.
+                                                <div class="small text-black">
+                                                    Se ha rechazado el presupuesto, si lo rechazó el cliente, puedes enviar
+                                                    uno nuevo
                                                 </div>
                                             @endif
 
@@ -296,10 +288,7 @@
                                         {{ $presu->solicitud->titulo ?? '—' }}
                                     </div>
                                     <div class="small text-muted">
-                                        Ref. presupuesto: #{{ $presu->id }}
-                                        @if ($presu->solicitud)
-                                            · Solicitud #{{ $presu->solicitud->id }}
-                                        @endif
+                                        Ref. presupuesto: #{{ $presu->ref_pro }}
                                     </div>
                                 </div>
 
@@ -327,23 +316,21 @@
                                             {{ ucfirst($presu->estado) }}
                                         </span>
                                         @if ($presu->estado === 'enviado')
-                                            <div class="small text-primary mt-1">
+                                            <div class="small text-black">
                                                 El cliente está valorando el presupuesto
                                             </div>
                                         @endif
+
                                         @if ($presu->estado === 'aceptado')
-                                            <div class="small text-primary mt-1">
-                                                El cliente ha aceptado el presupuesto, revisa tus trabajos.
+                                            <div class="small text-black">
+                                                Presupuesto aceptado, revisa tus trabajos.
                                             </div>
                                         @endif
+
                                         @if ($presu->estado === 'rechazado')
-                                            <div class="small text-primary mt-1">
-                                                Se ha rechazado el presupuesto, puedes enviar uno nuevo.
-                                            </div>
-                                        @endif
-                                        @if ($presu->estado === 'caducado')
-                                            <div class="small text-primary mt-1">
-                                                La solicitud está cerrada, el trabajo ya está en marcha o finalizado.
+                                            <div class="small text-black">
+                                                Se ha rechazado el presupuesto, si lo rechazó el cliente, puedes enviar uno
+                                                nuevo
                                             </div>
                                         @endif
                                     </div>

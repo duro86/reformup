@@ -216,7 +216,7 @@ class UsuarioPresupuestoController extends Controller
             // Cambiar la solicitud a cancelada
             $solicitud = $presupuesto->solicitud;
             if ($solicitud) {
-                $solicitud->estado = 'cancelada';
+                $solicitud->estado = 'abierta';
                 $solicitud->save();
             }
 

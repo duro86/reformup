@@ -22,11 +22,14 @@ para tu solicitud:
   @endif
 - Estado: **{{ ucfirst($presupuesto->estado) }}**
 
-@if($presupuesto->notas)
----
-### Notas del profesional
+@if(!empty($presupuesto->notas))
 
-> {{ $presupuesto->notas }}
+@component('mail::panel')
+## Notas del profesional
+
+{!! $presupuesto->notas !!}
+@endcomponent
+
 @endif
 
 ---

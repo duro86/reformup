@@ -118,6 +118,15 @@ class UsuarioComentarioController extends Controller
             ->paginate(5)
             ->withQueryString();
 
+        //  Ref correlativa por cliente 
+        $total = $comentarios->total();       // total comentarios del usuario
+        $first = $comentarios->firstItem();   // índice del primero en la página (1-based)
+
+        foreach ($comentarios as $i => $comentario) {
+            // Ejemplo: si hay 23 comentarios, el más nuevo será Ref 23, luego 22...
+            $comentario->ref_cliente = $total - ($first + $i) + 1;
+        }
+
         return view('layouts.usuario.comentarios.index', [
             'comentarios'   => $comentarios,
             'user'          => $user,
@@ -288,7 +297,7 @@ class UsuarioComentarioController extends Controller
     /**
      * Formulario para editar un comentario propio.
      */
-    public function editar(Comentario $comentario)
+    public function editar(Request $request, Comentario $comentario)
     {
         $user = Auth::user();
 
@@ -307,7 +316,9 @@ class UsuarioComentarioController extends Controller
         // Cargar relaciones necesarias (añadimos imagenes)
         $comentario->load('trabajo.presupuesto.solicitud', 'imagenes');
 
-        return view('layouts.usuario.comentarios.editar', compact('comentario'));
+        $refCliente = $request->query('ref');
+
+        return view('layouts.usuario.comentarios.editar', compact('comentario', 'refCliente'));
     }
 
 
@@ -431,5 +442,37 @@ class UsuarioComentarioController extends Controller
         return redirect()
             ->route('usuario.comentarios.index')
             ->with('success', 'Tu comentario se ha actualizado y está pendiente de revisión.');
+    }
+
+    public function showJson(Comentario $comentario)
+    {
+        $user = Auth::user();
+
+        abort_if(!$user || $comentario->cliente_id !== $user->id, 403);
+
+        $comentario->load([
+            'trabajo.presupuesto.solicitud:id,titulo,ciudad',
+            'trabajo.presupuesto.profesional:id,empresa',
+            'imagenes:id,comentario_id,ruta,orden',
+        ]);
+
+        return response()->json([
+            'id'         => $comentario->id,
+            'trabajo_id' => $comentario->trabajo_id,
+            'estado'     => $comentario->estado,
+            'estado_label' => ucfirst($comentario->estado),
+            'visible'    => (bool) $comentario->visible,
+            'puntuacion' => (int) $comentario->puntuacion,
+            'opinion'    => $comentario->opinion, // puede ser null, Vue lo maneja
+            'titulo'     => $comentario->trabajo?->presupuesto?->solicitud?->titulo,
+            'ciudad'     => $comentario->trabajo?->presupuesto?->solicitud?->ciudad,
+            'profesional' => [
+                'empresa' => $comentario->trabajo?->presupuesto?->profesional?->empresa,
+            ],
+            'imagenes' => $comentario->imagenes->map(fn($img) => [
+                'url' => Storage::url($img->ruta),
+                'orden' => $img->orden,
+            ])->values(),
+        ]);
     }
 }

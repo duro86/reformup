@@ -5,11 +5,12 @@
       <div class="modal-content bg-pro-primary">
         <div class="modal-header bg-pro-secondary text-white">
           <h5 class="modal-title">
-            Trabajo #{{ trabajo.id }}
-            <span v-if="trabajo.solicitud && trabajo.solicitud.titulo">
-              - {{ trabajo.solicitud.titulo }}
-            </span>
-          </h5>
+          Trabajo #{{ refPro || trabajo.id }}
+          <span v-if="trabajo.solicitud && trabajo.solicitud.titulo">
+            - {{ trabajo.solicitud.titulo }}
+          </span>
+        </h5>
+
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Cerrar"></button>
         </div>
 
@@ -53,7 +54,7 @@
             <p class="mb-1" v-if="trabajo.presupuesto">
               <strong>Nombre:</strong>
               <span>
-                {{ trabajo.presupuesto.nombre || ('Presupuesto #' + trabajo.presupuesto.id) }}
+                {{ trabajo.presupuesto.nombre  }}
               </span>
             </p>
 
@@ -136,15 +137,17 @@ export default {
       trabajo: {},
       loaded: false,
       modalInstance: null,
+      refPro: null,
     };
   },
   mounted() {
     this.modalInstance = new Modal(this.$refs.modal);
   },
   methods: {
-    async openModal(id) {
+    async openModal(id, refPro = null) {
       this.loaded = false;
       this.trabajo = {};
+      this.refPro = refPro;
 
       try {
         const resp = await window.axios.get(`/profesional/trabajos/${id}`, {

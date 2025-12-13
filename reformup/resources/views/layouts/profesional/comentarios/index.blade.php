@@ -191,7 +191,6 @@
                                     {{-- Acciones --}}
                                     <td class="text-center bg-pro-primary">
                                         <div class="d-flex flex-row flex-wrap justify-content-center gap-2">
-                                            {{-- OJO: este botón lo dejo tal cual me has dicho --}}
                                             <button type="button"
                                                     class="btn btn-sm btn-info d-inline-flex align-items-center gap-1"
                                                     @click="openComentarioModalPro({{ $comentario->id }})">
@@ -282,7 +281,6 @@
 
                                 {{-- Acciones en columna --}}
                                 <div class="d-grid gap-2">
-                                    {{-- También aquí lo dejo igual: btn-info --}}
                                     <button type="button"
                                             class="btn btn-sm btn-info"
                                             @click="openComentarioModalPro({{ $comentario->id }})">

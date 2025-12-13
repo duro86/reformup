@@ -30,15 +30,13 @@
     **Profesional**
 
     @if ($perfilPro)
-    {{ $perfilPro->empresa }}
+        {{ $perfilPro->empresa }}
 
-    {{ $perfilPro->email_empresa }}
+        {{ $perfilPro->email_empresa }}
 
-    @isset($perfilPro->telefono_empresa)
-    <p>
-        <strong>Teléfono:</strong> {{ $perfilPro->telefono_empresa }}
-    </p>
-    @endisset
+        @isset($perfilPro->telefono_empresa)
+            **Teléfono:** {{ $perfilPro->telefono_empresa }}
+        @endisset
     @endif
 
     Gracias por utilizar {{ config('app.name') }}.

@@ -5,13 +5,13 @@
 
     <x-navbar />
 
-    <div class="container my-5">
+    <div class="container my-2">
         <div class="row justify-content-center">
             <div class="col-lg-6 bg-white shadow rounded p-5">
 
                 <div class="text-center mb-4">
-                    <i class="bi bi-person-circle text-primary" style="font-size: 4rem;"></i>
-                    <h1 class="h4 mt-3">Crear cuenta de usuario</h1>
+                    <i class="bi bi-person-circle text-primary" style="font-size: 2rem;"></i>
+                    <h1 class="h4 mt-1">Crear cuenta de usuario</h1>
                     <p class="text-muted">Paso 1 de 2: Información personal</p>
                 </div>
 

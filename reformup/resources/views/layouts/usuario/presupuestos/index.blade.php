@@ -124,6 +124,11 @@
                                         default => 'bg-light text-dark',
                                     };
                                 @endphp
+                                @php
+                                    // Ref correlativa por cliente (1 = más antigua, N = más nueva)
+                                    $refPresuCliente =
+                                        $presupuestos->total() - ($presupuestos->firstItem() + $loop->index) + 1;
+                                @endphp
 
                                 <tr>
                                     {{-- Solicitud / título --}}
@@ -132,10 +137,7 @@
                                             {{ $presu->solicitud->titulo ?? '—' }}
                                         </strong>
                                         <div class="small text-muted">
-                                            Ref. presupuesto: #{{ $presu->id }}<br>
-                                            @if ($presu->solicitud)
-                                                Solicitud #{{ $presu->solicitud->id }}
-                                            @endif
+                                            Ref. presupuesto: #{{ $refPresuCliente }}<br>
                                         </div>
                                     </td>
 
@@ -249,9 +251,6 @@
                                     </div>
                                     <div class="small text-muted">
                                         Ref. presupuesto: #{{ $presu->id }} <br>
-                                        @if ($presu->solicitud)
-                                            Solicitud #{{ $presu->solicitud->id }}
-                                        @endif
                                     </div>
                                 </div>
 

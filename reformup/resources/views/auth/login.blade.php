@@ -10,9 +10,10 @@
         <!-- Panel Izquierdo: Formulario -->
         <div class="d-flex flex-column justify-content-center align-items-center w-100 w-md-50">
             <!-- Logo arriba -->
-            <div class="w-100 py-4 text-start ps-4 position-absolute" style="top:0; left:0;">
+            <div class="w-100 py-4 text-start ps-4" style="top:0; left:0;">
                 <a href="{{ route('home') }}">
-                    <img src="{{ asset('img/logo/Reformup_favicon_prueba.png') }}" alt="Logo ReformUp" style="height: 50px;">
+                    <img src="{{ asset('img/footer/reformupFooter.svg') }}" alt="Logo" class="mb-2"
+                    style="width: 165px; height:auto;">
                 </a>
             </div>
             <!-- Formulario centrado -->

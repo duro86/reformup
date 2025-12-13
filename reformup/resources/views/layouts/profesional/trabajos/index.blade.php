@@ -29,16 +29,13 @@
             <x-alertas.alertasFlash />
 
             {{-- Buscador combinado: campos + fechas --}}
-            <form method="GET" action="{{ route('profesional.trabajos.index') }}"
-                  class="row g-2 mb-3 align-items-end">
+            <form method="GET" action="{{ route('profesional.trabajos.index') }}" class="row g-2 mb-3 align-items-end">
 
                 {{-- Búsqueda por texto --}}
                 <div class="col-12 col-md-6 col-lg-4">
-                    <input type="text"
-                           name="q"
-                           value="{{ request('q') }}"
-                           class="form-control form-control-sm bg-pro-primary"
-                           placeholder="Buscar por título, cliente, ciudad, provincia, estado o importe...">
+                    <input type="text" name="q" value="{{ request('q') }}"
+                        class="form-control form-control-sm bg-pro-primary"
+                        placeholder="Buscar por título, cliente, ciudad, provincia, estado o importe...">
                 </div>
 
                 {{-- Rango de fechas reutilizable (creación del trabajo) --}}
@@ -79,7 +76,7 @@
                         @endphp
 
                         <a class="nav-link {{ $estado === null || $estado === '' ? 'active bg-pro-primary text-black fw-semibold' : 'text-muted' }}"
-                           href="{{ $urlTodos }}">
+                            href="{{ $urlTodos }}">
                             Todos
                         </a>
                     </li>
@@ -102,7 +99,7 @@
 
                         <li class="nav-item">
                             <a class="nav-link {{ $esActivo ? 'active bg-pro-primary text-black fw-semibold' : 'text-muted' }}"
-                               href="{{ $urlEstado }}">
+                                href="{{ $urlEstado }}">
                                 {{ $texto }}
                             </a>
                         </li>
@@ -140,11 +137,11 @@
                                     $cliente = $solicitud?->cliente;
 
                                     $badgeClass = match ($trabajo->estado) {
-                                        'previsto'   => 'bg-primary',
-                                        'en_curso'   => 'bg-warning text-dark',
+                                        'previsto' => 'bg-primary',
+                                        'en_curso' => 'bg-warning text-dark',
                                         'finalizado' => 'bg-success',
-                                        'cancelado'  => 'bg-secondary',
-                                        default      => 'bg-light text-dark',
+                                        'cancelado' => 'bg-secondary',
+                                        default => 'bg-light text-dark',
                                     };
                                 @endphp
 
@@ -155,12 +152,12 @@
                                             @if ($solicitud?->titulo)
                                                 {{ $solicitud->titulo }}
                                             @else
-                                                Trabajo #{{ $trabajo->id }}
+                                                Trabajo #{{ $trabajo->ref_pro }}
                                             @endif
                                         </strong>
                                         @if ($solicitud)
                                             <div class="small text-muted">
-                                                Ref. solicitud: #{{ $solicitud->id }}
+                                                Ref trabajo #{{ $trabajo->ref_pro }}
                                             </div>
                                         @endif
                                     </td>
@@ -184,22 +181,23 @@
                                             </span>
 
                                             @if ($trabajo->estado === 'previsto')
-                                                <div class="small text-primary">
+                                                <div class="small text-dark">
                                                     Puede usted comenzar el trabajo inicializándolo
                                                 </div>
                                             @endif
                                             @if ($trabajo->estado === 'en_curso')
-                                                <div class="small text-primary">
-                                                    El trabajo está iniciado, si ha finalizado, puede comunicarlo en finalizar
+                                                <div class="small text-dark">
+                                                    El trabajo está iniciado, si ha finalizado, puede comunicarlo en
+                                                    finalizar
                                                 </div>
                                             @endif
                                             @if ($trabajo->estado === 'finalizado')
-                                                <div class="small text-primary">
+                                                <div class="small text-dark">
                                                     El trabajo se ha finalizado, ¡compruebe sus reseñas en comentarios!
                                                 </div>
                                             @endif
                                             @if ($trabajo->estado === 'cancelado')
-                                                <div class="small text-primary">
+                                                <div class="small text-dark">
                                                     El trabajo ha sido cancelado y notificado al cliente y profesional
                                                 </div>
                                             @endif
@@ -230,35 +228,38 @@
 
                                     {{-- Acciones --}}
                                     <td class="text-center bg-pro-primary">
-                                        <div class="d-flex flex-row flex-wrap justify-content-center align-items-center gap-2">
+                                        <div
+                                            class="d-flex flex-row flex-wrap justify-content-center align-items-center gap-2">
 
                                             {{-- Ver modal --}}
                                             <button type="button"
                                                 class="btn btn-info btn-sm px-2 py-1 d-inline-flex align-items-center gap-1"
-                                                @click="openTrabajoProModal({{ $trabajo->id }})">
+                                                @click="openTrabajoProModal({{ $trabajo->id }}, {{ $trabajo->ref_pro }})">
                                                 Ver
                                             </button>
 
                                             {{-- PREVISTO: Empezar / Cancelar --}}
                                             @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
                                                 <form action="{{ route('profesional.trabajos.empezar', $trabajo) }}"
-                                                      method="POST" class="d-inline">
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button type="submit" class="btn btn-success btn-sm px-2 py-1">
+                                                    <button type="submit"
+                                                        class="btn btn-success btn-sm px-2 py-1 d-inline-flex align-items-center gap-1">
                                                         Empezar
                                                     </button>
                                                 </form>
 
                                                 <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" context="desktop" />
 
-                                            {{-- EN CURSO: Finalizar --}}
+                                                {{-- EN CURSO: Finalizar --}}
                                             @elseif ($trabajo->estado === 'en_curso')
                                                 <form action="{{ route('profesional.trabajos.finalizar', $trabajo) }}"
-                                                      method="POST" class="d-inline">
+                                                    method="POST" class="d-inline">
                                                     @csrf
                                                     @method('PATCH')
-                                                    <button type="submit" class="btn btn-danger btn-sm px-2 py-1">
+                                                    <button type="submit"
+                                                        class="btn btn-danger btn-sm px-2 py-1 d-inline-flex align-items-center gap-1">
                                                         Finalizar
                                                     </button>
                                                 </form>
@@ -267,9 +268,9 @@
                                             {{-- Ver presupuesto PDF --}}
                                             @if ($presupuesto?->docu_pdf)
                                                 <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}" target="_blank"
-                                                   class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
+                                                    class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
                                                     <i class="bi bi-file-earmark-pdf"></i>
-                                                    Ver PDF
+                                                    Ver Presupuesto
                                                 </a>
                                             @else
                                                 <span class="text-muted small">Sin PDF</span>
@@ -277,6 +278,7 @@
 
                                         </div>
                                     </td>
+
                                 </tr>
                             @endforeach
                         </tbody>
@@ -294,11 +296,11 @@
                             $cliente = $solicitud?->cliente;
 
                             $badgeClass = match ($trabajo->estado) {
-                                'previsto'   => 'bg-primary',
-                                'en_curso'   => 'bg-warning text-dark',
+                                'previsto' => 'bg-primary',
+                                'en_curso' => 'bg-warning text-dark',
                                 'finalizado' => 'bg-success',
-                                'cancelado'  => 'bg-secondary',
-                                default      => 'bg-light text-dark',
+                                'cancelado' => 'bg-secondary',
+                                default => 'bg-light text-dark',
                             };
                         @endphp
 
@@ -309,15 +311,13 @@
                                 <div class="mb-2">
                                     <div class="fw-semibold">
                                         @if ($solicitud?->titulo)
-                                            {{ $solicitud->titulo }}
+                                            {{ $solicitud->titulo }} <br>
                                         @else
-                                            Trabajo #{{ $trabajo->id }}
+                                            Trabajo #{{ $trabajo->ref_pro }}
                                         @endif
                                     </div>
                                     <div class="small text-muted">
-                                        @if ($solicitud)
-                                            Ref. solicitud: #{{ $solicitud->id }}
-                                        @endif
+                                        Trabajo #{{ $trabajo->ref_pro }}
                                     </div>
                                 </div>
 
@@ -344,22 +344,22 @@
                                             {{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}
                                         </span>
                                         @if ($trabajo->estado === 'previsto')
-                                            <div class="small text-primary mt-1">
+                                            <div class="small text-dark mt-1">
                                                 Puede usted comenzar el trabajo inicializándolo
                                             </div>
                                         @endif
                                         @if ($trabajo->estado === 'en_curso')
-                                            <div class="small text-primary mt-1">
+                                            <div class="small text-dark mt-1">
                                                 El trabajo está iniciado, si ha finalizado, puede comunicarlo en finalizar
                                             </div>
                                         @endif
                                         @if ($trabajo->estado === 'finalizado')
-                                            <div class="small text-primary mt-1">
+                                            <div class="small text-dark mt-1">
                                                 El trabajo se ha finalizado, ¡compruebe sus reseñas en comentarios!
                                             </div>
                                         @endif
                                         @if ($trabajo->estado === 'cancelado')
-                                            <div class="small text-primary mt-1">
+                                            <div class="small text-dark mt-1">
                                                 El trabajo ha sido cancelado y notificado al cliente y profesional
                                             </div>
                                         @endif
@@ -396,16 +396,15 @@
                                 <div class="d-grid gap-2">
 
                                     {{-- Ver modal --}}
-                                    <button type="button"
-                                            class="btn btn-info btn-sm"
-                                            @click="openTrabajoProModal({{ $trabajo->id }})">
+                                    <button type="button" class="btn btn-info btn-sm"
+                                        @click="openTrabajoProModal({{ $trabajo->id }}, {{ $trabajo->ref_pro }})">
                                         Ver
                                     </button>
 
                                     {{-- PREVISTO: Empezar / Cancelar --}}
                                     @if ($trabajo->estado === 'previsto' && is_null($trabajo->fecha_ini))
                                         <form action="{{ route('profesional.trabajos.empezar', $trabajo) }}"
-                                              method="POST">
+                                            method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-success btn-sm w-100">
@@ -415,10 +414,10 @@
 
                                         <x-profesional.trabajos.btn_cancelar :trabajo="$trabajo" context="mobile" />
 
-                                    {{-- EN CURSO: Finalizar --}}
+                                        {{-- EN CURSO: Finalizar --}}
                                     @elseif ($trabajo->estado === 'en_curso')
                                         <form action="{{ route('profesional.trabajos.finalizar', $trabajo) }}"
-                                              method="POST">
+                                            method="POST">
                                             @csrf
                                             @method('PATCH')
                                             <button type="submit" class="btn btn-danger btn-sm w-100">
@@ -430,9 +429,9 @@
                                     {{-- Ver presupuesto PDF --}}
                                     @if ($presupuesto?->docu_pdf)
                                         <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}" target="_blank"
-                                           class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
+                                            class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
                                             <i class="bi bi-file-earmark-pdf"></i>
-                                            Ver PDF
+                                            Ver Presupuesto
                                         </a>
                                     @else
                                         <span class="text-muted small">Sin PDF</span>

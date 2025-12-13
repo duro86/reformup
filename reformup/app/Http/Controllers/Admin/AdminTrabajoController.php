@@ -79,13 +79,13 @@ class AdminTrabajoController extends Controller
         }
 
         // Filtro por rango de fechas (reutilizable)
-        // Aquí tiene sentido usar 'fecha_ini' como referencia del trabajo
+        // Aquí 'fecha_ini' 
         $this->aplicarFiltroRangoFechas($query, $request, 'fecha_ini');
 
         $trabajos = $query
-            ->orderByDesc('fecha_ini')
+            ->orderByDesc('created_at')
             ->paginate(5)
-            ->withQueryString();         // mantiene q, estado, fecha_desde, fecha_hasta
+            ->withQueryString();       // mantiene q, estado, fecha_desde, fecha_hasta
 
         return view('layouts.admin.trabajos.index', [
             'trabajos' => $trabajos,

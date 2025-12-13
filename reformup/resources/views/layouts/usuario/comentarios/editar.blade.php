@@ -11,8 +11,14 @@
         <div class="container py-4">
 
             <h1 class="h4 mb-3">
-                Editar comentario #{{ $comentario->id }}
+                Editar comentario
+                @if (!empty($refCliente))
+                    #{{ $refCliente }}
+                @else
+                    #{{ $comentario->id }}
+                @endif
             </h1>
+
 
             @php
                 $trabajo = $comentario->trabajo;

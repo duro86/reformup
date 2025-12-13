@@ -37,7 +37,6 @@ class Presupuesto extends Model
         'enviado'   => 'Enviados',
         'aceptado'  => 'Aceptados',
         'rechazado' => 'Rechazados',
-        'caducado'  => 'Caducados',
     ];
 
     /**

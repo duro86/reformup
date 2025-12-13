@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\Mail;
 use Mews\Purifier\Facades\Purifier;
 use App\Mail\ContactoWebMailable;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Validator;
 
 //Controlador para la autenticación usando Laravel Sanctum
 class AuthController extends Controller
@@ -246,8 +247,8 @@ class AuthController extends Controller
      */
     public function contactoEnviar(Request $request)
     {
-        // 1) Validación básica del formulario
-        $validated = $request->validate(
+        $validator = Validator::make(
+            $request->all(),
             [
                 'nombre'     => 'required|string|max:255',
                 'email'      => 'required|email',
@@ -265,37 +266,34 @@ class AuthController extends Controller
             ]
         );
 
-        // 2) Sanitizar / limpiar datos sensibles
-        // Nombre y asunto: mejor sin HTML
+        if ($validator->fails()) {
+            return redirect()->to(url()->previous() . '#contacto-form')
+                ->withErrors($validator)
+                ->withInput()
+                ->with('error', 'Revisa el formulario: hay campos incorrectos o incompletos.');
+        }
+
+        $validated = $validator->validated();
+
         $nombre  = strip_tags($validated['nombre']);
         $asunto  = strip_tags($validated['asunto']);
         $email   = $validated['email'];
-
-        // Mensaje: lo limpiamos con Purifier usando el perfil "solicitud" que ya tienes
         $mensajeLimpio = Purifier::clean($validated['mensaje'], 'solicitud');
 
-        // 3) Enviar email al administrador 
         try {
-            Mail::to('admin@reformup.es')
-                ->send(new ContactoWebMailable(
-                    $nombre,
-                    $email,
-                    $asunto,
-                    $mensajeLimpio
-                ));
+            Mail::to('admin@reformup.es')->send(new ContactoWebMailable(
+                $nombre,
+                $email,
+                $asunto,
+                $mensajeLimpio
+            ));
 
-            // 4) Respuesta con flash para SweetAlert
-            return back()->with('success', 'Tu mensaje se ha enviado correctamente. El administrador revisará tu correo en breve.');
+            return redirect()->to(url()->previous() . '#contacto-form')
+                ->with('success', 'Tu mensaje se ha enviado correctamente.');
         } catch (\Throwable $e) {
-            // Si algo revienta (SMTP, etc.)
-            /* return back()
+            return redirect()->to(url()->previous() . '#contacto-form')
                 ->withInput()
-                ->with('error', 'Ha ocurrido un problema al enviar el mensaje. Inténtalo de nuevo más tarde.');*/
-            dd(
-                $e->getMessage(),
-                $e->getFile(),
-                $e->getLine()
-            );
+                ->with('error', 'Ha ocurrido un error al enviar el mensaje. Inténtalo de nuevo más tarde.');
         }
     }
 

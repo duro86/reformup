@@ -99,7 +99,8 @@ class AdminSolicitudController extends Controller
         $perfilPro = $solicitud->profesional;
 
         // Escogemos un presupuesto “asociado principal”
-        $presupuestoAsociado = $solicitud->presupuestos->first();
+        $presupuestoAsociado = $solicitud->presupuestos->sortByDesc('id')->first();
+
         $trabajoAsociado     = $presupuestoAsociado?->trabajo;
 
         if (request()->wantsJson()) {
