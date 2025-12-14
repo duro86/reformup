@@ -9,7 +9,8 @@ class UsersSeeder extends Seeder
 {
     public function run()
     {
-        User::create([
+        // ADMIN
+        $admin = User::create([
             'nombre' => 'Juan',
             'apellidos' => 'Martinez',
             'email' => 'juan@email.com',
@@ -17,8 +18,10 @@ class UsersSeeder extends Seeder
             'telefono' => '123456789',
             'ciudad' => 'Huelva',
         ]);
+        $admin->assignRole('admin');
 
-        User::create([
+        // USUARIO NORMAL (cliente)
+        $usuario = User::create([
             'nombre' => 'Ana',
             'apellidos' => 'Gomez',
             'email' => 'ana@email.com',
@@ -26,9 +29,11 @@ class UsersSeeder extends Seeder
             'telefono' => '987654321',
             'ciudad' => 'Sevilla',
         ]);
+        $usuario->assignRole('usuario');
 
-        //Usuario a borrar profesional para pruebas
-        User::create([
+
+        // PROFESIONAL
+        $profesional = User::create([
             'nombre' => 'Alvaro',
             'apellidos' => 'Gomez',
             'email' => 'alvaro@email.com',
@@ -36,6 +41,7 @@ class UsersSeeder extends Seeder
             'telefono' => '987654321',
             'ciudad' => 'Sevilla',
         ]);
+        $profesional->assignRole('profesional');
     }
 }
 

@@ -4,13 +4,18 @@ namespace Database\Seeders;
 
 use Illuminate\Database\Seeder;
 use App\Models\Perfil_Profesional;
+use App\Models\User;
 
 class PerfilesProfesionalesSeeder extends Seeder
 {
     public function run()
     {
+
+        $ana = User::where('email', 'ana@email.com')->first();
+        $alvaro = User::where('email', 'alvaro@email.com')->first();
+
         Perfil_Profesional::create([
-            'user_id' => 1,
+            'user_id' => $ana->id,
             'empresa' => 'Empresa A',
             'cif' => 'A12345678',
             'email_empresa' => 'empresaA@email.com',
@@ -25,7 +30,7 @@ class PerfilesProfesionalesSeeder extends Seeder
         ]);
 
         Perfil_Profesional::create([
-            'user_id' => 3,
+            'user_id' => $alvaro->id,
             'empresa' => 'Empresa B',
             'cif' => 'B98765432',
             'email_empresa' => 'empresaB@email.com',
