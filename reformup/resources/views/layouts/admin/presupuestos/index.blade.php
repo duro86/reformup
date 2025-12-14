@@ -119,7 +119,7 @@
                                 <th>Presupuesto / Solicitud</th>
                                 <th>Cliente</th>
                                 <th>Profesional</th>
-                                <th>Ciudad / Provincia</th>
+                                <th>Municipio / Provincia</th>
                                 <th>Total</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>

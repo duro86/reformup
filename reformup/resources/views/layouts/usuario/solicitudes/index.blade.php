@@ -106,7 +106,7 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th class="bg-secondary">Título / Ref</th>
+                                <th class="bg-secondary">Título</th>
                                 <th class="bg-secondary">Profesional</th>
                                 <th class="bg-secondary">Provincia / Municipio</th>
                                 <th class="text-center bg-secondary">Estado</th>

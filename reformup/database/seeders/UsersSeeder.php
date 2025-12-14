@@ -14,7 +14,7 @@ class UsersSeeder extends Seeder
             'nombre' => 'Juan',
             'apellidos' => 'Martinez',
             'email' => 'juan@email.com',
-            'password' => bcrypt('123'), // asegurar que las contraseñas estén encriptadas
+            'password' => bcrypt('123456'), // asegurar que las contraseñas estén encriptadas
             'telefono' => '123456789',
             'ciudad' => 'Huelva',
         ]);
@@ -25,7 +25,7 @@ class UsersSeeder extends Seeder
             'nombre' => 'Ana',
             'apellidos' => 'Gomez',
             'email' => 'ana@email.com',
-            'password' => bcrypt('123'),
+            'password' => bcrypt('123456'),
             'telefono' => '987654321',
             'ciudad' => 'Sevilla',
         ]);
@@ -37,7 +37,7 @@ class UsersSeeder extends Seeder
             'nombre' => 'Alvaro',
             'apellidos' => 'Gomez',
             'email' => 'alvaro@email.com',
-            'password' => bcrypt('123'),
+            'password' => bcrypt('123456'),
             'telefono' => '987654321',
             'ciudad' => 'Sevilla',
         ]);

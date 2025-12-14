@@ -129,7 +129,7 @@
                         <thead>
                             <tr class="fs-5">
                                 {{-- Siempre visible --}}
-                                <th class="text-center text-md-start">Trabajo / Solicitud</th>
+                                <th class="text-center text-md-start">Trabajo</th>
 
                                 {{-- En tablet (md+) y escritorio --}}
                                 <th class="d-none d-md-table-cell">Profesional</th>
@@ -160,7 +160,7 @@
                                     };
                                 @endphp
 
-                                <tr class="fs-7">
+                                <tr class="fs-6">
                                     {{-- Trabajo / Solicitud --}}
                                     <td>
                                         <strong>

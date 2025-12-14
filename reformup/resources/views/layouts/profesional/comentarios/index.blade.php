@@ -91,7 +91,7 @@
                             <tr class="small text-center align-middle bg-pro-secondary fs-5">
                                 {{-- Siempre visible --}}
                                 <th class="text-center text-md-start bg-pro-secondary text-white">
-                                    Trabajo / Solicitud
+                                    Trabajo 
                                 </th>
 
                                 {{-- En tablet (md+) --}}

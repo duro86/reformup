@@ -119,7 +119,7 @@
                                 <th>Título / Ref</th>
                                 <th>Cliente</th>
                                 <th>Profesional</th>
-                                <th>Ciudad / Provincia</th>
+                                <th>Municipio / Provincia</th>
                                 <th>Estado</th>
                                 <th>Fecha</th>
                                 <th class="text-center">Acciones</th>

@@ -103,7 +103,7 @@
                     <table class="table table-sm align-middle">
                         <thead>
                             <tr class="fs-5">
-                                <th class="bg-secondary">Trabajo / Referencia</th>
+                                <th class="bg-secondary">Trabajo</th>
                                 <th class="bg-secondary">Empresa</th>
                                 <th class="text-center bg-secondary">Estado</th>
                                 <th class="bg-secondary">Fecha inicio</th>
