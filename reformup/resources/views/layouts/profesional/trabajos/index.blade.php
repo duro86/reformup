@@ -28,6 +28,76 @@
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
+            {{-- ========================= --}}
+            {{--  TOKEN API (SIMULA APK)   --}}
+            {{-- ========================= --}}
+            <div class="card shadow-sm border-0 rounded-4 mt-2 mb-3 bg-pro-primary">
+                <div class="card-body">
+
+                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2">
+                        <div>
+                            <h6 class="mb-1 fw-semibold">
+                                <i class="bi bi-phone"></i> Acceso desde APK (token Sanctum)
+                            </h6>
+                            <p class="mb-0 text-muted small">
+                                Genera un token para consultar tus trabajos desde una app móvil o Postman.
+                                Por seguridad, el token completo solo se muestra una vez.
+                            </p>
+                        </div>
+
+                        <div class="d-flex flex-wrap gap-2">
+                            {{-- Generar / Regenerar --}}
+                            <form method="POST" action="{{ route('profesional.api_token.generar') }}" class="d-inline">
+                                @csrf
+                                <button class="btn btn-sm btn-dark">
+                                    <i class="bi bi-key"></i> Generar token APK
+                                </button>
+                            </form>
+
+                            {{-- Revocar --}}
+                            <form method="POST" action="{{ route('profesional.api_token.revocar') }}" class="d-inline">
+                                @csrf
+                                @method('DELETE')
+                                <button class="btn btn-sm btn-outline-danger">
+                                    <i class="bi bi-trash"></i> Revocar token
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    {{-- Token recién generado --}}
+                    @if (session('api_token'))
+                        <div class="alert alert-warning mt-3 mb-0">
+                            <div class="d-flex flex-column flex-md-row justify-content-between gap-2">
+                                <div class="me-2">
+                                    <div class="fw-semibold mb-1">
+                                        Token generado (cópialo ahora)
+                                    </div>
+                                    <div class="text-muted small">
+                                        No lo compartas. Si crees que alguien lo ha visto, revócalo y genera otro.
+                                    </div>
+                                </div>
+                            </div>
+
+                            <hr class="my-2">
+
+                            <code id="apkToken" style="word-break: break-all; display:block;">
+                                {{ session('api_token') }}
+                            </code>
+
+                            <div class="mt-2 small">
+                                <strong>Postman:</strong> Header
+                                <code>Authorization: Bearer TU_TOKEN</code>
+                                y llama a
+                                <code>/api/profesional/trabajos</code>
+                            </div>
+                        </div>
+                    @endif
+
+                </div>
+            </div>
+
+
             {{-- Buscador combinado: campos + fechas --}}
             <form method="GET" action="{{ route('profesional.trabajos.index') }}" class="row g-2 mb-3 align-items-end">
 
@@ -106,6 +176,7 @@
                     @endforeach
                 </ul>
             @endif
+
 
             @if ($trabajos->isEmpty())
                 <div class="alert alert-info">
@@ -267,7 +338,8 @@
 
                                             {{-- Ver presupuesto PDF --}}
                                             @if ($presupuesto?->docu_pdf)
-                                                <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}" target="_blank"
+                                                <a href="{{ route('presupuestos.ver_pdf', $presupuesto) }}"
+                                                    target="_blank"
                                                     class="btn btn-sm btn-outline-pro d-inline-flex align-items-center justify-content-center gap-1 fw-semibold text-dark px-2 py-1 rounded">
                                                     <i class="bi bi-file-earmark-pdf"></i>
                                                     Ver Presupuesto

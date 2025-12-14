@@ -30,6 +30,7 @@
             {{-- Mensajes flash --}}
             <x-alertas.alertasFlash />
 
+
             {{-- Buscador combinado: texto + fechas --}}
             <form method="GET" action="{{ route('usuario.trabajos.index') }}" class="row g-2 mb-2">
                 {{-- Búsqueda por texto --}}

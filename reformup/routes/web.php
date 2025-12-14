@@ -6,6 +6,7 @@ use App\Http\Controllers\Auth\AuthController;
 use App\Http\Controllers\Auth\AuthProController;
 use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\Api\TokenController;
 
 //Rutas externas
 require __DIR__ . '/admin.php';
@@ -77,6 +78,14 @@ Route::get('/panel/modo/usuario', [AuthController::class, 'modoUsuario'])
 
 Route::get('/panel/modo/profesional', [AuthController::class, 'modoProfesional'])
     ->name('panel.modo.profesional');
+
+Route::middleware(['auth', 'rol.redirigir:profesional'])->group(function () {
+    Route::post('/profesional/api-token', [TokenController::class, 'generar'])
+        ->name('profesional.api_token.generar');
+
+    Route::delete('/profesional/api-token', [TokenController::class, 'revocar'])
+        ->name('profesional.api_token.revocar');
+});
 
 /*Route::middleware(['auth', 'rol.redirigir:admin'])->get('/admin/prueba', [AdminDashboardController::class, 'prueba'])
     ->name('admin.prueba');*/
