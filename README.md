@@ -14,7 +14,7 @@ La aplicación permite publicar solicitudes de reforma, recibir y comparar presu
 - Gestión de roles y permisos mediante Spatie Laravel Permission (admin, cliente y profesional).
 - Flujo completo de trabajo:
   
-  **Solicitud → Presupuestos → Trabajo → Reseña**
+  **Solicitud → Presupuestos → Trabajo → Comentario**
 - Gestión de contenidos multimedia (imágenes y vídeos de obras).
 - Exportación de datos a PDF y Excel.
 - Buscador avanzado y paginación.
@@ -65,8 +65,15 @@ La aplicación permite publicar solicitudes de reforma, recibir y comparar presu
 
 ---
 
-##  Datos de prueba
+## Puesta en marcha
+Nota: Docker se utiliza únicamente para servicios auxiliares (base de datos y correo).
+La aplicación Laravel se ejecuta en local mediante `php artisan serve`.
 
+El proyecto incluye migraciones y seeders que permiten reproducir el entorno completo en cualquier equipo.
+
+---
+
+##  Datos de prueba
 El proyecto incluye migraciones y seeders para generar datos de ejemplo:
 - Usuarios (cliente, profesional y administrador)
 - Profesionales y oficios
@@ -77,10 +84,21 @@ Esto permite reproducir el entorno completo sin depender de una base de datos pr
 ---
 
 ##  API para profesionales (Sanctum)
-
 La aplicación incluye una API privada para profesionales, pensada para futuras aplicaciones móviles.
 
 El acceso se realiza mediante tokens personales generados desde el panel del profesional, permitiendo consultar los trabajos asociados a su perfil sin necesidad de iniciar sesión mediante formulario.
+
+El sistema garantiza que cada profesional solo puede acceder a sus propios trabajos, ya que el token está asociado al usuario autenticado y su perfil profesional.
+
+---
+
+## Notas académicas
+
+Este proyecto ha sido desarrollado como Proyecto Final del ciclo DAW, priorizando:
+- Separación de responsabilidades
+- Seguridad y control de acceso
+- Reproducibilidad del entorno mediante migraciones y seeders
+- Escalabilidad futura (API y arquitectura modular)
 
 ---
 
