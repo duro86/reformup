@@ -1,44 +1,94 @@
-# reformup
-Proyecto final daw ReformUp
-Plataforma web que conecta clientes que quieren realizar reformas del hogar con profesionales (albañiles, fontaneros, electricistas…). Permite publicar solicitudes, recibir y comparar presupuestos, contratar trabajos y valorar resultados, con flujo transparente y trazable.
+# ReformUp
+**Proyecto Final – Desarrollo de Aplicaciones Web (DAW)**
 
-# Funcionalidades
+ReformUp es una plataforma web desarrollada como proyecto final del ciclo DAW. Su objetivo es conectar a clientes que desean realizar reformas en su vivienda o negocio con profesionales del sector (albañiles, fontaneros, electricistas, etc.), facilitando todo el proceso de forma clara, trazable y segura.
 
-Exploración pública de profesionales con búsqueda y filtros (oficio, ciudad).
+La aplicación permite publicar solicitudes de reforma, recibir y comparar presupuestos, contratar trabajos y valorar los resultados finales, centralizando todo el flujo en una única plataforma.
 
-Autenticación con Laravel Sanctum (SPA/cookies).
+---
 
-Roles y permisos con Spatie (admin, cliente, profesional).
+##  Funcionalidades
 
-Ciclo Solicitud → Presupuestos → Trabajo → Reseña.
+- Exploración pública de profesionales con búsqueda y filtros por oficio y ciudad.
+- Sistema de autenticación basado en Laravel Sanctum (SPA / cookies).
+- Gestión de roles y permisos mediante Spatie Laravel Permission (admin, cliente y profesional).
+- Flujo completo de trabajo:
+  
+  **Solicitud → Presupuestos → Trabajo → Reseña**
+- Gestión de contenidos multimedia (imágenes y vídeos de obras).
+- Exportación de datos a PDF y Excel.
+- Buscador avanzado y paginación.
+- Envío de correos electrónicos transaccionales (entorno de desarrollo con Mailpit).
+- API REST pública y privada (protegida con tokens Sanctum para uso externo o apps móviles).
 
-Gestión de medios (fotos/vídeos) de obras.
+---
 
-Exportación PDF/Excel, paginación, buscador.
+##  Stack técnico
 
-Emails transaccionales (desarrollo con Mailpit).
+### Backend
+- Laravel (PHP 8+)
+- Arquitectura MVC
+- Eloquent ORM
+- Policies y Middlewares personalizados
 
-# Stack técnico
+### Frontend
+- Vue 3
+- Vite
+- Bootstrap 5
 
-Backend: Laravel (PHP 8+), MVC, Policies/Middlewares, Eloquent.
+### Base de datos
+- MySQL
 
-Frontend: Vue 3 + Vite + Bootstrap 5.
+### Infraestructura (entorno de desarrollo)
+- Docker Compose
+  - MySQL
+  - Mailpit
+  - phpMyAdmin
 
-BD: MySQL.
+### Autenticación y seguridad
+- Laravel Sanctum
+- Spatie Laravel Permission
 
-Infra (dev): Docker Compose (Nginx, PHP-FPM, MySQL, Mailpit, phpMyAdmin).
+---
 
-Auth: Laravel Sanctum + Spatie Laravel-Permission.
+##  Requisitos
 
-# Requisitos
+### Opción recomendada
+- Docker Desktop  
+  - En Windows: WSL2 habilitado
 
-Docker Desktop (WSL2 en Windows).
+### Opción alternativa (sin Docker)
+- PHP 8.x
+- Composer
+- MySQL
+- Node.js + npm
 
-(Opcional) PHP 8.x y Composer si quieres ejecutar Laravel fuera de Docker.
+---
 
-# Proyecto Github
-git@github.com:duro86/reformup.git
+##  Datos de prueba
 
-# DockerHub
-https://hub.docker.com/repository/docker/adurama436/reformup-app/general
+El proyecto incluye migraciones y seeders para generar datos de ejemplo:
+- Usuarios (cliente, profesional y administrador)
+- Profesionales y oficios
+- Solicitudes, presupuestos, trabajos y comentarios
+
+Esto permite reproducir el entorno completo sin depender de una base de datos previa.
+
+---
+
+##  API para profesionales (Sanctum)
+
+La aplicación incluye una API privada para profesionales, pensada para futuras aplicaciones móviles.
+
+El acceso se realiza mediante tokens personales generados desde el panel del profesional, permitiendo consultar los trabajos asociados a su perfil sin necesidad de iniciar sesión mediante formulario.
+
+---
+
+##  Repositorio del proyecto
+https://github.com/duro86/reformup
+
+---
+
+##  Docker Hub
+https://hub.docker.com/repository/docker/adurama436/reformup-app
 
