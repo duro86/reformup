@@ -69,7 +69,7 @@ Route::middleware(['rol.redirigir:admin'])->prefix('admin')
         Route::put('/profesionales/{id}', [ProfesionalPerfilController::class, 'actualizarProfesional'])
             ->name('profesionales.actualizar');
 
-        Route::delete('/profesionales/{id}', [ProfesionalPerfilController::class, 'eliminarProfesional'])
+        Route::delete('/profesionales/{perfil}', [ProfesionalPerfilController::class, 'eliminarProfesional'])
             ->name('profesionales.eliminar');
 
 

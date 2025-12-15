@@ -18,6 +18,8 @@ use Illuminate\Database\QueryException;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Exception;
 use App\Http\Controllers\Traits\FiltroRangoFechas;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 
 
 class ProfesionalPerfilController extends Controller
@@ -377,30 +379,52 @@ class ProfesionalPerfilController extends Controller
     /**
      * Elimina solo el perfil profesional (no el usuario)
      */
-    public function eliminar(Perfil_Profesional $perfil)
+    public function eliminarProfesional(Perfil_Profesional $perfil)
     {
-        $user = $perfil->user; // relación belongsTo en Perfil_Profesional
+        try {
+            DB::beginTransaction();
 
-        // 1) Borrar avatar del perfil profesional si no es el genérico
-        if ($perfil->avatar && $perfil->avatar !== 'img/avatarPro/avatarHombrePro.png') {
-            Storage::disk('public')->delete($perfil->avatar);
-        }
+            $user = $perfil->user; // puede ser null si algo raro
 
-        // 2) Borrar el perfil profesional
-        $perfil->delete();
-
-        // 3) Quitar rol profesional al usuario (si existe)
-        if ($user) {
-            if ($user->hasRole('profesional')) {
-                $user->removeRole('profesional');
+            // 1) Borrar avatar del perfil profesional si no es el genérico
+            if ($perfil->avatar && $perfil->avatar !== 'img/avatarPro/avatarHombrePro.png') {
+                // Si tu avatar es ruta de storage (ej: "avatars/xx.png")
+                if (Storage::disk('public')->exists($perfil->avatar)) {
+                    Storage::disk('public')->delete($perfil->avatar);
+                }
             }
 
-            // Opcional: limpiar la relación en memoria
-            $user->unsetRelation('perfil_Profesional');
-        }
+            // 2) Borrar el perfil profesional
+            $perfil->delete(); 
 
-        return redirect()
-            ->route('admin.profesionales')
-            ->with('success', 'Perfil profesional eliminado correctamente. El usuario sigue existiendo pero sin perfil profesional.');
+
+            // 3) Quitar rol profesional al usuario (si existe)
+            if ($user) {
+                if ($user->hasRole('profesional')) {
+                    $user->removeRole('profesional');
+                }
+
+                $user->unsetRelation('perfil_Profesional');
+            }
+
+            DB::commit();
+
+            return redirect()
+                ->route('admin.profesionales')
+                ->with('success', 'Perfil profesional eliminado correctamente. El usuario sigue existiendo pero sin perfil profesional.');
+        } catch (\Throwable $e) {
+            DB::rollBack();
+
+            Log::error('Error eliminando perfil profesional', [
+                'perfil_id' => $perfil->id,
+                'user_id'   => $perfil->user_id ?? null,
+                'avatar'    => $perfil->avatar ?? null,
+                'error'     => $e->getMessage(),
+            ]);
+
+            return redirect()
+                ->route('admin.profesionales')
+                ->with('error', 'No se ha podido eliminar el perfil profesional. Revisa dependencias (trabajos/presupuestos/solicitudes) o mira el log.');
+        }
     }
 }

@@ -106,8 +106,16 @@ class ProfesionalSolicitudController extends Controller
 
         // Escoger el presupuesto principal: el último por id
         $presupuestoPrincipal = $solicitud->presupuestos
+            ->whereIn('estado', ['aceptado', 'enviado'])
             ->sortByDesc('id')
             ->first();
+
+        if (! $presupuestoPrincipal) {
+            $presupuestoPrincipal = null;
+        }
+
+        $trabajoPrincipal = $presupuestoPrincipal?->trabajo;
+
 
         // $presupuestoPrincipal = $solicitud->presupuestos
         //     ->whereIn('estado', ['enviado', 'aceptado'])
@@ -153,8 +161,9 @@ class ProfesionalSolicitudController extends Controller
                 'trabajo' => $trabajoPrincipal ? [
                     'id'        => $trabajoPrincipal->id,
                     'estado'    => $trabajoPrincipal->estado,
-                    'fecha_ini' => $trabajoPrincipal->fecha_ini->format('d/m/Y H:i'),
-                    'fecha_fin' => $trabajoPrincipal->fecha_fin->format('d/m/Y H:i'),
+                    'fecha_ini' => optional($trabajoPrincipal->fecha_ini)->format('d/m/Y H:i'),
+                    'fecha_fin' => optional($trabajoPrincipal->fecha_fin)->format('d/m/Y H:i'),
+
                     'dir_obra'  => $trabajoPrincipal->dir_obra,
                 ] : null,
             ]);
@@ -192,7 +201,7 @@ class ProfesionalSolicitudController extends Controller
 
         $cliente     = $solicitud->cliente;          // User
         $perfilPro   = $solicitud->profesional;      // Perfil_Profesional
-        $presupuesto = $solicitud->presupuestos->first(); 
+        $presupuesto = $solicitud->presupuestos->first();
         $trabajo     = $presupuesto?->trabajo;
 
         // 5) Enviar correo al cliente (si tiene email)
