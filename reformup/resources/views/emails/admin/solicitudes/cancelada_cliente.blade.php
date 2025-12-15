@@ -6,7 +6,6 @@ Hola {{ $cliente->nombre ?? $cliente->name }},
 Tu solicitud de presupuesto:
 
 **“{{ $solicitud->titulo }}”**  
-(ID #{{ $solicitud->id }})
 
 ha sido **cancelada** 
 @isset($perfilPro)
@@ -30,7 +29,7 @@ por el equipo de **ReformUp**.
 ## Presupuesto asociado
 
 @isset($presupuesto)
-- Referencia presupuesto: **#{{ $presupuesto->id }}**
+- Referencia presupuesto: **#{{ $presupuesto->solicitud->titulo }}**
 - Estado del presupuesto: **{{ ucfirst(str_replace('_', ' ', $presupuesto->estado)) }}**
 - Importe estimado:
     @if(!is_null($presupuesto->total))
@@ -47,7 +46,6 @@ _No había ningún presupuesto asociado a esta solicitud._
 ## Trabajo asociado
 
 @isset($trabajo)
-- Referencia trabajo: **#{{ $trabajo->id }}**
 - Estado del trabajo: **{{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}**
 - Dirección de la obra:
     @if($trabajo->dir_obra)

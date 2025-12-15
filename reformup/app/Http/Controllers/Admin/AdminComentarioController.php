@@ -340,6 +340,9 @@ class AdminComentarioController extends Controller
         $cliente   = $solicitud?->cliente;
         $perfilPro = $presu?->profesional;
 
+        //  Recalcular media tras PUBLICAR
+        $this->recalcularPuntuacionPerfil($perfilPro);
+
         // Enviar mail al usuario avisando de la modificación
         if ($cliente && $cliente->email) {
             try {
@@ -350,7 +353,8 @@ class AdminComentarioController extends Controller
                         $trabajo,
                         $perfilPro,
                         $oldOpinion,
-                        $oldPuntuacion
+                        $oldPuntuacion,
+                        $solicitud
                     )
                 );
             } catch (\Throwable $e) {

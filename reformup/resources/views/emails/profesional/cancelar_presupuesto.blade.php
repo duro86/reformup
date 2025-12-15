@@ -7,7 +7,6 @@ El profesional **{{ $perfilPro->empresa ?? 'el profesional' }}** ha cancelado el
 asociado a tu solicitud:
 
 > **“{{ $solicitud->titulo }}”**  
-> (ID solicitud: #{{ $solicitud->id }})
 
 ---
 
@@ -19,7 +18,6 @@ En este momento, tu solicitud vuelve a estar **abierta**, a la espera de nuevos 
 El estado actual de tu solicitud es: **{{ ucfirst($solicitud->estado) }}**.
 @endif
 
-- Referencia del presupuesto cancelado: **#{{ $presupuesto->id }}**
 - Estado del presupuesto: **{{ ucfirst($presupuesto->estado) }}**
 
 ---

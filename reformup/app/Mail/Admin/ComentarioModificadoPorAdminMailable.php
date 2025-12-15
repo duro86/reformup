@@ -3,6 +3,7 @@
 namespace App\Mail\Admin;
 
 use App\Models\Comentario;
+use App\Models\Solicitud;
 use App\Models\User;
 use App\Models\Trabajo;
 use Illuminate\Bus\Queueable;
@@ -19,6 +20,7 @@ class ComentarioModificadoPorAdminMailable extends Mailable
     public $perfilPro;
     public $oldOpinion;
     public $oldPuntuacion;
+    public $solicitud;
 
     public function __construct(
         Comentario $comentario,
@@ -26,7 +28,8 @@ class ComentarioModificadoPorAdminMailable extends Mailable
         ?Trabajo $trabajo = null,
         $perfilPro = null,
         ?string $oldOpinion = null,
-        ?int $oldPuntuacion = null
+        ?int $oldPuntuacion = null,
+        Solicitud $solicitud
     ) {
         $this->comentario    = $comentario;
         $this->cliente       = $cliente;
@@ -34,6 +37,7 @@ class ComentarioModificadoPorAdminMailable extends Mailable
         $this->perfilPro     = $perfilPro;
         $this->oldOpinion    = $oldOpinion;
         $this->oldPuntuacion = $oldPuntuacion;
+        $this->$solicitud = $solicitud;
     }
 
     public function build()

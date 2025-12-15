@@ -7,13 +7,11 @@ El profesional **{{ $perfilPro->empresa ?? 'un profesional de ReformUp' }}** ha 
 para tu solicitud:
 
 > **“{{ $solicitud->titulo }}”**  
-> (ID solicitud: #{{ $solicitud->id }})
 
 ---
 
 ### Detalles del presupuesto
 
-- Referencia del presupuesto: **#{{ $presupuesto->id }}**
 - Importe total:
   @if(!is_null($presupuesto->total))
   **{{ number_format($presupuesto->total, 2, ',', '.') }} €**

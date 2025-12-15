@@ -217,7 +217,8 @@ class UsuarioTrabajoController extends Controller
                         $presupuesto,
                         $perfil,
                         $user,
-                        $motivo
+                        $motivo,
+                        $solicitud
                     )
                 );
 

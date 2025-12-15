@@ -25,10 +25,10 @@ Te informamos de que tu trabajo en **ReformUp** ha sido **cancelado** por el equ
 @component('mail::panel')
 @isset($solicitud)
 **Solicitud:**  
-“{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}”
+“{{ $solicitud->titulo }}”
 @endisset
 
-**Trabajo:** #{{ $trabajo->id }}
+**Trabajo:** #{{ $trabajo->presupuesto->solicitud->titulo }}
 
 @php
     $estadoAnterior = $oldEstado ? ucfirst(str_replace('_', ' ', $oldEstado)) : null;
@@ -81,7 +81,7 @@ Te informamos de que tu trabajo en **ReformUp** ha sido **cancelado** por el equ
 @endcomponent
 
 @isset($presupuesto)
-**Presupuesto asociado:** #{{ $presupuesto->id }}
+**Presupuesto asociado:** 
     @if(!is_null($presupuesto->total))
  — Importe: {{ number_format($presupuesto->total, 2, ',', '.') }} €
     @endif  

@@ -5,6 +5,7 @@ namespace App\Mail;
 use App\Models\Trabajo;
 use App\Models\Presupuesto;
 use App\Models\User;
+use App\Models\Solicitud;
 use App\Models\Perfil_Profesional;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -19,18 +20,21 @@ class TrabajoCanceladoPorProfesionalMailable extends Mailable
     public $cliente;
     public $perfilPro;
     public $motivo;
+    public $solicitud;
 
     public function __construct(
         Trabajo $trabajo,
         ?Presupuesto $presupuesto,
         User $cliente,
         Perfil_Profesional $perfilPro,
-        ?string $motivo = null
+        ?string $motivo = null,
+        Solicitud $solicitud
     ) {
         $this->trabajo     = $trabajo;
         $this->presupuesto = $presupuesto;
         $this->cliente     = $cliente;
         $this->motivo      = $motivo;
+        $this->solicitud      = $solicitud;
     }
 
     public function build()

@@ -8,9 +8,11 @@ Se ha recibido un nuevo comentario de un cliente y está pendiente de revisión.
 
 **Email:** {{ $cliente->email }}
 
-**Trabajo:** #{{ $trabajo->id }}
+**Trabajo:** #{{ $trabajo?->presupuesto?->solicitud?->titulo ?? 'Sin título' }}
+
 @if ($trabajo->presupuesto?->solicitud?->titulo)
-**Título solicitud:** {{ $trabajo->presupuesto->solicitud->titulo }}
+**Título solicitud:**  {{ $trabajo?->presupuesto?->solicitud?->titulo ?? 'Sin título' }}
+
 @endif
 
 **Puntuación:** {{ $comentario->puntuacion }} / 5

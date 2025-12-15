@@ -347,3 +347,4 @@
     </div>
 
 @endsection
+<x-alertas_sweet />

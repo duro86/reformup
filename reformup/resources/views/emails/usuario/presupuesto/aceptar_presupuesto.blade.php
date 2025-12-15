@@ -9,13 +9,11 @@ El cliente
 ha aceptado tu presupuesto para la solicitud:
 
 > **“{{ $solicitud->titulo }}”**  
-> (ID solicitud: #{{ $solicitud->id }})
 
 ---
 
 ### Detalles del presupuesto
 
-- Referencia del presupuesto: **#{{ $presupuesto->id }}**
 - Estado actual: **{{ ucfirst($presupuesto->estado) }}**
 - Importe total:
   @if(!is_null($presupuesto->total))

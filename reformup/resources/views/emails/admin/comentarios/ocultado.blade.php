@@ -13,14 +13,14 @@ Hemos revisado tu comentario y actualmente **ya no está visible** en la platafo
 @if (!empty($solicitud->descripcion))
 **Descripción:**
 
-{{ strip_tags($comentario->descripcion) }}
+{{ strip_tags($solicitud->descripcion) }}
+@endif
 
-> {{ $solicitud->descripcion }}
 @endisset
-@endisset
+
 
 @isset($trabajo)
-**Trabajo asociado:** #{{ $trabajo->id }}
+**Trabajo asociado:** #{{ $trabajo->presupuesto->solicitud->titulo }}
 @endisset
 
 ---

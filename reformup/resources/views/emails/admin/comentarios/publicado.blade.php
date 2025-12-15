@@ -18,7 +18,7 @@ Tu comentario ha sido **publicado** y ya es visible en la plataforma.
 @endisset
 
 @isset($trabajo)
-**Trabajo asociado:** #{{ $trabajo->id }}
+**Trabajo asociado:** #{{ $trabajo->presupuesto->solicitud->titulo }}
 @endisset
 
 ---

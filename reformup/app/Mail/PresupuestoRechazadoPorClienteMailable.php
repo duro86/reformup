@@ -13,12 +13,14 @@ class PresupuestoRechazadoPorClienteMailable extends Mailable
     public $presupuesto;
     public $cliente;
     public $motivo;
+    public $solicitud;
 
-    public function __construct($presupuesto, $cliente, $motivo)
+    public function __construct($presupuesto, $cliente, $motivo, $solicitud)
     {
         $this->presupuesto = $presupuesto;
         $this->cliente     = $cliente;
         $this->motivo      = $motivo;
+        $this->solicitud      = $solicitud;
     }
 
     public function build()

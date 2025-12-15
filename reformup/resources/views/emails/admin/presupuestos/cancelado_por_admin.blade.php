@@ -13,7 +13,7 @@ relacionado con la solicitud
 @if($solicitud?->titulo)
 "{{ $solicitud->titulo }}"
 @else
-#{{ $solicitud->id }}
+# Sin nombre
 @endif
 ha sido **{{ $verbo }}** por el administrador de ReformUp.
 
@@ -31,7 +31,7 @@ para la solicitud
 @if($solicitud?->titulo)
 "{{ $solicitud->titulo }}"
 @else
-#{{ $solicitud->id }}
+# Sin titulo
 @endif
 ha sido **{{ $verbo }}** por el equipo de ReformUp.
 

@@ -11,10 +11,10 @@
     El profesional ha marcado tu trabajo como **finalizado**.
 
     @isset($presupuesto)
-        - Presupuesto asociado: **#{{ $presupuesto->id }}**
+        - Presupuesto asociado: **#{{ $presupuesto->solicitud->titulo }}**
     @endisset
 
-    - ID del trabajo: **{{ $trabajo->id }}**
+    - ID del trabajo: **{{ $trabajo->$presupuesto->solicitud->titulo }}**
     - Fecha de inicio: **{{ $fechaIni }}**
     - Fecha de fin: **{{ $fechaFin }}**
     @isset($trabajo->dir_obra)

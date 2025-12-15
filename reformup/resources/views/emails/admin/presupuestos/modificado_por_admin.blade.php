@@ -14,7 +14,7 @@ revisado y modificado por el equipo de administración de la plataforma.
 @isset($solicitud->titulo)
 “{{ $solicitud->titulo }}”
 @else
-Referencia #{{ $solicitud->id }}
+# Sin titulo
 @endisset
 
 **Estado actual de la solicitud:** {{ ucfirst(str_replace('_', ' ', $solicitud->estado)) }}

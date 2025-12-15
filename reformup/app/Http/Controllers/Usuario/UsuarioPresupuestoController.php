@@ -228,7 +228,8 @@ class UsuarioPresupuestoController extends Controller
                     new PresupuestoRechazadoPorClienteMailable(
                         $presupuesto,
                         $user,
-                        $validated['motivo'] ?? null
+                        $validated['motivo'] ?? null,
+                        $solicitud
                     )
                 );
             }

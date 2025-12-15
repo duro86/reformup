@@ -10,11 +10,7 @@ Hola {{ $perfilPro->empresa ?? $perfilPro->email_empresa }},
 
 El cliente ha cancelado el trabajo asociado a uno de tus presupuestos.
 
-@isset($presupuesto)
-- Presupuesto: **#{{ $presupuesto->id }}**
-@endisset
-
-- ID del trabajo: **{{ $trabajo->id }}**
+- ID del trabajo: **{{ $trabajo->presupuesto->solicitud->titulo }}**
 - Fecha de inicio: **{{ $fechaIni }}**
 - Fecha de fin: **{{ $fechaFin }}**
 @isset($trabajo->dir_obra)

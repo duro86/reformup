@@ -316,7 +316,14 @@ class UsuarioComentarioController extends Controller
         // Cargar relaciones necesarias (añadimos imagenes)
         $comentario->load('trabajo.presupuesto.solicitud', 'imagenes');
 
-        $refCliente = $request->query('ref');
+        // Correlativo SOLO de este cliente para mostrar en la vista
+        $idsOrdenados = Comentario::where('cliente_id', $user->id)
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->pluck('id');
+
+        $pos = $idsOrdenados->search($comentario->id);
+        $refCliente = $pos === false ? $comentario->id : ($idsOrdenados->count() - $pos);
 
         return view('layouts.usuario.comentarios.editar', compact('comentario', 'refCliente'));
     }
@@ -420,22 +427,25 @@ class UsuarioComentarioController extends Controller
             $trabajo->load('presupuesto.profesional', 'presupuesto.solicitud');
             $presupuesto = $trabajo->presupuesto;
             $profesional = $presupuesto?->profesional;
+            $solicitud   = $presupuesto?->solicitud;
         }
 
         // 8) Notificar a admins de que hay comentario editado pendiente
         $admins = User::role('admin')->get();
-
+        
         foreach ($admins as $admin) {
             if (! $admin->email) {
                 continue;
             }
-
+            
             try {
                 Mail::to($admin->email)->send(
-                    new ComentarioPendienteMailable($comentario, $trabajo, $user, $profesional)
+                    new ComentarioPendienteMailable($comentario, $trabajo, $user, $profesional, $solicitud)
                 );
             } catch (\Throwable $e) {
-                return back()->with('error', 'Fallo al notificar al administrador sobre el comentario editado.');
+                return redirect()
+            ->route('usuario.comentarios.index')
+            ->with('error', 'El email no se ha podido enviar al administrador, intentaremos solucionarlo lo antes posible. Revisaremos su comentario.');
             }
         }
 

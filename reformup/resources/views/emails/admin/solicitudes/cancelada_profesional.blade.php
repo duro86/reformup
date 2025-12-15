@@ -6,7 +6,6 @@ Hola {{ $perfilPro->empresa }},
 La solicitud de presupuesto:
 
 **“{{ $solicitud->titulo }}”**  
-(ID #{{ $solicitud->id }})
 
 ha sido **cancelada por el administrador** de ReformUp.
 
@@ -26,7 +25,6 @@ _No se han podido recuperar los datos del cliente._
 ## Presupuesto asociado
 
 @isset($presupuesto)
-- Referencia presupuesto: **#{{ $presupuesto->id }}**
 - Estado del presupuesto: **{{ ucfirst(str_replace('_', ' ', $presupuesto->estado)) }}**
 - Importe estimado:
     @if(!is_null($presupuesto->total))
@@ -43,7 +41,6 @@ _No había un presupuesto asociado (o no se ha llegado a crear)._
 ## Trabajo asociado
 
 @isset($trabajo)
-- Referencia trabajo: **#{{ $trabajo->id }}**
 - Estado del trabajo: **{{ ucfirst(str_replace('_', ' ', $trabajo->estado)) }}**
 - Dirección de la obra:
     @if($trabajo->dir_obra)

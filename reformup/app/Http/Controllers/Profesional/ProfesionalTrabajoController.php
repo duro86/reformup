@@ -212,7 +212,7 @@ class ProfesionalTrabajoController extends Controller
         if ($cliente && $cliente->email && $perfilPro) {
             try {
                 Mail::to($cliente->email)->send(
-                    new TrabajoIniciadoMailable($trabajo, $presupuesto, $cliente, $perfilPro)
+                    new TrabajoIniciadoMailable($trabajo, $presupuesto, $cliente, $perfilPro,$solicitud)
                 );
             } catch (\Throwable $e) {
                 return back()->with('error', 'No se ha podido avisar al cliente.');
@@ -262,7 +262,7 @@ class ProfesionalTrabajoController extends Controller
         if ($cliente && $cliente->email && $perfilPro) {
             try {
                 Mail::to($cliente->email)->send(
-                    new TrabajoFinalizadoMailable($trabajo, $presupuesto, $cliente, $perfilPro)
+                    new TrabajoFinalizadoMailable($trabajo, $presupuesto, $cliente, $perfilPro,$solicitud)
                 );
             } catch (\Throwable $e) {
                 return back()->with(
@@ -324,7 +324,8 @@ class ProfesionalTrabajoController extends Controller
                         $presupuesto,
                         $cliente,
                         $perfilPro,
-                        $motivo
+                        $motivo,
+                        $solicitud
                     )
                 );
 

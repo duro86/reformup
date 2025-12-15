@@ -6,10 +6,9 @@
     El profesional ha cancelado el trabajo asociado a tu solicitud.
 
     @isset($presupuesto)
-        - Presupuesto: **#{{ $presupuesto->id }}**
+        - Presupuesto: **#{{ $presupuesto->solicitud->titulo }}**
     @endisset
 
-    - ID del trabajo: **{{ $trabajo->id }}**
     - Estado actual: **{{ $trabajo->estado }}**
 
     @isset($trabajo->dir_obra)

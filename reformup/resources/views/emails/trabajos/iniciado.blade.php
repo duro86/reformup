@@ -9,11 +9,8 @@
 
     El profesional ha marcado tu trabajo como **en curso**.
 
-    @isset($presupuesto)
-        - Presupuesto asociado: **#{{ $presupuesto->id }}**
-    @endisset
 
-    - ID del trabajo: **{{ $trabajo->id }}**
+    - Trabajo: **{{ $solicitud->titulo}}**
     @isset($trabajo->dir_obra)
         - Dirección de la obra: {{ $trabajo->dir_obra }}
     @endisset

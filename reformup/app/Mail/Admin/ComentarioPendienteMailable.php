@@ -4,6 +4,7 @@ namespace App\Mail\Admin;
 
 use App\Models\Comentario;
 use App\Models\Trabajo;
+use App\Models\Solicitud;
 use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -17,16 +18,18 @@ class ComentarioPendienteMailable extends Mailable
     public Trabajo $trabajo;
     public ?User $cliente;
     public $profesional; // Perfil_Profesional o null
+    public Solicitud $solicitud;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(Comentario $comentario, Trabajo $trabajo, User $cliente, $profesional = null)
+    public function __construct(Comentario $comentario, Trabajo $trabajo, User $cliente, $profesional = null, Solicitud $solicitud)
     {
         $this->comentario  = $comentario;
         $this->trabajo     = $trabajo;
         $this->cliente     = $cliente;
         $this->profesional = $profesional;
+        $this->solicitud   = $solicitud;
     }
 
     /**

@@ -13,12 +13,12 @@ Tras revisar tu comentario, hemos decidido **no publicarlo** en la plataforma.
 @isset($solicitud->descripcion)
 **Descripción:**
 
-{{ strip_tags($comentario->descripcion) }}
+{{ strip_tags($solicitud->descripcion) }}
 @endisset
 @endisset
 
 @isset($trabajo)
-**Trabajo asociado:** #{{ $trabajo->id }}
+**Trabajo asociado:** #{{ $trabajo->presupuesto->solicitud->titulo }}
 @endisset
 
 ---

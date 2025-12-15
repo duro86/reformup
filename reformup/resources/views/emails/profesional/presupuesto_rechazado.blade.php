@@ -6,8 +6,6 @@ El cliente **{{ $cliente->nombre ?? $cliente->name }}** ha rechazado tu presupue
 @component('mail::panel')
 **Solicitud:** {{ $presupuesto->solicitud->titulo ?? 'Sin título' }}
 
-**Presupuesto ID:** #{{ $presupuesto->id }}
-
 @if($motivo)
 **Motivo proporcionado por el cliente:**
 

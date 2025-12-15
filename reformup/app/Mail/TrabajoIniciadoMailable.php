@@ -6,6 +6,7 @@ use App\Models\Trabajo;
 use App\Models\Presupuesto;
 use App\Models\User;
 use App\Models\Perfil_Profesional;
+use App\Models\Solicitud;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
@@ -18,13 +19,15 @@ class TrabajoIniciadoMailable extends Mailable
     public $presupuesto;
     public $cliente;
     public $perfilPro;
+    public $solicitud;
 
-    public function __construct(Trabajo $trabajo, ?Presupuesto $presupuesto, User $cliente, Perfil_Profesional $perfilPro)
+    public function __construct(Trabajo $trabajo, ?Presupuesto $presupuesto, User $cliente, Perfil_Profesional $perfilPro, Solicitud $solicitud)
     {
         $this->trabajo     = $trabajo;
         $this->presupuesto = $presupuesto;
         $this->cliente     = $cliente;
         $this->perfilPro   = $perfilPro;
+        $this->solicitud   = $solicitud;
     }
 
     public function build()

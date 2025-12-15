@@ -3,7 +3,7 @@
 
 Tu comentario sobre
 @isset($trabajo)
-**el trabajo #{{ $trabajo->id }}**
+**el trabajo #{{ $trabajo->presupuesto->solicitud->titulo}}**
 @endisset
 @isset($comentario->trabajo->presupuesto->solicitud->titulo)
 “**{{ $comentario->trabajo->presupuesto->solicitud->titulo }}**”

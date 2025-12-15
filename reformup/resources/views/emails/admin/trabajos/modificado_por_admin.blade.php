@@ -5,7 +5,7 @@
 
 Se ha modificado un trabajo asociado a la solicitud
 @isset($solicitud)
-“{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}”
+“{{ $solicitud->titulo }}”
 @endisset
 en la plataforma **ReformUp**.
 @else
@@ -13,7 +13,7 @@ en la plataforma **ReformUp**.
 
 Hemos actualizado la información de tu trabajo asociado a la solicitud
 @isset($solicitud)
-“{{ $solicitud->titulo ?? ('Solicitud #' . $solicitud->id) }}”
+“{{ $solicitud->titulo }}”
 @endisset
 en **ReformUp**.
 @endif
@@ -39,7 +39,7 @@ en **ReformUp**.
 @endphp
 
 @component('mail::panel')
-**Trabajo #{{ $trabajo->id }}**
+**Trabajo #{{ $trabajo->presupuesto->solicitud->titulo }}**
 
 @if($mostrarEstadoAnterior)
 **Estado anterior:** {{ ucfirst($estadoHumanoOld) }}  
@@ -85,7 +85,7 @@ en **ReformUp**.
 @endcomponent
 
 @isset($presupuesto)
-**Presupuesto asociado:** #{{ $presupuesto->id }}
+**Presupuesto asociado:** 
     @if(!is_null($presupuesto->total))
  — Importe: {{ number_format($presupuesto->total, 2, ',', '.') }} €
     @endif  

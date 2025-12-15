@@ -454,7 +454,7 @@ class UsuarioSolicitudController extends Controller
         $solicitud->load('profesional');
 
         // Calcular número correlativo (Ref) para ese cliente
-        // Misma lógica que el listado: orden por fecha DESC (ajusta si tu listado usa otro orden)
+        // Misma lógica que el listado: orden por fecha DESC 
         $idsOrdenados = Solicitud::where('cliente_id', $user->id)
             ->orderByDesc('fecha')
             ->orderByDesc('id')
